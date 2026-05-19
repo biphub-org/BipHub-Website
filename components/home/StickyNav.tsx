@@ -41,11 +41,27 @@ const NAV_LINKS = [
 // flips to solid white on scroll. All other public pages stay solid by default.
 const DARK_HERO_ROUTES = ['/', '/bips', '/what-is-a-bip', '/guides'] as const
 
+// Per-route scroll threshold (px) before the transparent nav flips to white.
+// Shorter heroes need earlier flips so the nav doesn't outlive the dark band.
+const SCROLL_THRESHOLDS: ReadonlyArray<readonly [string, number]> = [
+  ['/bips', 40],
+  ['/what-is-a-bip', 70],
+  ['/guides', 70],
+] as const
+const DEFAULT_SCROLL_THRESHOLD = 100
+
 function pageHasDarkHero(pathname: string): boolean {
   return DARK_HERO_ROUTES.some(
     (route) =>
       pathname === route || (route !== '/' && pathname.startsWith(route + '/')),
   )
+}
+
+function getScrollThreshold(pathname: string): number {
+  const match = SCROLL_THRESHOLDS.find(
+    ([route]) => pathname === route || pathname.startsWith(route + '/'),
+  )
+  return match ? match[1] : DEFAULT_SCROLL_THRESHOLD
 }
 
 interface StickyNavProps {
@@ -60,13 +76,14 @@ export function StickyNav({ hasClaims = false, initials = null }: StickyNavProps
 
   useEffect(() => {
     if (!hasDarkHero) return
-    // Threshold tuned to roughly half the hero height — the white panel
-    // shouldn't appear the moment the user nudges the wheel.
-    const onScroll = () => setScrolled(window.scrollY > 100)
+    // Threshold tuned per route — shorter heroes (e.g. /guides, /what-is-a-bip)
+    // need an earlier flip so the white nav appears before the dark band ends.
+    const threshold = getScrollThreshold(pathname)
+    const onScroll = () => setScrolled(window.scrollY > threshold)
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
-  }, [hasDarkHero])
+  }, [hasDarkHero, pathname])
 
   // Transparent mode is active when the page has a dark hero AND we're at the top.
   const transparent = hasDarkHero && !scrolled
@@ -112,12 +129,16 @@ export function StickyNav({ hasClaims = false, initials = null }: StickyNavProps
                       href={link.href}
                       aria-current={isActive ? 'page' : undefined}
                       className={cn(
-                        'inline-flex items-center px-4 py-2 text-sm font-medium transition-colors hover:text-eu-gold',
-                        isActive
-                          ? 'text-eu-gold'
-                          : transparent
-                            ? 'text-white/85'
-                            : 'text-ink-2',
+                        'inline-flex items-center px-4 py-2 text-sm font-medium transition-colors',
+                        transparent
+                          ? cn(
+                              'hover:text-eu-gold',
+                              isActive ? 'text-eu-gold' : 'text-white/85',
+                            )
+                          : cn(
+                              'hover:text-eu-blue',
+                              isActive ? 'text-eu-blue' : 'text-ink-2',
+                            ),
                       )}
                     >
                       {link.label}

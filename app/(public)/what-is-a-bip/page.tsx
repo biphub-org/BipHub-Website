@@ -96,29 +96,7 @@ export default function WhatIsABipPage() {
           ].join(', '),
         }}
       >
-        {/* Sparse static gold accents — no motion, page is force-static */}
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute h-1.5 w-1.5 rounded-full bg-eu-gold"
-          style={{ left: '10%', top: '22%', boxShadow: '0 0 10px rgba(255,204,0,0.7)' }}
-        />
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute h-1 w-1 rounded-full bg-eu-gold"
-          style={{ left: '82%', top: '18%', boxShadow: '0 0 8px rgba(255,204,0,0.6)' }}
-        />
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute h-1 w-1 rounded-full bg-eu-gold"
-          style={{ left: '78%', top: '64%', boxShadow: '0 0 8px rgba(255,204,0,0.6)' }}
-        />
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute h-1.5 w-1.5 rounded-full bg-eu-gold"
-          style={{ left: '14%', top: '78%', boxShadow: '0 0 10px rgba(255,204,0,0.7)' }}
-        />
-
-        <div className="relative mx-auto max-w-[1200px] px-4 md:px-6 pt-[136px] pb-20 lg:pt-[168px] lg:pb-28">
+        <div className="relative mx-auto max-w-[1200px] px-4 md:px-6 pt-[96px] pb-[120px] lg:pt-[128px] lg:pb-[152px]">
           <Eyebrow className="mb-5 text-white">
             <span className="text-white">Student guide</span>
           </Eyebrow>
