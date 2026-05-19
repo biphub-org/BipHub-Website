@@ -154,7 +154,7 @@ function HeroInner() {
   return (
     <section
       ref={sectionRef}
-      className="relative overflow-hidden border-b border-border pt-24 pb-20"
+      className="relative overflow-hidden border-b border-border pt-[152px] pb-20"
       style={{
         backgroundColor: '#0a1735',
         backgroundImage: [

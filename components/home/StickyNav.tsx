@@ -16,6 +16,7 @@
  * focus return to trigger). WCAG AA for <960px viewports.
  */
 
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { LogoMark } from './LogoMark'
@@ -36,6 +37,17 @@ const NAV_LINKS = [
   { href: '/guides', label: 'Guides' },
 ] as const
 
+// Pages whose top-of-page hero is dark — nav starts transparent over them and
+// flips to solid white on scroll. All other public pages stay solid by default.
+const DARK_HERO_ROUTES = ['/', '/bips', '/what-is-a-bip', '/guides'] as const
+
+function pageHasDarkHero(pathname: string): boolean {
+  return DARK_HERO_ROUTES.some(
+    (route) =>
+      pathname === route || (route !== '/' && pathname.startsWith(route + '/')),
+  )
+}
+
 interface StickyNavProps {
   hasClaims?: boolean
   initials?: string | null
@@ -43,64 +55,118 @@ interface StickyNavProps {
 
 export function StickyNav({ hasClaims = false, initials = null }: StickyNavProps) {
   const pathname = usePathname()
+  const hasDarkHero = pageHasDarkHero(pathname)
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    if (!hasDarkHero) return
+    // Threshold tuned to roughly half the hero height — the white panel
+    // shouldn't appear the moment the user nudges the wheel.
+    const onScroll = () => setScrolled(window.scrollY > 100)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [hasDarkHero])
+
+  // Transparent mode is active when the page has a dark hero AND we're at the top.
+  const transparent = hasDarkHero && !scrolled
+
   return (
+    <>
+      {/* When the page does NOT have a dark hero, reserve 68px of layout space
+          since the nav itself is fixed (out of flow). Dark-hero pages omit this
+          so the hero extends behind the transparent nav. */}
+      {!hasDarkHero && <div aria-hidden className="h-[68px]" />}
     <header
-      className="sticky top-0 z-50 h-[68px] w-full border-b border-border bg-white/85 backdrop-blur-md backdrop-saturate-150"
+      className={cn(
+        'fixed top-0 left-0 right-0 z-50 h-[68px] w-full transition-colors duration-200',
+        transparent
+          ? 'border-b border-transparent bg-transparent'
+          : 'border-b border-border bg-white/85 backdrop-blur-md backdrop-saturate-150',
+      )}
       role="navigation"
       aria-label="Primary"
     >
-      <div className="mx-auto flex h-full max-w-[1200px] items-center justify-between px-4 md:px-6">
-        <Link href="/" className="flex items-center gap-2 font-bold text-ink">
-          <LogoMark />
-          <span className="text-base">BipHub</span>
-        </Link>
+      <div className="mx-auto flex h-full max-w-[1200px] items-center justify-between gap-6 px-4 md:px-6">
+        <div className="flex items-center gap-6">
+          <Link
+            href="/"
+            className={cn(
+              'flex w-fit items-center gap-2 font-bold transition-colors',
+              transparent ? 'text-white' : 'text-ink',
+            )}
+          >
+            <LogoMark />
+            <span className="text-base">BipHub</span>
+          </Link>
 
-        {/* Desktop nav links — hidden below 960px (md = 60rem per @theme override) */}
-        <ul className="hidden items-center gap-6 md:flex">
-          {NAV_LINKS.map((link) => {
-            const active =
-              pathname === link.href || pathname.startsWith(link.href + '/')
-            return (
-              <li key={link.href}>
-                <Link
-                  href={link.href}
-                  className={cn(
-                    'text-sm font-medium transition-colors',
-                    active ? 'text-eu-blue' : 'text-ink-2 hover:text-ink',
-                  )}
-                >
-                  {link.label}
-                </Link>
-              </li>
-            )
-          })}
-        </ul>
+          {/* Desktop nav — gold text on hover/active. Hidden below 960px. */}
+          <nav className="hidden md:flex" aria-label="Primary navigation">
+            <ul className="flex items-center gap-1">
+              {NAV_LINKS.map((link) => {
+                const isActive =
+                  pathname === link.href || pathname.startsWith(link.href + '/')
+                return (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      aria-current={isActive ? 'page' : undefined}
+                      className={cn(
+                        'inline-flex items-center px-4 py-2 text-sm font-medium transition-colors hover:text-eu-gold',
+                        isActive
+                          ? 'text-eu-gold'
+                          : transparent
+                            ? 'text-white/85'
+                            : 'text-ink-2',
+                      )}
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                )
+              })}
+            </ul>
+          </nav>
+        </div>
 
         <div className="flex items-center gap-2">
           {hasClaims ? (
             <>
               <Link
                 href="/dashboard"
-                className="hidden md:inline text-sm font-semibold text-ink hover:text-eu-blue"
+                className={cn(
+                  'hidden md:inline text-sm font-semibold transition-colors',
+                  transparent ? 'text-white hover:text-eu-gold' : 'text-ink hover:text-eu-blue',
+                )}
               >
                 Dashboard
               </Link>
               <span
                 aria-label="Coordinator profile"
-                className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-eu-blue/10 text-eu-blue text-sm font-semibold"
+                className={cn(
+                  'inline-flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold transition-colors',
+                  transparent
+                    ? 'bg-white/15 text-white'
+                    : 'bg-eu-blue/10 text-eu-blue',
+                )}
               >
                 {initials ?? '··'}
               </span>
             </>
           ) : (
-            <>
-              <Link href="/login" className="hidden md:inline-flex">
-                <Button variant="ghost" size="sm">Sign in</Button>
-              </Link>
-              <Link href="/register">
-                <Button variant="primary" size="sm">List your BIP</Button>
-              </Link>
-            </>
+            <Link href="/register">
+              <Button
+                variant="primary"
+                size="sm"
+                className={cn(
+                  'transition-colors',
+                  transparent &&
+                    'bg-white text-eu-blue border-white hover:bg-white/90 hover:shadow-[0_6px_20px_rgba(255,255,255,0.25)]',
+                )}
+              >
+                List your BIP
+              </Button>
+            </Link>
           )}
 
           {/* Mobile nav menu — Sheet drawer for <960px viewports.
@@ -108,7 +174,12 @@ export function StickyNav({ hasClaims = false, initials = null }: StickyNavProps
               Keyboard-accessible: focus trap, Escape closes, focus returns to trigger. */}
           <Sheet>
             <SheetTrigger
-              className="md:hidden inline-flex items-center justify-center w-11 h-11 rounded-md border border-border text-ink-2 hover:bg-bg-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eu-blue"
+              className={cn(
+                'md:hidden inline-flex items-center justify-center w-11 h-11 rounded-md border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eu-blue transition-colors',
+                transparent
+                  ? 'border-white/30 text-white hover:bg-white/10'
+                  : 'border-border text-ink-2 hover:bg-bg-soft',
+              )}
               aria-label="Open navigation menu"
             >
               <span aria-hidden="true" className="text-base leading-none">☰</span>
@@ -141,22 +212,13 @@ export function StickyNav({ hasClaims = false, initials = null }: StickyNavProps
                       }
                     />
                   ) : (
-                    <>
-                      <SheetClose
-                        render={
-                          <Link href="/login" className="inline-flex">
-                            <Button variant="ghost" className="w-full">Sign in</Button>
-                          </Link>
-                        }
-                      />
-                      <SheetClose
-                        render={
-                          <Link href="/register" className="inline-flex">
-                            <Button variant="primary" className="w-full">List your BIP</Button>
-                          </Link>
-                        }
-                      />
-                    </>
+                    <SheetClose
+                      render={
+                        <Link href="/register" className="inline-flex">
+                          <Button variant="primary" className="w-full">List your BIP</Button>
+                        </Link>
+                      }
+                    />
                   )}
                 </div>
               </nav>
@@ -165,5 +227,6 @@ export function StickyNav({ hasClaims = false, initials = null }: StickyNavProps
         </div>
       </div>
     </header>
+    </>
   )
 }

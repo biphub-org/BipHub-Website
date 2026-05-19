@@ -76,7 +76,7 @@ export default function GuidesHubPage() {
           style={{ left: '14%', top: '78%', boxShadow: '0 0 10px rgba(255,204,0,0.7)' }}
         />
 
-        <div className="relative mx-auto max-w-[1200px] px-4 md:px-6 py-20 lg:py-28">
+        <div className="relative mx-auto max-w-[1200px] px-4 md:px-6 pt-[136px] pb-20 lg:pt-[168px] lg:pb-28">
           <Eyebrow className="mb-5 text-white">
             <span className="text-white">Guides</span>
           </Eyebrow>

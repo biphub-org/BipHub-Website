@@ -114,7 +114,7 @@ export default async function BipsPage(props: {
           style={{ left: '78%', top: '72%', boxShadow: '0 0 8px rgba(255,204,0,0.6)' }}
         />
 
-        <div className="relative mx-auto max-w-[1200px] px-4 lg:px-6 py-10 lg:py-14">
+        <div className="relative mx-auto max-w-[1200px] px-4 lg:px-6 pt-[96px] pb-10 lg:pt-[112px] lg:pb-14">
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between md:gap-10">
             <div className="md:flex-1">
               <h1
