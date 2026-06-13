@@ -291,6 +291,11 @@
   }
   html {
     @apply font-sans;
+    /* Lightweight smooth scroll — CSS only, zero JS. Eases anchor jumps
+       (skip-link, in-page jump links). scroll-padding-top clears the 68px
+       fixed StickyNav so anchored targets aren't hidden underneath it. */
+    scroll-behavior: smooth;
+    scroll-padding-top: 84px;
   }
 }
 
@@ -312,6 +317,9 @@
 
 /* ---------- Reduced motion (UI-SPEC line 481) ---------- */
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
