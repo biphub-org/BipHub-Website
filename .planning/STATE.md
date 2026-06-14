@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Product Depth & Engagement
 status: planning
-last_updated: "2026-06-14T18:21:22.018Z"
+last_updated: "2026-06-14T00:00:00.000Z"
 last_activity: 2026-06-14
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,39 +20,38 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-14 after v1.0 milestone)
 
 **Core value:** Students can reliably discover Erasmus+ BIPs by country, field of study, and dates, and universities can self-service list their BIPs through a fast, professional submission flow with admin review.
-**Current focus:** v1.0 shipped — planning next milestone (`/gsd-new-milestone`)
+**Current focus:** v1.1 planning complete — roadmap written, ready for `/gsd-plan-phase 5`
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 5 (not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-06-14 — Milestone v1.1 started
+Status: Roadmap defined — awaiting phase planning
+Last activity: 2026-06-14 — v1.1 roadmap created (Phases 5–8)
+
+```
+v1.1 Progress: [░░░░░░░░░░░░░░░░░░░░] 0%
+Phase 5 ░  Phase 6 ░  Phase 7 ░  Phase 8 ░
+```
 
 ## Performance Metrics
 
-**Velocity:**
+**Velocity (v1.0 reference):**
 
-- Total plans completed: 15
-- Average duration: —
-- Total execution time: 0 hours
+- Total plans completed (v1.0): 30
+- Average tasks per plan (v1.0): ~2.7
+- Total phases (v1.0): 4
 
-**By Phase:**
+**By Phase (v1.1 — not started):**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 1 | 8 | - | - |
-| 02 | 7 | - | - |
-
-**Recent Trend:**
-
-- Last 5 plans: —
-- Trend: —
+| 5 | TBD | - | - |
+| 6 | TBD | - | - |
+| 7 | TBD | - | - |
+| 8 | TBD | - | - |
 
 *Updated after each plan completion*
-| Phase 01 P04 | 40min | 2 tasks | 9 files |
-| Phase 01 P05 | 90min | 2 tasks | 21 files |
-| Phase 01 P07 | 150min | 3 tasks | 22 files |
 
 ## Accumulated Context
 
@@ -132,6 +131,9 @@ Recent decisions affecting current work:
 - Plan 04-07: `e2e-coordinator-fresh@biphub.test` is destructively consumed by `auth.spec.ts`'s account-deletion test — NO other spec may depend on it. seed.e2e.sql header comments + EDGE-CASES-DEFERRED.md document this contract.
 - Plan 04-07: `.github/workflows/e2e.yml` deliberately does NOT set the transactional-email API key (literal token name avoided in the file to satisfy the grep-based acceptance criterion). D-15 console fallback inside `lib/email/send.ts` handles the test path.
 - Plan 04-07: Task 10 (axe-DevTools sweep) is `checkpoint:human-verify` — agent cannot run the browser extension headlessly. Procedure committed at `.planning/phases/04-.../axe/README.md`; user runs the sweep, captures 13 route screenshots, fixes any critical/serious findings inline, types "approved".
+- v1.1 Roadmap: Edit-approved-BIP uses shadow `bip_edits` table (PITFALLS.md approach, not ARCHITECTURE.md snapshot approach) — `bips.status` stays `approved` throughout re-review; BIP never disappears from public directory
+- v1.1 Roadmap: FOUN-07 and FOUN-08 assigned to Phase 5 (student role introduction); FOUN-09 and FOUN-10 assigned to Phase 6 (first PII table introduction) with ongoing obligations noted in Phase 7 and 8 success criteria
+- v1.1 Roadmap: Phase 8 depends on Phase 5 (profiles table must include student role before `bip_edits` GDPR cascade is wired); does NOT depend on Phase 6 or 7 — can start after Phase 5 if parallelizing
 
 ### Pending Todos
 
@@ -143,6 +145,8 @@ None yet.
 - erasmusbip.org ToS: review before any seed scraping script is written; fallback is coordinator-outreach seed strategy
 - `@supabase/ssr` is `^0.x` beta — pin exact minor version; monitor changelog before upgrading
 - Zod v4 / `@hookform/resolvers` compatibility — recheck before Phase 2 starts
+- **v1.1 Phase 7 prerequisite:** confirm `pg_net` is enabled in `supabase/config.toml` before Phase 7 planning begins; local pg_cron cannot call a public URL — Edge Function must be invoked manually via `supabase functions serve` for end-to-end local testing
+- **v1.1 Phase 7:** Resend free tier ceiling is 100 emails/day — Phase 7 plan should document the upgrade trigger (Resend Starter $20/mo for 5K/day)
 
 ## Deferred Items
 
@@ -158,11 +162,11 @@ Items acknowledged and deferred at v1.0 milestone close on 2026-06-14:
 
 ## Session Continuity
 
-Last session: 2026-05-14T00:00:00.000Z
-Stopped at: Completed 04-06-PLAN.md
+Last session: 2026-06-14T00:00:00.000Z
+Stopped at: v1.1 roadmap created
 Resume file: None
-Resume instructions: Plans 04-01..04-06 complete. Next: Plan 04-07 (Playwright E2E + a11y polish — playwright.config.ts, seed.e2e.sql, storage-state setup, 4 specs, .github/workflows/e2e.yml, axe-DevTools sweep). Plan 04-06 left one manual followup: user must capture 4 Lighthouse screenshots (instructions at `.planning/phases/04-polish-static-content-performance-hardening/lighthouse/README.md`) to close D-20.
+Resume instructions: Roadmap phases 5–8 defined. 29/29 requirements mapped. Next: `/gsd-plan-phase 5`
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Run `/gsd-plan-phase 5` to create the plan for Phase 5: Student Auth + Role Model

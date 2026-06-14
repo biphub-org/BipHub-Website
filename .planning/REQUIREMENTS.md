@@ -90,41 +90,43 @@ Which phases cover which requirements. Filled in during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| STUD-01 | TBD | Pending |
-| STUD-02 | TBD | Pending |
-| STUD-03 | TBD | Pending |
-| STUD-04 | TBD | Pending |
-| STUD-05 | TBD | Pending |
-| STUD-06 | TBD | Pending |
-| STUD-07 | TBD | Pending |
-| STUD-08 | TBD | Pending |
-| ALRT-01 | TBD | Pending |
-| ALRT-02 | TBD | Pending |
-| ALRT-03 | TBD | Pending |
-| ALRT-04 | TBD | Pending |
-| ALRT-05 | TBD | Pending |
-| ALRT-06 | TBD | Pending |
-| ALRT-07 | TBD | Pending |
-| ALRT-08 | TBD | Pending |
-| EDIT-01 | TBD | Pending |
-| EDIT-02 | TBD | Pending |
-| EDIT-03 | TBD | Pending |
-| EDIT-04 | TBD | Pending |
-| EDIT-05 | TBD | Pending |
-| EDIT-06 | TBD | Pending |
-| EDIT-07 | TBD | Pending |
-| EDIT-08 | TBD | Pending |
-| EDIT-09 | TBD | Pending |
-| FOUN-07 | TBD | Pending |
-| FOUN-08 | TBD | Pending |
-| FOUN-09 | TBD | Pending |
-| FOUN-10 | TBD | Pending |
+| STUD-01 | Phase 5 | Pending |
+| STUD-02 | Phase 5 | Pending |
+| STUD-03 | Phase 5 | Pending |
+| STUD-04 | Phase 6 | Pending |
+| STUD-05 | Phase 6 | Pending |
+| STUD-06 | Phase 6 | Pending |
+| STUD-07 | Phase 6 | Pending |
+| STUD-08 | Phase 6 | Pending |
+| ALRT-01 | Phase 7 | Pending |
+| ALRT-02 | Phase 7 | Pending |
+| ALRT-03 | Phase 7 | Pending |
+| ALRT-04 | Phase 7 | Pending |
+| ALRT-05 | Phase 7 | Pending |
+| ALRT-06 | Phase 7 | Pending |
+| ALRT-07 | Phase 7 | Pending |
+| ALRT-08 | Phase 7 | Pending |
+| EDIT-01 | Phase 8 | Pending |
+| EDIT-02 | Phase 8 | Pending |
+| EDIT-03 | Phase 8 | Pending |
+| EDIT-04 | Phase 8 | Pending |
+| EDIT-05 | Phase 8 | Pending |
+| EDIT-06 | Phase 8 | Pending |
+| EDIT-07 | Phase 8 | Pending |
+| EDIT-08 | Phase 8 | Pending |
+| EDIT-09 | Phase 8 | Pending |
+| FOUN-07 | Phase 5 | Pending |
+| FOUN-08 | Phase 5 | Pending |
+| FOUN-09 | Phase 6 | Pending |
+| FOUN-10 | Phase 6 | Pending |
+
+> **FOUN-09 and FOUN-10 distribution note:** Both requirements are cross-cutting — they apply to every phase that introduces a new PII-bearing table. They are assigned to Phase 6 (the earliest phase introducing such a table: `saved_bips`). The ongoing obligation is explicitly encoded in the Phase 7 and Phase 8 success criteria, which require that each new table (`bip_subscriptions`, `bip_alert_deliveries`, `bip_edits`) also carries `ON DELETE CASCADE` and is enumerated in `/privacy`.
 
 **Coverage:**
 - v1.1 requirements: 29 total
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 29 ⚠️ (resolved by roadmapper)
+- Mapped to phases: 29 (Phase 5: 5, Phase 6: 7, Phase 7: 8, Phase 8: 9)
+- Unmapped: 0 — full coverage confirmed
 
 ---
 *Requirements defined: 2026-06-14*
-*Last updated: 2026-06-14 — v1.1 milestone scoping*
+*Last updated: 2026-06-14 — traceability filled in by roadmapper*
