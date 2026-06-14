@@ -38,29 +38,26 @@ test.describe('map-to-filter integration', () => {
     })
   })
 
-  // KNOWN ISSUE (pre-existing, prod build) — see BIPS-NAV-BUG below.
-  // On /bips, router.push() to the SAME pathname (removing a filter chip,
-  // "Clear all", or typing in search) is a no-op: neither the URL nor the
-  // result list changes. Meanwhile the page IS hydrated (the sidebar "Country"
-  // accordion toggles via client state) and CROSS-pathname navigation works
-  // (the test above: homepage map → /bips?country=DE passes). Reproduced on
-  // next@15.5.18, fresh `next build && next start`, headless Chrome, with zero
-  // console/page errors. This breaks /bips filter interactivity in production
-  // and needs a focused fix to the navigation pattern shared by BipFilterChips
-  // / BipSearchBar (and likely other same-pathname push() call sites). Tracked
-  // separately from the resubmit work; un-skip once the nav fix lands.
-  test.fixme(
-    'clearing the country filter returns to /bips',
-    async ({ page }) => {
-      await page.goto('/bips?country=DE')
-      await page
-        .getByRole('button', { name: 'Germany Remove filter' })
-        .click()
-      await expect
-        .poll(() => new URL(page.url()).searchParams.has('country'), {
-          timeout: 10_000,
-        })
-        .toBe(false)
-    },
-  )
+  // KNOWN ISSUE — BIPS-NAV-BUG (under investigation; see .planning/v1.0-MILESTONE-AUDIT.md).
+  // On /bips in a LOCAL production build (`next build && next start`), router.push()
+  // AND router.replace() to the SAME pathname (filter chip, "Clear all", search,
+  // sort, pagination) are no-ops — the /bips RSC does not re-render with the new
+  // searchParams, so filters appear dead. Confirmed: works in `next dev`; the page
+  // IS hydrated (sidebar accordion toggles); CROSS-pathname push works (the test
+  // above passes). Five fixes ruled out: force-dynamic, experimental.staleTimes:0,
+  // middleware bypass, pushState+router.refresh (URL changes but content stays
+  // stale), router.replace. Open question: does this reproduce on the DEPLOYED
+  // Vercel runtime (which differs from local `next start`)? Un-skip once resolved.
+  test.fixme('clearing the country filter returns to /bips', async ({ page }) => {
+    await page.goto('/bips?country=DE')
+    await page.getByRole('button', { name: 'Germany Remove filter' }).click()
+    await expect
+      .poll(() => new URL(page.url()).searchParams.has('country'), {
+        timeout: 10_000,
+      })
+      .toBe(false)
+    await expect(
+      page.getByRole('button', { name: 'Germany Remove filter' }),
+    ).toHaveCount(0)
+  })
 })
