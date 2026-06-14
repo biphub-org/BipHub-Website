@@ -8,13 +8,25 @@ the sweep is complete.
 ## How to run
 
 1. Install axe DevTools (Chrome / Edge): <https://www.deque.com/axe/devtools/>
-2. Start local Supabase, apply the demo + E2E seeds, and start the dev server:
+2. Point the app at the **cloud** Supabase project and start the dev server.
+   `.env.local` must hold the cloud project's `NEXT_PUBLIC_SUPABASE_URL` + keys
+   (pull via `vercel env pull` or copy from the Supabase dashboard → Project
+   Settings → API).
+
+   The signed-in routes below need an **admin** + **coordinator** account. Admin
+   role is granted via `app_metadata` (not self-registerable through the UI), so
+   apply the fixture seed to the cloud DB once — paste `supabase/seed.e2e.sql`
+   into the Supabase **SQL editor**, or run it against the cloud connection
+   string:
 
    ```bash
-   npm run db:reset            # demo seed (seed.sql) only
-   psql "$(supabase status -o json | jq -r '.DB_URL')" -f supabase/seed.e2e.sql
+   psql "<cloud-pooler-or-direct-connection-string>" -f supabase/seed.e2e.sql
    npm run dev
    ```
+
+   > ⚠ The fixtures use demo passwords and `@biphub.test` emails. This project
+   > will become production — **purge them before launch** (re-run the seed's
+   > Step 0, or `delete from auth.users where email like '%@biphub.test'`).
 
 3. For each route below, open in Chrome → DevTools → axe DevTools tab → "Scan ALL of my page":
 

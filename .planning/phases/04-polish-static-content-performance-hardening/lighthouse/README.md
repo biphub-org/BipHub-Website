@@ -1,6 +1,9 @@
 # Lighthouse Audits — Plan 04-06 Task 6 (D-20)
 
-**Status:** PENDING — manual capture required by user.
+**Status:** PASS — user confirmed all four routes meet the FOUN-02 targets
+(Performance / Accessibility / SEO ≥ 90, LCP < 1.5s simulated 4G mobile) on 2026-06-13.
+Screenshot baselines (`home.png`, `bips.png`, `bip-detail.png`, `what-is-a-bip.png`)
+not yet committed — optional for v1, recommended before v1.1 regression gating.
 
 This directory is the destination for four Chrome Lighthouse screenshots that
 validate Phase 4's locked performance target (FOUN-02 from Phase 1): Performance,
@@ -8,11 +11,9 @@ Accessibility, and SEO each ≥ 90, with LCP < 1.5s on simulated 4G mobile.
 
 ## How to capture (≈ 15 min total)
 
-1. Ensure local Supabase is running and DB is seeded:
-   ```
-   supabase status      # services up?
-   npm run db:reset     # if not seeded
-   ```
+1. Point `.env.local` at the **cloud** Supabase project (`vercel env pull`, or
+   copy from the Supabase dashboard → Settings → API). The cloud DB is already
+   seeded, so no local reset is needed.
 2. Production build + start:
    ```
    npm run build
