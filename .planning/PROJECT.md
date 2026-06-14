@@ -15,7 +15,18 @@ The full three-audience product is live: students discover BIPs (map + filters +
 
 **Known deferred (non-blocking):** Phase 01 visual + Phase 03 runtime human-verify checkpoints; minor a11y colour-contrast polish (→ v1.1); `BIPS-NAV-BUG` is a local `next start`-only test artifact (deployed filters work). See `milestones/v1.0-MILESTONE-AUDIT.md`.
 
-**Next milestone goals:** TBD — define via `/gsd-new-milestone` (candidates from Out of Scope: student accounts/bookmark sync, edit-approved-with-re-review, partner reconciliation, JSON-LD/SEO, i18n).
+**Next milestone:** v1.1 Product Depth & Engagement — see Current Milestone below.
+
+## Current Milestone: v1.1 Product Depth & Engagement
+
+**Goal:** Deepen the product for its two human audiences — give students reasons to return, smooth the coordinator/admin path that feeds the site — and close table-stakes gaps v1.0 missed (surfaced by research, not guessed).
+
+**Target features (workstreams):**
+- **Student value** — server-side accounts, saved-BIPs sync across devices, email alerts for new BIPs in a student's field/country
+- **Coordinator/admin UX** — edit-approved-BIP-with-re-review, smoother submission, better admin tooling
+- **Gap-fill** — important platform features v1.0 lacks, surfaced by domain research
+
+**Deferred to a later milestone:** Public read API + JSON-LD/SEO ("data layer for devs") — deliberately postponed until the product has a real audience worth serving via API.
 
 ## Requirements
 
@@ -38,9 +49,9 @@ The full three-audience product is live: students discover BIPs (map + filters +
 #### Foundation
 - ✓ RLS on every table; GDPR (privacy page + Art-17 account erasure); Lighthouse ≥90; WCAG AA (axe sweep passed); MIT + CONTRIBUTING; Playwright E2E — v1.0
 
-### Active
+### Active (v1.1 — scoping)
 
-(None — next milestone scope is defined via `/gsd-new-milestone`.)
+Requirements being defined for v1.1 Product Depth & Engagement (student value, coordinator/admin UX, research-surfaced gap-fill). See `.planning/REQUIREMENTS.md` once generated.
 
 ### Out of Scope
 
@@ -119,4 +130,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-14 after v1.0 milestone*
+*Last updated: 2026-06-14 — started v1.1 Product Depth & Engagement milestone*
