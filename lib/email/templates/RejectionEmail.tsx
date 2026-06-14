@@ -25,6 +25,11 @@ import { EMAIL_TOKENS as T } from '../tokens'
 
 export interface RejectionEmailProps {
   bipTitle: string
+  /**
+   * Retained on the data contract (callers pass it) though the CTA no longer
+   * deep-links per-BIP — a rejected BIP can't open at /dashboard/bips/[id]/edit
+   * (404), so the CTA routes to the dashboard Rejected view instead.
+   */
   bipId: string
   reason: string
   coordinatorName: string
@@ -34,13 +39,15 @@ export interface RejectionEmailProps {
 
 export function RejectionEmail({
   bipTitle,
-  bipId,
   reason,
   coordinatorName,
   siteOrigin = 'https://biphub.eu',
 }: RejectionEmailProps) {
-  const editUrl = `${siteOrigin}/dashboard/bips/${bipId}/edit`
-  const dashboardUrl = `${siteOrigin}/dashboard`
+  // CTA targets the dashboard's Rejected view, where the coordinator clicks
+  // "Revise & resubmit" to reopen the BIP. A rejected BIP cannot be opened at
+  // /dashboard/bips/[id]/edit directly (that route only accepts draft/pending),
+  // so deep-linking there would 404 — the dashboard is the working entry point.
+  const dashboardUrl = `${siteOrigin}/dashboard?status=rejected`
 
   return (
     <Html>
@@ -159,9 +166,9 @@ export function RejectionEmail({
 
           <div style={{ height: '24px' }} />
 
-          {/* Primary CTA */}
+          {/* Primary CTA — opens the dashboard Rejected view (Revise & resubmit). */}
           <Button
-            href={editUrl}
+            href={dashboardUrl}
             style={{
               backgroundColor: T.euBlue,
               color: T.white,
@@ -173,17 +180,15 @@ export function RejectionEmail({
               display: 'inline-block',
             }}
           >
-            Edit and resubmit →
+            Revise and resubmit →
           </Button>
 
           <div style={{ height: T.gap }} />
 
           <Text style={{ fontSize: T.smallSize, color: T.muted, lineHeight: T.smallLineHeight }}>
-            Or open your{' '}
-            <a href={dashboardUrl} style={{ color: T.euBlue, textDecoration: 'underline' }}>
-              BipHub dashboard
-            </a>{' '}
-            to see all your submissions.
+            From your dashboard, choose{' '}
+            <strong>Revise &amp; resubmit</strong> on this BIP to reopen it, make
+            your changes, and submit it for review again.
           </Text>
 
           <Hr style={{ borderTop: `1px solid ${T.border}`, margin: '32px 0 16px 0' }} />

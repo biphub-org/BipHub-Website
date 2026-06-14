@@ -97,14 +97,19 @@ describe('RejectionEmail', () => {
     )
   })
 
-  it('renders /dashboard/bips/[id]/edit CTA href', async () => {
+  it('CTA targets the dashboard Rejected view (revise & resubmit), not a dead /edit deep link', async () => {
     const html = await renderRejection({
       bipTitle: 'X',
       bipId: 'unique-id-xyz',
       coordinatorName: 'A',
       reason: 'x'.repeat(20),
     })
-    expect(html).toContain('https://biphub.eu/dashboard/bips/unique-id-xyz/edit')
+    // A rejected BIP cannot open at /dashboard/bips/[id]/edit (404 — that route
+    // only accepts draft/pending), so the CTA must route to the dashboard where
+    // the "Revise & resubmit" affordance lives. Guard against regressing to the
+    // dead deep link.
+    expect(html).toContain('https://biphub.eu/dashboard?status=rejected')
+    expect(html).not.toContain('/dashboard/bips/unique-id-xyz/edit')
   })
 
   it('renders gold left-border on reason callout (per UI-SPEC)', async () => {

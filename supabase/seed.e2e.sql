@@ -26,6 +26,17 @@
 -- ----------------------------------------------------------------------------
 -- Step 0: idempotent cleanup
 -- ----------------------------------------------------------------------------
+-- Delete audit rows for fixture-owned BIPs BEFORE the BIPs themselves — the
+-- bip_status_history.bip_id FK is ON DELETE SET NULL, so deleting BIPs first
+-- would orphan (not remove) these rows and they'd accumulate on re-apply.
+delete from public.bip_status_history
+  where bip_id in (
+    select id from public.bips
+    where created_by in (
+      select id from auth.users where email like '%@biphub.test'
+    )
+  );
+
 delete from public.bips
   where created_by in (
     select id from auth.users where email like '%@biphub.test'
@@ -221,3 +232,56 @@ select
   '11111111-1111-1111-1111-111111111111'
 from public.universities u
 where u.erasmus_code = 'D MUNCHEN02' limit 1;
+
+-- ----------------------------------------------------------------------------
+-- Step 4: seed 1 rejected BIP owned by e2e-coordinator (for resubmit.spec.ts).
+--
+-- Exercises the rejected → revise → draft → resubmit loop closed after the
+-- v1.0 milestone audit. The insert trigger (00010) auto-logs an
+-- action_kind='submit' row; we additionally insert an explicit
+-- action_kind='reject' row below so the coordinator dashboard renders the
+-- rejection reason (DASH-05) via getLatestRejectionsByBipIds.
+-- ----------------------------------------------------------------------------
+insert into public.bips (
+  id, slug, title, status, is_seed,
+  description, learning_outcomes, virtual_component_description, virtual_timing,
+  physical_start_date, physical_end_date, application_deadline,
+  host_city, ects_credits, max_participants,
+  language_of_instruction, language_level_min,
+  subject_area, isced_f_code,
+  study_levels, green_travel, inclusion_support,
+  contact_name, contact_email,
+  how_to_apply_type, how_to_apply_value,
+  host_university_id, created_by
+)
+select
+  'e2e0bbbb-bbbb-bbbb-bbbb-000000000003',
+  'e2e-rejected-urban-design',
+  'E2E Rejected: Urban Design Studio',
+  'rejected', false,
+  'A 10-day BIP on sustainable urban design — public space, mobility, and climate-adaptive planning, with a collaborative studio project on a real district brief.',
+  E'- Produce a climate-adaptive district masterplan\n- Apply participatory design methods\n- Present proposals to a mixed stakeholder panel',
+  'Two online kickoff sessions covering the brief and site analysis.',
+  'before',
+  '2027-05-12', '2027-05-22', '2027-03-20',
+  'Munich', 4, 16,
+  'en', 'B2',
+  'engineering', '0731',
+  ARRAY['master'], false, false,
+  'E2E Coordinator', 'e2e-coordinator@biphub.test',
+  'url', 'https://tum.example/apply',
+  u.id,
+  '11111111-1111-1111-1111-111111111111'
+from public.universities u
+where u.erasmus_code = 'D MUNCHEN02' limit 1;
+
+-- Explicit reject audit row so the dashboard surfaces the rejection reason.
+insert into public.bip_status_history
+  (bip_id, from_status, to_status, actor_id, note, action_kind)
+values (
+  'e2e0bbbb-bbbb-bbbb-bbbb-000000000003',
+  'pending', 'rejected',
+  '33333333-3333-3333-3333-333333333333',
+  'The virtual component needs at least three structured online sessions before the mobility week.',
+  'reject'
+);

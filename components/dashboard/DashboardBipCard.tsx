@@ -14,11 +14,14 @@
  */
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { STATUS_BADGE_CLASSES, STATUS_LABELS } from '@/lib/utils/status'
 import { DeleteDraftDialog } from '@/components/dashboard/DeleteDraftDialog'
 import { WithdrawBipDialog } from '@/components/dashboard/WithdrawBipDialog'
+import { reviseRejectedBipAction } from '@/lib/actions/bip-revise'
 import type { CoordinatorBip } from '@/lib/queries/coordinatorBips'
 import { cn } from '@/lib/utils/cn'
 
@@ -44,6 +47,22 @@ interface Props {
 export function DashboardBipCard({ bip }: Props) {
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [withdrawOpen, setWithdrawOpen] = useState(false)
+  const router = useRouter()
+  const [isRevising, startRevise] = useTransition()
+
+  // Revise a rejected BIP: transition it back to `draft` (server action), then
+  // open the wizard so the coordinator can edit and re-submit. The edit route
+  // only accepts draft/pending, so the transition MUST land before we navigate.
+  function handleRevise() {
+    startRevise(async () => {
+      const result = await reviseRejectedBipAction(bip.id)
+      if ('error' in result) {
+        toast.error(result.error)
+        return
+      }
+      router.push(`/dashboard/bips/${bip.id}/edit`)
+    })
+  }
 
   return (
     <article className="rounded-md border border-border bg-white shadow-sm p-5">
@@ -128,12 +147,15 @@ export function DashboardBipCard({ bip }: Props) {
               </Link>
             )}
             {bip.status === 'rejected' && (
-              <Link
-                href={`/dashboard/bips/${bip.id}/edit`}
-                className="text-sm text-eu-blue hover:underline"
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleRevise}
+                disabled={isRevising}
+                className="text-eu-blue"
               >
-                View details
-              </Link>
+                {isRevising ? 'Reopening…' : 'Revise & resubmit'}
+              </Button>
             )}
           </div>
         </div>
