@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: ready-for-verification
-stopped_at: Plan 04-07 complete; Phase 4 ready for verify-phase
-last_updated: "2026-05-14T00:00:00.000Z"
-last_activity: 2026-05-14 -- Plan 04-07 complete (Playwright E2E: 17 tests across 4 specs + setup; supabase/seed.e2e.sql env-gated 3 fixture users + 2 pending BIPs; .github/workflows/e2e.yml single-shard CI; tests/e2e/EDGE-CASES-DEFERRED.md 29 deferred items; axe-DevTools sweep procedure staged awaiting manual run); Phase 4 implementation-complete (7/7 plans)
+status: Awaiting next milestone
+stopped_at: Completed 04-06-PLAN.md
+last_updated: "2026-06-14T16:37:28.042Z"
+last_activity: 2026-06-14 — Milestone v1.0 completed and archived
 progress:
   total_phases: 4
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 30
   completed_plans: 30
   percent: 100
@@ -18,24 +18,17 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-08)
+See: .planning/PROJECT.md (updated 2026-06-14 after v1.0 milestone)
 
 **Core value:** Students can reliably discover Erasmus+ BIPs by country, field of study, and dates, and universities can self-service list their BIPs through a fast, professional submission flow with admin review.
-**Current focus:** Phase 04 — polish-static-content-performance-hardening
+**Current focus:** v1.0 shipped — planning next milestone (`/gsd-new-milestone`)
 
 ## Current Position
 
-Phase: 04 (polish-static-content-performance-hardening) — IMPLEMENTATION COMPLETE
-Plan: 7 of 7 complete (Plans 04-01..04-07 done)
-Status: Ready for verify-phase
-Last activity: 2026-05-14 -- Plan 04-07 complete (Playwright E2E + a11y polish: @playwright/test devDep + chromium browser; playwright.config.ts with single-shard locks D-16; supabase/seed.e2e.sql env-gated 3 fixture users + 2 pending BIPs; tests/e2e/setup.ts storage-state generator; 4 spec files with 14 tests covering auth/submission/admin-review/map-filter golden paths; tests/e2e/EDGE-CASES-DEFERRED.md (29 cases); .github/workflows/e2e.yml single-shard CI on PR + main; axe-DevTools sweep procedure staged at .planning/phases/04-.../axe/README.md awaiting manual user run)
-
-Progress: [██████████] 100%
-
-Outstanding manual gates before v1 launch:
-- Plan 04-06 D-20: 4 Lighthouse screenshots (capture protocol at .planning/phases/04-.../lighthouse/README.md)
-- Plan 04-07 D-27: axe-DevTools sweep across 13 routes (procedure at .planning/phases/04-.../axe/README.md)
-- Phase 4 verify-phase pass
+Phase: Milestone v1.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-06-14 — Milestone v1.0 completed and archived
 
 ## Performance Metrics
 
@@ -154,8 +147,14 @@ None yet.
 
 ## Deferred Items
 
+Items acknowledged and deferred at v1.0 milestone close on 2026-06-14:
+
 | Category | Item | Status | Deferred At |
 |----------|------|--------|-------------|
+| Verification | Phase 01 human-verify: homepage visual fidelity vs biphub-homepage.html + EuropeMap hover/click/keyboard (browser-only) | Acknowledged at v1.0 close | 2026-06-14 |
+| Verification | Phase 03 human-verify: Resend email delivery + ISR bust + wizard admin-mode (runtime) | Acknowledged at v1.0 close | 2026-06-14 |
+| A11y | Minor axe colour-contrast findings (WCAG AA polish) — accepted for v1 | Deferred to v1.1 | 2026-06-14 |
+| Test infra | BIPS-NAV-BUG: same-pathname router.push no-op under LOCAL `next start` only (deployed Vercel filters work) — map-filter clear test `test.fixme`'d | Local-only artifact; not a prod bug | 2026-06-14 |
 | Automation | Evaluate n8n for v2 outreach automation (coordinator seed outreach, multi-channel admin digests, AI moderation) — only if integration count grows beyond Resend | Deferred to v2 | 2026-05-11 |
 
 ## Session Continuity
@@ -164,3 +163,7 @@ Last session: 2026-05-14T00:00:00.000Z
 Stopped at: Completed 04-06-PLAN.md
 Resume file: None
 Resume instructions: Plans 04-01..04-06 complete. Next: Plan 04-07 (Playwright E2E + a11y polish — playwright.config.ts, seed.e2e.sql, storage-state setup, 4 specs, .github/workflows/e2e.yml, axe-DevTools sweep). Plan 04-06 left one manual followup: user must capture 4 Lighthouse screenshots (instructions at `.planning/phases/04-polish-static-content-performance-hardening/lighthouse/README.md`) to close D-20.
+
+## Operator Next Steps
+
+- Start the next milestone with /gsd-new-milestone

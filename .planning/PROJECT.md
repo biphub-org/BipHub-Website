@@ -8,27 +8,39 @@ BipHub is the free, open-source database for Erasmus+ Blended Intensive Programs
 
 Students can reliably discover BIPs by country, field of study, and dates, and universities can self-service list their BIPs through a fast, professional submission flow with admin review.
 
+## Current State
+
+**Shipped:** v1.0 MVP (2026-06-14) — 4 phases, 30 plans, ~24,500 LOC.
+The full three-audience product is live: students discover BIPs (map + filters + search + detail), coordinators self-service submit via a wizard, and admins review with an audit trail + email notifications. Deployed on Vercel against cloud Supabase. Playwright E2E suite passes against cloud (17/17 golden-path).
+
+**Known deferred (non-blocking):** Phase 01 visual + Phase 03 runtime human-verify checkpoints; minor a11y colour-contrast polish (→ v1.1); `BIPS-NAV-BUG` is a local `next start`-only test artifact (deployed filters work). See `milestones/v1.0-MILESTONE-AUDIT.md`.
+
+**Next milestone goals:** TBD — define via `/gsd-new-milestone` (candidates from Out of Scope: student accounts/bookmark sync, edit-approved-with-re-review, partner reconciliation, JSON-LD/SEO, i18n).
+
 ## Requirements
 
-### Validated
+### Validated (shipped in v1.0 — 2026-06-14)
 
-(None yet — ship to validate)
+#### Public / Student-Facing
+- ✓ Homepage (interactive Europe choropleth map, field categories, live stats, recent BIPs, how-it-works, university CTA, footer disclaimer) — v1.0
+- ✓ BIP browse (`/bips`) — card grid, 7 filters, unaccent FTS, URL-driven shareable state, pagination — v1.0
+- ✓ BIP detail (`/bip/[slug]`) — full info, host + partner universities, share/bookmark, SSR meta + OG image — v1.0
+- ✓ "What is a BIP?" explainer + FAQ; `/privacy` policy — v1.0
+
+#### University / Coordinator-Facing
+- ✓ Auth via institutional email + verification (Supabase Auth + Resend) — v1.0
+- ✓ 5-step submission wizard with auto-save + optimistic locking + preview — v1.0
+- ✓ Coordinator dashboard with status tabs + edit/withdraw/revise-resubmit — v1.0
+
+#### Admin-Facing
+- ✓ Admin panel — review queue, approve/reject + notes, listing edit, audit log, Resend emails, analytics — v1.0
+
+#### Foundation
+- ✓ RLS on every table; GDPR (privacy page + Art-17 account erasure); Lighthouse ≥90; WCAG AA (axe sweep passed); MIT + CONTRIBUTING; Playwright E2E — v1.0
 
 ### Active
 
-#### Public / Student-Facing
-- [ ] Homepage matching `biphub-homepage.html` mockup (sticky nav, hero, interactive Europe map, field categories, stats, recent BIPs, how-it-works, university CTA, footer)
-- [ ] BIP browse/listing page (`/bips`) with card grid, country/field/language/date/ECTS filters, full-text search, URL-driven filter state
-- [ ] BIP detail page (`/bip/[slug]`) with full info, host + partner universities, application info, share/bookmark
-- [ ] "What is a BIP?" explainer page with FAQ
-
-#### University / Coordinator-Facing
-- [ ] Authentication via institutional email with email verification (Supabase Auth + Resend)
-- [ ] Multi-step BIP submission form with auto-save drafts and preview
-- [ ] Coordinator dashboard listing submitted BIPs with status (draft/pending/approved/rejected) and edit access
-
-#### Admin-Facing
-- [ ] Admin panel with review queue, approve/reject with notes, listing edit, basic analytics
+(None — next milestone scope is defined via `/gsd-new-milestone`.)
 
 ### Out of Scope
 
@@ -75,19 +87,19 @@ Students can reliably discover BIPs by country, field of study, and dates, and u
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Next.js App Router (not Pages) | Modern RSC + better Supabase server client integration | — Pending |
-| Supabase Auth (not NextAuth) | Native RLS integration, simpler stack | — Pending |
-| Cards everywhere, no tables | Mobile-first, visually consistent with mockup, competitor's table is its key failure | — Pending |
-| University self-register + admin review | Quality gate without friction, scales without manual onboarding | — Pending |
-| English-only v1 | Defer i18n complexity; English is BIP lingua franca | — Pending |
-| LocalStorage bookmarks (no student accounts v1) | Cuts auth scope; bookmarks are low-value-per-user | — Pending |
-| Slug-based BIP URLs | SEO + shareability | — Pending |
-| Interactive Europe map as core feature | Discovery UX advantage over competitor's table | — Pending |
-| Multi-step submission wizard | Reduces abandonment vs single long form | — Pending |
-| Footer disclaimer + no EU emblem | Legal requirement around EC affiliation | — Pending |
-| `biphub-homepage.html` as v1 visual source of truth | Avoids design drift during build | — Pending |
-| EU palette deliberately chosen | Communicates context immediately to target users | — Pending |
-| Vertical MVP slicing | Each phase delivers shipped user capability | — Pending |
+| Next.js App Router (not Pages) | Modern RSC + better Supabase server client integration | ✓ v1.0 |
+| Supabase Auth (not NextAuth) | Native RLS integration, simpler stack | ✓ v1.0 |
+| Cards everywhere, no tables | Mobile-first, visually consistent with mockup, competitor's table is its key failure | ✓ v1.0 |
+| University self-register + admin review | Quality gate without friction, scales without manual onboarding | ✓ v1.0 |
+| English-only v1 | Defer i18n complexity; English is BIP lingua franca | ✓ v1.0 |
+| LocalStorage bookmarks (no student accounts v1) | Cuts auth scope; bookmarks are low-value-per-user | ✓ v1.0 |
+| Slug-based BIP URLs | SEO + shareability | ✓ v1.0 |
+| Interactive Europe map as core feature | Discovery UX advantage over competitor's table | ✓ v1.0 |
+| Multi-step submission wizard | Reduces abandonment vs single long form | ✓ v1.0 |
+| Footer disclaimer + no EU emblem | Legal requirement around EC affiliation | ✓ v1.0 |
+| `biphub-homepage.html` as v1 visual source of truth | Avoids design drift during build | ✓ v1.0 |
+| EU palette deliberately chosen | Communicates context immediately to target users | ✓ v1.0 |
+| Vertical MVP slicing | Each phase delivers shipped user capability | ✓ v1.0 |
 
 ## Evolution
 
@@ -107,4 +119,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-08 after initialization*
+*Last updated: 2026-06-14 after v1.0 milestone*
