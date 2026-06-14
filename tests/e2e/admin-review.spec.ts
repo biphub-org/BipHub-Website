@@ -65,10 +65,14 @@ test.describe('admin review', () => {
     })
 
     // Outcome assertion: the approved BIP is no longer in the pending queue.
-    await page.goto('/admin')
-    await expect(
-      page.getByText(/Machine Learning Foundations/i),
-    ).not.toBeVisible({ timeout: 5_000 })
+    // Reload-retry to absorb brief route/data-cache lag after revalidatePath on
+    // the prod `next start` server (the approve itself is already committed).
+    await expect(async () => {
+      await page.goto('/admin')
+      await expect(
+        page.getByText(/Machine Learning Foundations/i),
+      ).toHaveCount(0)
+    }).toPass({ timeout: 15_000 })
   })
 
   test('admin rejects a pending BIP with reason ≥ 10 chars', async ({

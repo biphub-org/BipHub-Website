@@ -53,7 +53,7 @@ export default defineConfig({
     },
     {
       name: 'coordinator-authed',
-      testMatch: /submission\.spec\.ts$/,
+      testMatch: /(submission|resubmit)\.spec\.ts$/,
       dependencies: ['setup'],
       use: {
         ...devices['Desktop Chrome'],
