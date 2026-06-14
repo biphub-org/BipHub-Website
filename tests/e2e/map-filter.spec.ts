@@ -38,16 +38,15 @@ test.describe('map-to-filter integration', () => {
     })
   })
 
-  // KNOWN ISSUE — BIPS-NAV-BUG (under investigation; see .planning/v1.0-MILESTONE-AUDIT.md).
-  // On /bips in a LOCAL production build (`next build && next start`), router.push()
-  // AND router.replace() to the SAME pathname (filter chip, "Clear all", search,
-  // sort, pagination) are no-ops — the /bips RSC does not re-render with the new
-  // searchParams, so filters appear dead. Confirmed: works in `next dev`; the page
-  // IS hydrated (sidebar accordion toggles); CROSS-pathname push works (the test
-  // above passes). Five fixes ruled out: force-dynamic, experimental.staleTimes:0,
-  // middleware bypass, pushState+router.refresh (URL changes but content stays
-  // stale), router.replace. Open question: does this reproduce on the DEPLOYED
-  // Vercel runtime (which differs from local `next start`)? Un-skip once resolved.
+  // LOCAL-ONLY TEST LIMITATION — BIPS-NAV-BUG (see .planning/v1.0-MILESTONE-AUDIT.md).
+  // This skip is NOT a product bug: deployed Vercel /bips filters work (user-
+  // confirmed 2026-06-14). It is an artifact of running the E2E suite against a
+  // LOCAL `next build && next start` server, where router.push()/replace() to the
+  // SAME pathname (filter chip, "Clear all", search, sort, pagination) no-ops the
+  // /bips RSC re-render — but Vercel's runtime handles it correctly. Cross-pathname
+  // nav works locally (the test above passes), so only same-pathname filter
+  // interactions are unverifiable in the local prod harness. Keep fixme until the
+  // suite can run against a Vercel-equivalent runtime (or `next dev`).
   test.fixme('clearing the country filter returns to /bips', async ({ page }) => {
     await page.goto('/bips?country=DE')
     await page.getByRole('button', { name: 'Germany Remove filter' }).click()
