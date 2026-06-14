@@ -1,9 +1,10 @@
 # axe-DevTools manual a11y sweep — Plan 04-07 Task 10 (D-27)
 
-Status: **awaiting manual user run**. This task is a `checkpoint:human-verify`
-gate per the plan; it requires the axe-DevTools browser extension and a live
-local Supabase + dev server. Captured screenshots live in this directory once
-the sweep is complete.
+Status: **PASS (minor findings accepted)** — sweep run against the cloud dev
+environment on 2026-06-14. The only findings were minor colour-contrast items,
+reviewed and accepted for v1 and deferred to v1.1 (tracked in
+`.planning/v1.0-MILESTONE-AUDIT.md`). No other blocking violations. The
+procedure below is retained for re-runs / regression checks.
 
 ## How to run
 
