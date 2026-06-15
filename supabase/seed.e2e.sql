@@ -133,6 +133,12 @@ values (
 -- auth.users.raw_app_meta_data.role automatically; for the admin user, the
 -- role is also set in the auth.users insert above (defense-in-depth).
 -- ----------------------------------------------------------------------------
+-- NOTE: migration 00015's handle_new_user trigger already materialises a
+-- profiles row (id + default role) when the auth.users rows above are inserted.
+-- These statements therefore UPSERT — they enrich the trigger-created row with
+-- the fixture's full_name / contact_email / university_id / erasmus_code and the
+-- correct role (admin's raw_user_meta_data is '{}', so the trigger defaulted it
+-- to 'coordinator' — the do-update below corrects it to 'admin').
 insert into public.profiles (id, full_name, contact_email, university_id, erasmus_code, role)
 select
   '11111111-1111-1111-1111-111111111111',
@@ -142,7 +148,13 @@ select
   'TEST E2E01',
   'coordinator'
 from public.universities u
-where u.erasmus_code = 'D MUNCHEN02' limit 1;
+where u.erasmus_code = 'D MUNCHEN02' limit 1
+on conflict (id) do update set
+  full_name = excluded.full_name,
+  contact_email = excluded.contact_email,
+  university_id = excluded.university_id,
+  erasmus_code = excluded.erasmus_code,
+  role = excluded.role;
 
 insert into public.profiles (id, full_name, contact_email, university_id, erasmus_code, role)
 select
@@ -153,7 +165,13 @@ select
   'TEST E2E03',
   'admin'
 from public.universities u
-where u.erasmus_code = 'D MUNCHEN02' limit 1;
+where u.erasmus_code = 'D MUNCHEN02' limit 1
+on conflict (id) do update set
+  full_name = excluded.full_name,
+  contact_email = excluded.contact_email,
+  university_id = excluded.university_id,
+  erasmus_code = excluded.erasmus_code,
+  role = excluded.role;
 
 -- ----------------------------------------------------------------------------
 -- Step 3: seed 2 pending BIPs owned by e2e-coordinator.
@@ -331,5 +349,8 @@ values (
 -- Student profile: NO university_id / erasmus_code / full_name (D-08 / Pitfall 2).
 -- profiles_sync_role trigger mirrors role into raw_app_meta_data; Custom Access
 -- Token Hook (00015) reads this profiles.role at JWT issuance.
+-- UPSERT: handle_new_user (00015) already created this row with role='student'
+-- (raw_user_meta_data.role='student' is whitelisted). do-update keeps it idempotent.
 insert into public.profiles (id, role)
-values ('44444444-4444-4444-4444-444444444444', 'student');
+values ('44444444-4444-4444-4444-444444444444', 'student')
+on conflict (id) do update set role = excluded.role;
