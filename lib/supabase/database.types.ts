@@ -7,6 +7,11 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.5"
+  }
   graphql_public: {
     Tables: {
       [_ in never]: never
@@ -247,6 +252,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "bips_created_by_profiles_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "bips_host_university_id_fkey"
             columns: ["host_university_id"]
             isOneToOne: false
@@ -331,6 +343,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      custom_access_token_hook: { Args: { event: Json }; Returns: Json }
       delete_my_account: { Args: never; Returns: undefined }
       immutable_unaccent: { Args: { "": string }; Returns: string }
       insert_university_if_not_exists: {
@@ -473,4 +486,3 @@ export const Constants = {
     Enums: {},
   },
 } as const
-
