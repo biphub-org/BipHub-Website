@@ -94,10 +94,11 @@ export default defineConfig({
     },
     {
       name: 'student-authed',
-      // student-auth.spec.ts manages its own session setup via signInStudent() /
-      // the admin generate_link + OTP verify helpers — no pre-established storageState.
-      // No dependency on 'setup' (coordinator/admin setup) to avoid ordering entanglement.
-      testMatch: /student-auth\.spec\.ts$/,
+      // student-auth.spec.ts and saved-bips.spec.ts both manage their own session
+      // setup via signInStudent() / the admin generate_link + OTP verify helpers —
+      // no pre-established storageState. No dependency on 'setup' (coordinator/admin
+      // setup) to avoid ordering entanglement.
+      testMatch: /(student-auth|saved-bips)\.spec\.ts$/,
       use: { ...devices['Desktop Chrome'] },
     },
   ],
