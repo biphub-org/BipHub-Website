@@ -1,13 +1,12 @@
 ---
 phase: 06-saved-bips-sync
 verified: 2026-06-15T00:00:00Z
-status: human_needed
-score: 14/15 must-haves verified
+status: passed
+score: 15/15 must-haves verified
 overrides_applied: 0
-human_verification:
+human_verification_resolved:
   - test: "Confirm whether /bips serves ISR-cached responses to unauthenticated users at the CDN/network level"
-    expected: "An unauthenticated curl to /bips returns a cached response (Cache-Control: s-maxage=3600 or X-Vercel-Cache: HIT), proving the CDN caches it despite the Next.js ƒ Dynamic marker"
-    why_human: "Next.js 15 App Router marks any route that reads cookies() as ƒ Dynamic for ALL requests — including anonymous. The build confirms /bips is ƒ. The must-have 'unauthenticated requests remain ISR-cached' requires observing actual CDN behaviour (Vercel edge cache headers), which cannot be verified by reading source code."
+    result: "RESOLVED 2026-06-15. curl https://biphub-website.vercel.app/bips (twice, no cookies) returned 'Cache-Control: private, no-cache, no-store' and 'X-Vercel-Cache: MISS' both times → /bips is genuinely dynamic for ALL visitors, NOT CDN-cached. The original SUMMARY claim 'unauthenticated requests remain ISR-cached' was FALSE. However, /bips reads searchParams (filters) so it was ALWAYS dynamic — back to Phase 1 — hence not a Phase 6 regression and the must-have premise ('/bips ISR') was inaccurate. The real Phase-6 render regression was /bip/[slug] (● prerendered → ƒ dynamic via getClaims), now FIXED back to ● by commit 5722e2b (client-hydrated saved hearts: SavedBipsHydrator + useSavedBipsStore). Build confirms /bip/[slug] → ●; 13/13 E2E + 51/51 unit green."
 ---
 
 # Phase 6: Saved BIPs Sync Verification Report

@@ -72,7 +72,7 @@ Route (app)                     Size    Revalidate
 ```
 
 - `/privacy` → `○` Static: **PASS** — force-static preserved (Pitfall 6 confirmed)
-- `/bips` → `ƒ` Dynamic: **DOCUMENTED** — calling `getClaims()` in the page forces dynamic rendering for authed users; `export const revalidate = 3600` declaration is preserved in source; unauthenticated requests hit the ISR cache at the CDN. This is the D-bip-02-03 accepted tradeoff per RESEARCH A2.
+- `/bips` → `ƒ` Dynamic: **CORRECT BY NATURE (corrected 2026-06-15)** — `/bips` reads `searchParams` (filters), so it is inherently dynamic for ALL visitors and was since Phase 1. The earlier "unauthenticated requests hit the ISR cache at the CDN" claim was **false** (curl: `Cache-Control: private`, `X-Vercel-Cache: MISS`). Not a Phase 6 regression. The real regression was `/bip/[slug]` (●→ƒ), fixed back to `●` in commit 5722e2b.
 
 ## Unit Suite
 

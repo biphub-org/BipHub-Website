@@ -32,7 +32,7 @@ key_files:
 decisions:
   - "D-bip-02-01: SaveToggleIsland positioned absolute right-3 top-[102px] against card div (not header div) — keeps <button> outside <a>, 44px target in lower-right of 140px gradient header"
   - "D-bip-02-02: saveButton slot pattern — RSC page (page.tsx) constructs BipSaveButton and passes as ReactNode to BipSidebar/BipMobileApplyBar; client components never import action plumbing"
-  - "D-bip-02-03: /bips page reads getClaims() at render time for per-user saved state; revalidate=3600 declaration preserved; dynamic rendering for authed users is acceptable per RESEARCH A2"
+  - "D-bip-02-03 (CORRECTED 2026-06-15): /bips reads searchParams (filters) so it is inherently dynamic for ALL visitors — never ISR-cached (curl: Cache-Control: private, X-Vercel-Cache: MISS). The 'unauthenticated stays ISR-cached' claim was FALSE; /bips was dynamic since Phase 1, not a Phase 6 regression. Computing getClaims() server-side on /bips is fine (dynamic anyway). The real regression was /bip/[slug] (●→ƒ), fixed in commit 5722e2b via client-side saved-state hydration."
   - "D-bip-02-04: RecentBips homepage cards pass initialSaved=false isStudent=false — homepage is public-only, no save affordance needed there"
 metrics:
   duration: "~10 minutes"
@@ -61,7 +61,7 @@ RLS-scoped Server Actions (save/unsave/migrate), PostgREST query layer (getSaved
 
 2. **saveButton slot pattern** — the RSC page (`bip/[slug]/page.tsx`) constructs `<BipSaveButton .../>` and passes it as a `ReactNode` prop to `BipSidebar` and `BipMobileApplyBar`. This keeps the client components free of action imports while remaining declarative. `BipSidebar` renders the slot below the Apply CTA in public mode; suppressed in admin-review mode.
 
-3. **`/bips` ISR + dynamic for authed users** — `export const revalidate = 3600` is preserved. Calling `getClaims()` in the page forces dynamic rendering for authenticated users (cookies() read). Unauthenticated requests remain ISR-cached (D-03b / RESEARCH A2). This is the intended tradeoff per the plan.
+3. **`/bips` is dynamic by nature (CORRECTED 2026-06-15)** — `/bips` reads `searchParams`, so Next.js 15 renders it `ƒ` Dynamic for ALL visitors regardless of cookies; it was dynamic since Phase 1. The earlier claim that "unauthenticated requests remain ISR-cached" was **false** (curl: `Cache-Control: private`, `X-Vercel-Cache: MISS`); `export const revalidate = 3600` is inert on a dynamic route. Because `/bips` is dynamic regardless, computing saved state server-side is free and SSR-correct.
 
 4. **RecentBips homepage** — passes `initialSaved=false` and `isStudent=false` to BipCard. The homepage is public; the save affordance on homepage cards is rendered but routes non-students to /register/student on click (correct behaviour).
 
