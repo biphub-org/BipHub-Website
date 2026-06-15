@@ -47,7 +47,9 @@ export default defineConfig({
     },
     {
       name: 'auth-flow',
-      testMatch: /auth\.spec\.ts$/,
+      // Matches only auth.spec.ts (NOT student-auth.spec.ts — the negative
+      // lookbehind asserts the char before 'auth' is a path separator, not '-').
+      testMatch: /(?:^|[/\\])auth\.spec\.ts$/,
       // auth.spec.ts exercises the real login UI — no storageState reuse.
       use: { ...devices['Desktop Chrome'] },
     },
@@ -74,6 +76,14 @@ export default defineConfig({
       testMatch: /(map-filter|no-horizontal-overflow)\.spec\.ts$/,
       use: { ...devices['Desktop Chrome'] },
       // no storageState — public routes
+    },
+    {
+      name: 'student-authed',
+      // student-auth.spec.ts manages its own session setup via signInStudent() /
+      // the admin generate_link + OTP verify helpers — no pre-established storageState.
+      // No dependency on 'setup' (coordinator/admin setup) to avoid ordering entanglement.
+      testMatch: /student-auth\.spec\.ts$/,
+      use: { ...devices['Desktop Chrome'] },
     },
   ],
 
