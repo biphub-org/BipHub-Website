@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Product Depth & Engagement
 status: executing
-stopped_at: "06-02 complete: SaveToggleIsland, saveAction/unsaveAction/migrate, BipCard refactor, /bips and /bip/[slug] wired"
-last_updated: "2026-06-15T14:10:13.566Z"
+stopped_at: "06-03 complete: /student-dashboard/saved page, dashboard shell Saved summary + DeleteAccountDialog, LegacySweepIsland, /privacy saved_bips enumeration"
+last_updated: "2026-06-15T14:17:28.882Z"
 last_activity: 2026-06-15
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 8
-  completed_plans: 6
-  percent: 75
+  completed_plans: 7
+  percent: 88
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-06-14 after v1.0 milestone)
 ## Current Position
 
 Phase: 06 (saved-bips-sync) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Last activity: 2026-06-15
 
@@ -151,6 +151,9 @@ Recent decisions affecting current work:
 - [Phase ?]: D-bip-02-01: SaveToggleIsland positioned absolute right-3 top-[102px] against card div — keeps button outside anchor, 44px target in gradient header
 - [Phase ?]: D-bip-02-02: saveButton slot pattern — RSC page constructs BipSaveButton, passes as ReactNode to BipSidebar/BipMobileApplyBar (no action imports in client components)
 - [Phase ?]: D-bip-02-03: /bips ISR revalidate=3600 preserved; getClaims() makes authed requests dynamic — acceptable per RESEARCH A2
+- Plan 06-03: D-04 (student delete copy) — verbatim DeleteAccountDialog reuse with no copy change; students have zero approved BIP submissions; single tested component kept
+- Plan 06-03: D-02 (LegacySweepIsland placement) — placed on student-dashboard/page.tsx (not layout) so sweep fires once per dashboard session, not on every student sub-route
+- Plan 06-03: D-05 (biphub:bookmarks reconciliation) — stale "never leaves your device" claim replaced with Legacy bookmark sweep paragraph; bip-draft paragraph preserved accurate for coordinator wizard
 
 ### Pending Todos
 

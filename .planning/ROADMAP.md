@@ -60,7 +60,7 @@ Full phase details, success criteria, and per-plan breakdown: [milestones/v1.0-R
 **Plans**: 4 plans
   - [x] 06-01-PLAN.md — DB foundation: 00016 saved_bips migration (RLS + cascade FK + indexes), [BLOCKING] cloud db push + type regen, SaveBipSchema + legacy-bookmark parser + unit test
   - [x] 06-02-PLAN.md — Core feature: save/unsave/migrate Server Actions, savedBips query layer, SaveToggleIsland (useOptimistic), BipCard refactor, wire /bips + /bip/[slug]
-  - [ ] 06-03-PLAN.md — Student surfaces: /student-dashboard/saved list, dashboard Saved-summary + DeleteAccountDialog + LegacySweepIsland, /privacy saved_bips enumeration
+  - [x] 06-03-PLAN.md — Student surfaces: /student-dashboard/saved list, dashboard Saved-summary + DeleteAccountDialog + LegacySweepIsland, /privacy saved_bips enumeration
   - [ ] 06-04-PLAN.md — E2E validation: saved-bips.spec.ts (STUD-04/05/07/08, FOUN-09/10), Playwright project wiring, full-suite + build gate
 **UI hint**: yes
 
@@ -101,6 +101,6 @@ Full phase details, success criteria, and per-plan breakdown: [milestones/v1.0-R
 | 3. Admin Review + Email Notifications | v1.0 | 8/8 | Complete | 2026-05-12 |
 | 4. Polish + Static Content + Performance Hardening | v1.0 | 7/7 | Complete | 2026-06-14 |
 | 5. Student Auth + Role Model | v1.1 | 4/4 | Complete   | 2026-06-15 |
-| 6. Saved BIPs Sync | v1.1 | 2/4 | In Progress|  |
+| 6. Saved BIPs Sync | v1.1 | 3/4 | In Progress|  |
 | 7. Alert Subscriptions + Email Pipeline | v1.1 | 0/TBD | Not started | - |
 | 8. Edit-Approved + Request-Changes | v1.1 | 0/TBD | Not started | - |
