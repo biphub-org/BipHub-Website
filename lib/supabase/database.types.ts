@@ -1,3 +1,4 @@
+Initialising login role...
 export type Json =
   | string
   | number
@@ -308,6 +309,35 @@ export type Database = {
           },
         ]
       }
+      saved_bips: {
+        Row: {
+          bip_id: string
+          id: string
+          saved_at: string
+          user_id: string
+        }
+        Insert: {
+          bip_id: string
+          id?: string
+          saved_at?: string
+          user_id: string
+        }
+        Update: {
+          bip_id?: string
+          id?: string
+          saved_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_bips_bip_id_fkey"
+            columns: ["bip_id"]
+            isOneToOne: false
+            referencedRelation: "bips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       universities: {
         Row: {
           city: string | null
@@ -486,3 +516,6 @@ export const Constants = {
     Enums: {},
   },
 } as const
+<claude-code-hint v="1" type="plugin" value="supabase@claude-plugins-official" />
+A new version of Supabase CLI is available: v2.106.0 (currently installed v2.98.2)
+We recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli
