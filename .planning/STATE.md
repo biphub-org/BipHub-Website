@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Product Depth & Engagement
 status: executing
-stopped_at: "06-01 complete: saved_bips migration applied to cloud, types regenerated, SaveBipSchema + parseLegacyBookmarkIds with 11 green tests"
-last_updated: "2026-06-15T13:54:38.793Z"
+stopped_at: "06-02 complete: SaveToggleIsland, saveAction/unsaveAction/migrate, BipCard refactor, /bips and /bip/[slug] wired"
+last_updated: "2026-06-15T14:10:13.566Z"
 last_activity: 2026-06-15
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 8
-  completed_plans: 5
-  percent: 63
+  completed_plans: 6
+  percent: 75
 ---
 
 # Project State
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-06-14 after v1.0 milestone)
 ## Current Position
 
 Phase: 06 (saved-bips-sync) — EXECUTING
-Plan: 2 of 4
-Status: 06-01 complete, executing 06-02
-Last activity: 2026-06-15 -- 06-01 executed: migration 00016 applied to cloud, types regenerated, SaveBipSchema + parseLegacyBookmarkIds 11 tests green
+Plan: 3 of 4
+Status: Ready to execute
+Last activity: 2026-06-15
 
 ```
 v1.1 Progress: [░░░░░░░░░░░░░░░░░░░░] 0%
@@ -53,6 +53,7 @@ Phase 5 ░  Phase 6 ░  Phase 7 ░  Phase 8 ░
 | 8 | TBD | - | - |
 
 *Updated after each plan completion*
+| Phase 06-saved-bips-sync P02 | 593s | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -147,6 +148,9 @@ Recent decisions affecting current work:
 - Plan 06-01: D-06 — migration 00016 DDL from ARCHITECTURE.md 166-204 verbatim; 4 RLS policies (select_own/insert_own/delete_own/select_admin), no UPDATE policy, applied via db push to linked cloud; db push --dry-run confirms "Remote database is up to date"
 - Plan 06-01: FOUN-09 — FK-driven GDPR cascade; user_id references auth.users(id) ON DELETE CASCADE; delete_my_account() RPC (00013) untouched (cascade is automatic)
 - Plan 06-01: parseLegacyBookmarkIds is a pure module (no react/next/@supabase imports) — testable without JSDOM; D-02a proven by 11 green unit tests
+- [Phase ?]: D-bip-02-01: SaveToggleIsland positioned absolute right-3 top-[102px] against card div — keeps button outside anchor, 44px target in gradient header
+- [Phase ?]: D-bip-02-02: saveButton slot pattern — RSC page constructs BipSaveButton, passes as ReactNode to BipSidebar/BipMobileApplyBar (no action imports in client components)
+- [Phase ?]: D-bip-02-03: /bips ISR revalidate=3600 preserved; getClaims() makes authed requests dynamic — acceptable per RESEARCH A2
 
 ### Pending Todos
 
@@ -175,8 +179,8 @@ Items acknowledged and deferred at v1.0 milestone close on 2026-06-14:
 
 ## Session Continuity
 
-Last session: 2026-06-15T13:54:38.779Z
-Stopped at: Phase 6 UI-SPEC approved (4 PASS, 2 non-blocking FLAGs)
+Last session: 2026-06-15T14:10:13.551Z
+Stopped at: 06-02 complete: SaveToggleIsland, saveAction/unsaveAction/migrate, BipCard refactor, /bips and /bip/[slug] wired
 Resume file: None
 Resume instructions: Phase 5 complete (all 4 plans). Next: Phase 6 (saved BIPs / student value depth). Run /gsd-plan-phase 6 when ready.
 

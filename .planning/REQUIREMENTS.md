@@ -14,9 +14,9 @@ Requirements for the v1.1 release. Each maps to a roadmap phase.
 - [x] **STUD-01**: A student can create an account and sign in via magic-link (passwordless) email
 - [x] **STUD-02**: A student's session persists across visits and devices
 - [x] **STUD-03**: A signed-in student has a dedicated dashboard, separate from the coordinator and admin areas
-- [ ] **STUD-04**: A student can save a BIP to their account and remove it
+- [x] **STUD-04**: A student can save a BIP to their account and remove it
 - [x] **STUD-05**: A student's saved BIPs are stored server-side and sync across devices
-- [ ] **STUD-06**: A student's existing localStorage bookmarks migrate to their account on first sign-in
+- [x] **STUD-06**: A student's existing localStorage bookmarks migrate to their account on first sign-in
 - [ ] **STUD-07**: A student can view all of their saved BIPs in one place on their dashboard
 - [ ] **STUD-08**: A student can delete their own account and all associated data
 
@@ -93,9 +93,9 @@ Which phases cover which requirements. Filled in during roadmap creation.
 | STUD-01 | Phase 5 | Complete |
 | STUD-02 | Phase 5 | Complete |
 | STUD-03 | Phase 5 | Complete |
-| STUD-04 | Phase 6 | Pending |
+| STUD-04 | Phase 6 | Complete |
 | STUD-05 | Phase 6 | Complete |
-| STUD-06 | Phase 6 | Pending |
+| STUD-06 | Phase 6 | Complete |
 | STUD-07 | Phase 6 | Pending |
 | STUD-08 | Phase 6 | Pending |
 | ALRT-01 | Phase 7 | Pending |
