@@ -39,7 +39,7 @@ Full phase details, success criteria, and per-plan breakdown: [milestones/v1.0-R
   4. An authenticated student who navigates directly to `/dashboard` is redirected to `/student-dashboard` (middleware role guard fires)
   5. A student JWT cannot insert a row into `bips` — the tightened `bips_insert_coordinator` RLS policy blocks the attempt with a permission error
 **Plans**: 4 plans
-  - [ ] 05-01-PLAN.md — DB foundation: 00015 migration (role CHECK, handle_new_user trigger, Custom Access Token Hook, tightened RLS), config.toml hook, bip-submit assertion, [BLOCKING] schema push
+  - [x] 05-01-PLAN.md — DB foundation: 00015 migration (role CHECK, handle_new_user trigger, Custom Access Token Hook, tightened RLS), config.toml hook, bip-submit assertion, [BLOCKING] schema push
   - [ ] 05-02-PLAN.md — Auth flow: signInWithOtpAction + signOutStudentAction, callback magiclink branch, middleware D-11 matrix
   - [ ] 05-03-PLAN.md — UI: /register/student magic-link page + form, (student) route group layout + nav + dashboard shell
   - [ ] 05-04-PLAN.md — E2E validation: student seed fixture + student-auth.spec.ts (all SC + FOUN-07/08 + D-11/D-15)
