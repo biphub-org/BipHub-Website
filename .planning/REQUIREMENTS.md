@@ -17,8 +17,8 @@ Requirements for the v1.1 release. Each maps to a roadmap phase.
 - [x] **STUD-04**: A student can save a BIP to their account and remove it
 - [x] **STUD-05**: A student's saved BIPs are stored server-side and sync across devices
 - [x] **STUD-06**: A student's existing localStorage bookmarks migrate to their account on first sign-in
-- [ ] **STUD-07**: A student can view all of their saved BIPs in one place on their dashboard
-- [ ] **STUD-08**: A student can delete their own account and all associated data
+- [x] **STUD-07**: A student can view all of their saved BIPs in one place on their dashboard
+- [x] **STUD-08**: A student can delete their own account and all associated data
 
 ### BIP Alerts (ALRT)
 
@@ -48,7 +48,7 @@ Requirements for the v1.1 release. Each maps to a roadmap phase.
 - [x] **FOUN-07**: Every new table has RLS with both USING and WITH CHECK, preventing cross-user access and role self-escalation
 - [x] **FOUN-08**: Adding the student role grants no access to coordinator/admin routes or BIP submission
 - [x] **FOUN-09**: Account erasure cascades all new v1.1 PII (saved BIPs, subscriptions, alert-delivery records)
-- [ ] **FOUN-10**: The `/privacy` page enumerates every new v1.1 data surface
+- [x] **FOUN-10**: The `/privacy` page enumerates every new v1.1 data surface
 
 ## Future Requirements
 
@@ -96,8 +96,8 @@ Which phases cover which requirements. Filled in during roadmap creation.
 | STUD-04 | Phase 6 | Complete |
 | STUD-05 | Phase 6 | Complete |
 | STUD-06 | Phase 6 | Complete |
-| STUD-07 | Phase 6 | Pending |
-| STUD-08 | Phase 6 | Pending |
+| STUD-07 | Phase 6 | Complete |
+| STUD-08 | Phase 6 | Complete |
 | ALRT-01 | Phase 7 | Pending |
 | ALRT-02 | Phase 7 | Pending |
 | ALRT-03 | Phase 7 | Pending |
@@ -118,7 +118,7 @@ Which phases cover which requirements. Filled in during roadmap creation.
 | FOUN-07 | Phase 5 | Complete |
 | FOUN-08 | Phase 5 | Complete |
 | FOUN-09 | Phase 6 | Complete |
-| FOUN-10 | Phase 6 | Pending |
+| FOUN-10 | Phase 6 | Complete |
 
 > **FOUN-09 and FOUN-10 distribution note:** Both requirements are cross-cutting — they apply to every phase that introduces a new PII-bearing table. They are assigned to Phase 6 (the earliest phase introducing such a table: `saved_bips`). The ongoing obligation is explicitly encoded in the Phase 7 and Phase 8 success criteria, which require that each new table (`bip_subscriptions`, `bip_alert_deliveries`, `bip_edits`) also carries `ON DELETE CASCADE` and is enumerated in `/privacy`.
 

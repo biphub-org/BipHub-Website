@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Product Depth & Engagement
-status: executing
-stopped_at: "06-03 complete: /student-dashboard/saved page, dashboard shell Saved summary + DeleteAccountDialog, LegacySweepIsland, /privacy saved_bips enumeration"
-last_updated: "2026-06-15T14:17:28.882Z"
+status: verifying
+stopped_at: "06-04 complete: Playwright E2E spec STUD-04/05/07/08 FOUN-09/10 — 13/13 green, build green, phase 6 all plans done"
+last_updated: "2026-06-15T14:41:50.338Z"
 last_activity: 2026-06-15
 progress:
   total_phases: 4
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 8
-  completed_plans: 7
-  percent: 88
+  completed_plans: 8
+  percent: 100
 ---
 
 # Project State
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-06-14 after v1.0 milestone)
 
 Phase: 06 (saved-bips-sync) — EXECUTING
 Plan: 4 of 4
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-06-15
 
 ```
@@ -54,6 +54,7 @@ Phase 5 ░  Phase 6 ░  Phase 7 ░  Phase 8 ░
 
 *Updated after each plan completion*
 | Phase 06-saved-bips-sync P02 | 593s | 3 tasks | 8 files |
+| Phase 06-saved-bips-sync P04 | 2400 | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -154,6 +155,10 @@ Recent decisions affecting current work:
 - Plan 06-03: D-04 (student delete copy) — verbatim DeleteAccountDialog reuse with no copy change; students have zero approved BIP submissions; single tested component kept
 - Plan 06-03: D-02 (LegacySweepIsland placement) — placed on student-dashboard/page.tsx (not layout) so sweep fires once per dashboard session, not on every student sub-route
 - Plan 06-03: D-05 (biphub:bookmarks reconciliation) — stale "never leaves your device" claim replaced with Legacy bookmark sweep paragraph; bip-draft paragraph preserved accurate for coordinator wizard
+- Plan 06-04: D-project — EXTEND student-authed project testMatch to /(student-auth|saved-bips)\.spec\.ts$/ (same fixture + session strategy; avoids duplicate project + ordering issues)
+- Plan 06-04: D-throwaway — dedicated throwaway student via admin API for STUD-08/FOUN-09 deletion test; never touches e2e-student@biphub.test (NON-DESTRUCTIVE contract)
+- Plan 06-04: D-unsave-assert — unsave assertion checks Unsave button flip (optimistic), then full reload to confirm server removal; unsaveAction does not revalidatePath (Pitfall 4)
+- Plan 06-04: cloud e2e-student fixture profile.role corrected to 'student' (was 'coordinator' — trigger default) + password reset to Student!Test1 during execution; this also fixed pre-existing student-auth.spec.ts failures
 
 ### Pending Todos
 
@@ -182,7 +187,7 @@ Items acknowledged and deferred at v1.0 milestone close on 2026-06-14:
 
 ## Session Continuity
 
-Last session: 2026-06-15T14:10:13.551Z
+Last session: 2026-06-15T14:41:50.311Z
 Stopped at: 06-02 complete: SaveToggleIsland, saveAction/unsaveAction/migrate, BipCard refactor, /bips and /bip/[slug] wired
 Resume file: None
 Resume instructions: Phase 5 complete (all 4 plans). Next: Phase 6 (saved BIPs / student value depth). Run /gsd-plan-phase 6 when ready.
