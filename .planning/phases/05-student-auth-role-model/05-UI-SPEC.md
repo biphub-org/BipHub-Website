@@ -1,10 +1,11 @@
 ---
 phase: 5
 slug: student-auth-role-model
-status: draft
+status: approved
 shadcn_initialized: true
 preset: base-nova / neutral / cssVariables (components.json)
 created: 2026-06-15
+reviewed_at: 2026-06-15
 ---
 
 # Phase 5 — UI Design Contract
@@ -43,14 +44,13 @@ Inherits the project-wide 4-point scale locked in Phase 1 UI-SPEC. Reproduced he
 | xs | 4px | Icon gaps, email field icon-to-text gap |
 | sm | 8px | Gap between form label and input; gap between form and helper text |
 | md | 16px | Card internal padding (mobile), gap between form elements, stack gap inside account section |
-| lg | 24px | Card internal padding (desktop), `p-10` on auth card (matches existing register/login pages) |
+| lg | 24px | Card internal padding (desktop) |
 | xl | 32px | Gap between dashboard sections (welcome → account → CTA) |
-| 2xl | 48px | Not used in Phase 5 |
+| 2xl | 48px | Dashboard main content area vertical padding (`py-12`) |
 | 3xl | 64px | Not used in Phase 5 |
 | 4xl | 96px | Not used in Phase 5 (dashboard shell has no full-bleed sections) |
 
 **Exceptions:**
-- Auth card: `p-10` (40px) — matches the existing `(auth)` layout card padding on `/register` and `/login` pages. Accepted deviation from the 8-point rhythm because this is a visual match requirement, not a new decision.
 - Nav height: 64px (`h-16`) — matches the coordinator `DashboardNav` header already live in `(dashboard)/layout.tsx`.
 - Dashboard student nav height: 64px (`h-16`) — same as coordinator nav for consistency.
 
@@ -101,10 +101,14 @@ Gold (`#FFCC00`) is NOT introduced in Phase 5 surfaces. The gold pill CTA and go
 
 **Route group:** `app/(auth)/` — inherits the existing auth layout (`min-h-screen grid place-items-center bg-bg-soft px-4 py-8`, `max-w-[440px]` card container, fixed EC disclaimer at bottom).
 
+**Primary visual anchor:** the "Send sign-in link" button (full-width EU-blue pill).
+
+**Layout Inheritance Note:** The existing `(auth)` layout cards on `/register` and `/login` use `p-10` (40px) as their internal card padding — this is an inherited pixel value from those existing components, not a spacing-scale token. The executor should match the existing `(auth)` card padding exactly (inheriting the live component value) rather than introducing a new token. If the existing card uses `p-10`, carry that forward as-is. If standardizing to `p-8` (32px, the `xl` token) is acceptable to avoid deviation, that is also permitted — the slight visual change is an accepted standardization trade-off. The spacing-scale section above lists only standard-set values; the auth card's inherited padding is out-of-band.
+
 **State A — Email entry form**
 
 ```
-┌─────────────────────────────────────────┐  bg-white, rounded-md, shadow-md, p-10
+┌─────────────────────────────────────────┐  bg-white, rounded-md, shadow-md
 │  [LogoMark]                             │  centered
 │  Sign in to BipHub                      │  22px semibold text-ink, tracking -0.3px
 │  No password needed — we'll email       │  14px text-muted, centered, mt-2
@@ -168,6 +172,8 @@ The "Are you a university coordinator?" line on State A is confirmed to ship. It
 
 **Route group:** `app/(student)/` — new route group with its own `layout.tsx`.
 
+**Primary visual anchor:** the "Browse BIPs →" CTA in the Explore card.
+
 **Layout structure (mirroring coordinator dashboard pattern):**
 
 ```
@@ -175,7 +181,7 @@ The "Are you a university coordinator?" line on State A is confirmed to ship. It
 │  [LogoMark]  BipHub  /  Student dashboard      [email initials]  Sign out  │
 └───────────────────────────────────────────────────────────────────────────┘
 ┌── main (bg-bg-soft, min-h-screen) ────────────────────────────────────────┐
-│  mx-auto max-w-[960px] px-4 md:px-6 py-10                                │
+│  mx-auto max-w-[960px] px-4 md:px-6 py-12                                │
 │                                                                            │
 │  ┌── Welcome section ────────────────────────────────────────────────┐    │
 │  │  Welcome back, [first name or "there"]                             │    │
@@ -228,7 +234,7 @@ The "Are you a university coordinator?" line on State A is confirmed to ship. It
 - `h-16 border-b border-border bg-white`
 - Left: `[LogoMark]` + "BipHub" + `/` separator + "Student dashboard" label
 - Right: initials avatar (`bg-eu-blue/10 text-eu-blue`, 32×32px circle, 2 initials from email local-part) + "Sign out" text button
-- Sign out: `<form action={signOutStudentAction}>` → redirects to `/` (D-15), NOT `/login`
+- Sign out: `<form action={signOutStudentAction}>` → redirects to `/` (D-15), NOT `/login`; button element carries `aria-label="Sign out of BipHub"`
 - No settings link in Phase 5 (no student profile editing yet)
 - `aria-label="Student dashboard navigation"` on the `<header>`
 
@@ -300,7 +306,7 @@ The "Are you a university coordinator?" line on State A is confirmed to ship. It
 | Dashboard h1 (no name) | `Welcome back` | Clean fallback without "there" (avoids informality) |
 | Dashboard email line | `Signed in as {email}` | States fact, not instruction |
 | Account card heading | `Account` | Single word — unambiguous |
-| Sign out button | `Sign out` | Lowercase; matches coordinator nav pattern |
+| Sign out button | `Sign out` (visible label); `aria-label="Sign out of BipHub"` on the button element | Lowercase; matches coordinator nav pattern; aria-label provides full context for screen readers |
 | Explore card heading | `Browse Erasmus+ BIPs` | Named the product; not "Explore" alone |
 | Explore card body | `Discover programmes matched to your field and availability.` | "programmes" EU spelling; value-statement not CTA |
 | Browse BIPs CTA | `Browse BIPs →` | Arrow indicates navigation, not action |
