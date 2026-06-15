@@ -185,12 +185,15 @@ polluted the live cloud project. Corrective actions taken by the orchestrator:
   environment-portable and need no revert; the local fixture (id `44444444…`) is
   already in `seed.e2e.sql`.
 
-**OUTSTANDING TEST-DEBT:** the suite has NOT been validated against local Supabase
-(Docker Desktop was down). Required to close: start Docker → point a test env at
-local (127.0.0.1:54321) → `supabase db reset` (applies migrations incl. 00015 +
-`seed.e2e.sql`) → `npx playwright test tests/e2e/student-auth.spec.ts` green.
-The 8 behaviors are *proven* (passed on cloud), but the agreed local green-run
-remains. Phase 5 is therefore feature-complete but carries this e2e validation debt.
+**TEST-DEBT RESOLVED (2026-06-15):** Docker was started and the suite was run
+against local Supabase. Full suite: **25 passed / 2 pre-existing skips / 0 failed**
+(all 8 student-auth tests green; the 4 tests that "failed on cloud" pass on local
+once seeded — confirming they were cloud-seed artifacts, not regressions). Closing
+this required a real fix: `seed.e2e.sql` now upserts profiles under migration
+00015's `handle_new_user` trigger (the cloud run used the admin API and never hit
+this path). Remaining (not test-debt, a user action): enable the Custom Access
+Token Hook in the cloud Dashboard — see `05-01-USER-SETUP.md`. Locally the hook is
+active via `config.toml` and the student first-JWT role flow is proven.
 
 ## Self-Check: PASSED
 
