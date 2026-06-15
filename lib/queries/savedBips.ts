@@ -81,7 +81,10 @@ export async function getSavedBips(userId: string): Promise<BipWithRelations[]> 
     .order('saved_at', { ascending: false })
 
   if (error) {
-    if (process.env.NODE_ENV !== 'production') {
+    // Production degrades gracefully to an empty list (logged), avoiding a 500
+    // on /student-dashboard/saved (no error boundary on that segment). In
+    // development the error is re-thrown so it surfaces loudly during dev.
+    if (process.env.NODE_ENV === 'production') {
       console.error('[getSavedBips] query failed, returning empty:', error)
       return []
     }
