@@ -22,6 +22,21 @@ try {
   // .env.local not present (CI) — env comes from the runner environment.
 }
 
+// SAFETY GUARD: the e2e suite resets/seeds the DB and creates throwaway auth
+// users, so it MUST run against LOCAL Supabase (or a dedicated test project) —
+// never the production cloud project. Fails closed. Override with E2E_ALLOW_CLOUD=1
+// only if you have wired a dedicated cloud TEST project (not prod).
+const PROD_SUPABASE_REF = 'zbvcpiwbopmfbjfhzprw'
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
+if (supabaseUrl.includes(PROD_SUPABASE_REF) && process.env.E2E_ALLOW_CLOUD !== '1') {
+  throw new Error(
+    `Refusing to run the e2e suite against the PRODUCTION cloud Supabase project (${PROD_SUPABASE_REF}).\n` +
+      'The suite seeds data and creates throwaway users — running it against prod pollutes live data.\n' +
+      'Point NEXT_PUBLIC_SUPABASE_URL at local Supabase (http://127.0.0.1:54321) for tests, ' +
+      'or set E2E_ALLOW_CLOUD=1 if you have a dedicated cloud TEST project.',
+  )
+}
+
 const PORT = 3000
 const BASE_URL = `http://localhost:${PORT}`
 
