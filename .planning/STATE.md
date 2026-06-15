@@ -4,14 +4,14 @@ milestone: v1.1
 milestone_name: Product Depth & Engagement
 status: executing
 stopped_at: Phase 5 UI-SPEC approved
-last_updated: "2026-06-15T09:35:32.919Z"
-last_activity: 2026-06-15 -- Phase 05 execution started
+last_updated: "2026-06-15T10:01:03.028Z"
+last_activity: 2026-06-15
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 4
-  completed_plans: 0
-  percent: 0
+  completed_plans: 2
+  percent: 50
 ---
 
 # Project State
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-06-14 after v1.0 milestone)
 ## Current Position
 
 Phase: 05 (student-auth-role-model) — EXECUTING
-Plan: 1 of 4
-Status: Executing Phase 05
-Last activity: 2026-06-15 -- Phase 05 execution started
+Plan: 2 of 4
+Status: Ready to execute
+Last activity: 2026-06-15
 
 ```
 v1.1 Progress: [░░░░░░░░░░░░░░░░░░░░] 0%
@@ -135,6 +135,9 @@ Recent decisions affecting current work:
 - v1.1 Roadmap: Edit-approved-BIP uses shadow `bip_edits` table (PITFALLS.md approach, not ARCHITECTURE.md snapshot approach) — `bips.status` stays `approved` throughout re-review; BIP never disappears from public directory
 - v1.1 Roadmap: FOUN-07 and FOUN-08 assigned to Phase 5 (student role introduction); FOUN-09 and FOUN-10 assigned to Phase 6 (first PII table introduction) with ongoing obligations noted in Phase 7 and 8 success criteria
 - v1.1 Roadmap: Phase 8 depends on Phase 5 (profiles table must include student role before `bip_edits` GDPR cascade is wired); does NOT depend on Phase 6 or 7 — can start after Phase 5 if parallelizing
+- Plan 05-02: middleware matcher (line 97) intentionally unchanged — /student-dashboard/* is not excluded so new (3d) guard reaches it; /register/student excluded by existing 'register' negative-lookahead (D-13/OQ-2)
+- Plan 05-02: signOutStudentAction is a separate export redirecting to / (not /login); coordinator signOutAction untouched (D-15)
+- Plan 05-02: callback route type-discriminator branching — magiclink errors → /register/student?error=expired; non-magiclink errors keep existing /login path; open-redirect safety preserved (T-05-08)
 
 ### Pending Todos
 
@@ -163,9 +166,9 @@ Items acknowledged and deferred at v1.0 milestone close on 2026-06-14:
 
 ## Session Continuity
 
-Last session: 2026-06-15T08:54:13.667Z
+Last session: 2026-06-15T10:01:02.980Z
 Stopped at: Phase 5 UI-SPEC approved
-Resume file: .planning/phases/05-student-auth-role-model/05-UI-SPEC.md
+Resume file: None
 Resume instructions: Roadmap phases 5–8 defined. 29/29 requirements mapped. Next: `/gsd-plan-phase 5`
 
 ## Operator Next Steps

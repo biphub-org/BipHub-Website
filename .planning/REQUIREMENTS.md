@@ -11,9 +11,9 @@ Requirements for the v1.1 release. Each maps to a roadmap phase.
 
 ### Student Accounts & Saved BIPs (STUD)
 
-- [ ] **STUD-01**: A student can create an account and sign in via magic-link (passwordless) email
+- [x] **STUD-01**: A student can create an account and sign in via magic-link (passwordless) email
 - [ ] **STUD-02**: A student's session persists across visits and devices
-- [ ] **STUD-03**: A signed-in student has a dedicated dashboard, separate from the coordinator and admin areas
+- [x] **STUD-03**: A signed-in student has a dedicated dashboard, separate from the coordinator and admin areas
 - [ ] **STUD-04**: A student can save a BIP to their account and remove it
 - [ ] **STUD-05**: A student's saved BIPs are stored server-side and sync across devices
 - [ ] **STUD-06**: A student's existing localStorage bookmarks migrate to their account on first sign-in
@@ -46,7 +46,7 @@ Requirements for the v1.1 release. Each maps to a roadmap phase.
 ### Foundation / Compliance (FOUN — continuing from v1.0)
 
 - [ ] **FOUN-07**: Every new table has RLS with both USING and WITH CHECK, preventing cross-user access and role self-escalation
-- [ ] **FOUN-08**: Adding the student role grants no access to coordinator/admin routes or BIP submission
+- [x] **FOUN-08**: Adding the student role grants no access to coordinator/admin routes or BIP submission
 - [ ] **FOUN-09**: Account erasure cascades all new v1.1 PII (saved BIPs, subscriptions, alert-delivery records)
 - [ ] **FOUN-10**: The `/privacy` page enumerates every new v1.1 data surface
 
@@ -90,9 +90,9 @@ Which phases cover which requirements. Filled in during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| STUD-01 | Phase 5 | Pending |
+| STUD-01 | Phase 5 | Complete |
 | STUD-02 | Phase 5 | Pending |
-| STUD-03 | Phase 5 | Pending |
+| STUD-03 | Phase 5 | Complete |
 | STUD-04 | Phase 6 | Pending |
 | STUD-05 | Phase 6 | Pending |
 | STUD-06 | Phase 6 | Pending |
@@ -116,7 +116,7 @@ Which phases cover which requirements. Filled in during roadmap creation.
 | EDIT-08 | Phase 8 | Pending |
 | EDIT-09 | Phase 8 | Pending |
 | FOUN-07 | Phase 5 | Pending |
-| FOUN-08 | Phase 5 | Pending |
+| FOUN-08 | Phase 5 | Complete |
 | FOUN-09 | Phase 6 | Pending |
 | FOUN-10 | Phase 6 | Pending |
 
