@@ -8,7 +8,8 @@
 --   D-05  profiles.role CHECK extended to ('coordinator','admin','student')
 --   D-06  Custom Access Token Hook (PL/pgSQL, in-process) injects role at JWT issuance
 --   D-07  handle_new_user trigger materialises the profiles row on auth.users INSERT;
---          coalesce(raw_user_meta_data->>'role','coordinator') preserves coordinator default
+--          role whitelisted to ('coordinator','student') with coordinator default —
+--          client-controlled raw_user_meta_data can never grant 'admin' (T-05-06)
 --   D-09  profiles_update_own_or_admin WITH CHECK: role column immutable for non-admins (FOUN-07)
 --   D-12  bips_insert_coordinator requires role IN ('coordinator','admin') (FOUN-08)
 --
@@ -18,6 +19,8 @@
 --   T-05-03  Spoofing / null-role: first JWT has no role → fixed by D-06 + D-07
 --   T-05-04  EoP: direct invocation of hook fn → revoke from public,anon,authenticated
 --   T-05-05  Tampering: re-issued magic link overwrites existing role → on conflict do nothing
+--   T-05-06  EoP: signup mints 'admin' via client-controlled raw_user_meta_data.role
+--             → fixed by whitelisting ('coordinator','student') in handle_new_user (D-07)
 
 -- ============================================================
 -- (1) Extend profiles.role CHECK to include 'student'  (D-05)
@@ -33,8 +36,13 @@ alter table public.profiles
 -- (2) handle_new_user trigger  (D-07)
 -- Materialises a profiles row in the SAME transaction as the auth.users INSERT
 -- so the Custom Access Token Hook can read profiles.role at first JWT issuance.
--- coalesce(raw_user_meta_data->>'role','coordinator') defaults to coordinator
--- when the signup flow passes no data.role (existing coordinator signUp behaviour).
+-- SECURITY (T-05-06, privilege escalation): raw_user_meta_data is CLIENT-CONTROLLED
+-- (supabase-js signUp `options.data` / magic-link `options.data`). A naive
+-- coalesce(raw_user_meta_data->>'role', ...) would let any signup mint an 'admin'
+-- by passing data.role='admin'. We therefore WHITELIST only the two non-privileged
+-- self-serve roles; any other value (including 'admin' or garbage) falls through to
+-- the 'coordinator' default. 'admin' can ONLY be granted by an existing admin via
+-- the profiles UPDATE policy admin branch (D-09) — never at signup.
 -- on conflict do nothing: a re-issued magic link on an existing email never
 -- overwrites that account's role (D-07 one-role-per-account invariant, T-05-05).
 -- ============================================================
@@ -49,7 +57,13 @@ begin
   insert into public.profiles (id, role)
   values (
     new.id,
-    coalesce(new.raw_user_meta_data ->> 'role', 'coordinator')
+    coalesce(
+      case
+        when new.raw_user_meta_data ->> 'role' in ('coordinator', 'student')
+        then new.raw_user_meta_data ->> 'role'
+      end,
+      'coordinator'
+    )
   )
   on conflict (id) do nothing;
   return new;
