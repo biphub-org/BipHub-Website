@@ -41,7 +41,7 @@ export default function PrivacyPage() {
         <h1 className="text-[clamp(32px,4vw,44px)] font-bold tracking-tight text-ink">
           Privacy policy
         </h1>
-        <p className="mt-3 text-sm text-muted">Last updated: 2026-05-13</p>
+        <p className="mt-3 text-sm text-muted">Last updated: 2026-06-15</p>
       </header>
 
       {/* Section 1 — Data Controller */}
@@ -85,15 +85,30 @@ export default function PrivacyPage() {
             ePrivacy rules.
           </p>
           <p>
-            <strong className="text-ink">Local browser storage.</strong> We use
-            your browser&apos;s <code>localStorage</code> for two
-            strictly-functional purposes: (a) the <code>biphub:bookmarks</code>{' '}
-            key remembers which BIPs you have bookmarked from the heart icon
-            &mdash; this data never leaves your device; (b) the{' '}
+            <strong className="text-ink">Saved BIPs.</strong> When a signed-in student
+            saves a BIP, we store a <code>saved_bips</code> table row containing your
+            user ID, the BIP&apos;s internal ID, and the timestamp of the save
+            (<code>saved_at</code>). This data is stored in Supabase (EU region) and is
+            used solely to sync your saved BIPs across devices. It is retained until you
+            remove the BIP from your saved list or delete your account. All{' '}
+            <code>saved_bips</code> rows are permanently deleted when you delete your
+            account (cascading deletion via foreign key). No saved-BIP data is shared
+            with third parties.
+          </p>
+          <p>
+            <strong className="text-ink">Legacy bookmark sweep.</strong> On first
+            sign-in, the app reads any <code>biphub:bookmarks</code> value previously
+            stored in your browser&apos;s <code>localStorage</code> (from an earlier
+            version of BipHub), migrates valid BIP IDs into your server-side saved list,
+            then immediately clears the <code>localStorage</code> key. After this
+            one-time sweep the key is not written again.
+          </p>
+          <p>
+            <strong className="text-ink">Local browser storage.</strong> The{' '}
             <code>bip-draft</code> key holds an in-progress BIP submission so
-            you do not lose your work if your session expires mid-form. Both are
-            essential to the features they support and remain on your device
-            only.
+            you do not lose your work if your session expires mid-form. This
+            data is essential to the feature it supports and remains on your
+            device only.
           </p>
           <p>
             <strong className="text-ink">
