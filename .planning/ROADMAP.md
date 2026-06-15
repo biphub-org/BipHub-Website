@@ -21,7 +21,8 @@ Full phase details, success criteria, and per-plan breakdown: [milestones/v1.0-R
 
 ### v1.1 Product Depth & Engagement (Phases 5–8)
 
-- [x] **Phase 5: Student Auth + Role Model** - Students can register, sign in, and land on a dedicated dashboard; student role cannot access coordinator or admin areas (completed 2026-06-15)
+- [x] **Phase 5: Student Auth + Role Model** - Students can register, sign in, and land on a dedicated dashboard; student role cannot access coordinator or admin areas
+ (completed 2026-06-15)
 - [ ] **Phase 6: Saved BIPs Sync** - Students can save BIPs server-side, sync across devices, migrate localStorage bookmarks, and delete their account with full cascade
 - [ ] **Phase 7: Alert Subscriptions + Email Pipeline** - Students can subscribe to new-BIP alerts, receive idempotent digest emails with working unsubscribe, and manage subscriptions from their dashboard
 - [ ] **Phase 8: Edit-Approved + Request-Changes** - Coordinators can submit edits to live BIPs without taking them offline; admins can approve, reject, or request changes with a full audit trail
@@ -56,7 +57,11 @@ Full phase details, success criteria, and per-plan breakdown: [milestones/v1.0-R
   4. A student's saved BIPs are all visible in one list at `/student-dashboard/saved`, showing current BIP metadata
   5. A student who deletes their account has all `saved_bips` rows removed (verified by direct SQL query — no orphan rows remain)
   6. The `/privacy` page enumerates the `saved_bips` data surface with its retention and deletion policy
-**Plans**: TBD
+**Plans**: 4 plans
+  - [ ] 06-01-PLAN.md — DB foundation: 00016 saved_bips migration (RLS + cascade FK + indexes), [BLOCKING] cloud db push + type regen, SaveBipSchema + legacy-bookmark parser + unit test
+  - [ ] 06-02-PLAN.md — Core feature: save/unsave/migrate Server Actions, savedBips query layer, SaveToggleIsland (useOptimistic), BipCard refactor, wire /bips + /bip/[slug]
+  - [ ] 06-03-PLAN.md — Student surfaces: /student-dashboard/saved list, dashboard Saved-summary + DeleteAccountDialog + LegacySweepIsland, /privacy saved_bips enumeration
+  - [ ] 06-04-PLAN.md — E2E validation: saved-bips.spec.ts (STUD-04/05/07/08, FOUN-09/10), Playwright project wiring, full-suite + build gate
 **UI hint**: yes
 
 ### Phase 7: Alert Subscriptions + Email Pipeline
@@ -96,6 +101,6 @@ Full phase details, success criteria, and per-plan breakdown: [milestones/v1.0-R
 | 3. Admin Review + Email Notifications | v1.0 | 8/8 | Complete | 2026-05-12 |
 | 4. Polish + Static Content + Performance Hardening | v1.0 | 7/7 | Complete | 2026-06-14 |
 | 5. Student Auth + Role Model | v1.1 | 4/4 | Complete   | 2026-06-15 |
-| 6. Saved BIPs Sync | v1.1 | 0/TBD | Not started | - |
+| 6. Saved BIPs Sync | v1.1 | 0/4 | Planned | - |
 | 7. Alert Subscriptions + Email Pipeline | v1.1 | 0/TBD | Not started | - |
 | 8. Edit-Approved + Request-Changes | v1.1 | 0/TBD | Not started | - |
