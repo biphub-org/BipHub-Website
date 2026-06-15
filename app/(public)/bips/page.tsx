@@ -2,6 +2,8 @@ import { Suspense } from 'react'
 import type { Metadata } from 'next'
 import { parseSearchParams, PAGE_SIZE } from '@/lib/filters/parseSearchParams'
 import { getBips } from '@/lib/queries/bips'
+import { createClient } from '@/lib/supabase/server'
+import { getSavedBipIds } from '@/lib/queries/savedBips'
 import { BipFiltersSidebar } from '@/components/bip/BipFiltersSidebar'
 import { BipFiltersSidebarSkeleton } from '@/components/bip/BipFiltersSidebarSkeleton'
 import { BipFiltersDrawer } from '@/components/bip/BipFiltersDrawer'
@@ -64,6 +66,16 @@ export default async function BipsPage(props: {
   const sp = await props.searchParams
   const filters = parseSearchParams(sp)
   const { rows, total, totalCountries } = await getBips(filters)
+
+  // Resolve signed-in student identity for the save toggle (per-user, not cached in ISR).
+  // Reading cookies() forces this component into dynamic rendering for authenticated users —
+  // this is acceptable per RESEARCH A2 and the revalidate=3600 ISR declaration is preserved
+  // below (unauthenticated ISR still works; authenticated requests are dynamic by necessity).
+  const supabase = await createClient()
+  const { data: claimsData } = await supabase.auth.getClaims()
+  const userId = claimsData?.claims?.sub ?? null
+  const isStudent = claimsData?.claims?.app_metadata?.role === 'student'
+  const savedBipIds = await getSavedBipIds(userId)
 
   const startIdx = (filters.page - 1) * PAGE_SIZE + 1
   const endIdx = Math.min(filters.page * PAGE_SIZE, total)
@@ -169,7 +181,7 @@ export default async function BipsPage(props: {
               <BipsEmptyState />
             ) : (
               <>
-                <BipGrid bips={rows} />
+                <BipGrid bips={rows} savedBipIds={savedBipIds} isStudent={isStudent} />
                 {totalPages > 1 && (
                   <div className="mt-12">
                     <Suspense fallback={<BipPaginationSkeleton />}>

@@ -2,10 +2,13 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { getBipBySlug, getAllPublishedSlugs } from '@/lib/queries/bipDetail'
 import { getCountryName } from '@/lib/countries'
+import { createClient } from '@/lib/supabase/server'
+import { isBipSaved } from '@/lib/queries/savedBips'
 import { BipHeader } from '@/components/bip/BipHeader'
 import { BipBody } from '@/components/bip/BipBody'
 import { BipSidebar } from '@/components/bip/BipSidebar'
 import { BipMobileApplyBar } from '@/components/bip/BipMobileApplyBar'
+import { BipSaveButton } from '@/components/bip/BipSaveButton'
 import { IconChevronLeft } from '@tabler/icons-react'
 import Link from 'next/link'
 
@@ -115,6 +118,22 @@ export default async function BipDetailPage({
     notFound()
   }
 
+  // Resolve signed-in student identity for the save toggle.
+  const supabase = await createClient()
+  const { data: claimsData } = await supabase.auth.getClaims()
+  const userId = claimsData?.claims?.sub ?? null
+  const isStudent = claimsData?.claims?.app_metadata?.role === 'student'
+  const initialSaved = userId ? await isBipSaved(userId, bip.id) : false
+
+  const saveButton = (
+    <BipSaveButton
+      bipId={bip.id}
+      bipTitle={bip.title}
+      initialSaved={initialSaved}
+      isStudent={isStudent}
+    />
+  )
+
   return (
     <>
       <div className="container mx-auto max-w-[1200px] px-4 lg:px-6 py-8 lg:py-12 pb-24 lg:pb-12">
@@ -132,13 +151,13 @@ export default async function BipDetailPage({
             <BipHeader bip={bip} />
             <BipBody bip={bip} />
           </div>
-          <BipSidebar bip={bip} />
+          <BipSidebar bip={bip} saveButton={saveButton} />
         </div>
       </div>
 
       {/* Mobile sticky bottom Apply bar — hidden at lg+ (D-10) */}
       <div className="lg:hidden">
-        <BipMobileApplyBar bip={bip} />
+        <BipMobileApplyBar bip={bip} saveButton={saveButton} />
       </div>
     </>
   )

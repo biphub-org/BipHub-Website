@@ -11,6 +11,7 @@ import { ShareButton } from '@/components/bip/ShareButton'
  * Renders:
  *   - Deadline countdown chip (DeadlineBadge)
  *   - Apply CTA button (full sidebar width, BipApplyCta)        ← public mode only
+ *   - Save button slot (saveButton prop)                        ← public mode only
  *   - Key facts list (ECTS / Dates / Language / CEFR / City) — DETL-05
  *   - Action row: ShareButton                                   ← public mode only
  *
@@ -22,15 +23,21 @@ import { ShareButton } from '@/components/bip/ShareButton'
  *   - 'admin-review': suppresses the Apply CTA AND the Share action row —
  *     admins viewing a pending submission must not be able to apply from
  *     inside the review surface.
+ *
+ * saveButton prop (Plan 06-02): rendered below the Apply CTA in public mode.
+ * The caller (page.tsx RSC) constructs the BipSaveButton and passes it as
+ * a ReactNode slot so BipSidebar never imports action plumbing directly.
  */
 export type BipSidebarMode = 'public' | 'admin-review'
 
 export function BipSidebar({
   bip,
   mode = 'public',
+  saveButton,
 }: {
   bip: BipDetail
   mode?: BipSidebarMode
+  saveButton?: React.ReactNode
 }) {
   const isAdminReview = mode === 'admin-review'
   const url =
@@ -57,6 +64,13 @@ export function BipSidebar({
         {!isAdminReview && (
           <div className="mt-4">
             <BipApplyCta bip={bip} fullWidth />
+          </div>
+        )}
+
+        {/* Save button slot — rendered below Apply CTA, suppressed in admin-review mode. */}
+        {!isAdminReview && saveButton && (
+          <div className="mt-2">
+            {saveButton}
           </div>
         )}
 

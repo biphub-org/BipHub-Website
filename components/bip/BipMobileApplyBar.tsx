@@ -12,8 +12,17 @@ import { BipApplyCta } from '@/components/bip/BipApplyCta'
  *
  * Shown via the 'lg:hidden' wrapper in page.tsx — hidden at >=1024px.
  * Shows deadline label (CountdownText) on the left and Apply CTA on the right.
+ *
+ * saveButton slot (Plan 06-02): rendered between CountdownText and Apply CTA.
+ * The caller (page.tsx RSC) constructs BipSaveButton and passes as ReactNode.
  */
-export function BipMobileApplyBar({ bip }: { bip: BipDetail }) {
+export function BipMobileApplyBar({
+  bip,
+  saveButton,
+}: {
+  bip: BipDetail
+  saveButton?: React.ReactNode
+}) {
   return (
     <div
       role="region"
@@ -23,6 +32,7 @@ export function BipMobileApplyBar({ bip }: { bip: BipDetail }) {
       <div className="text-sm">
         <CountdownText deadline={bip.application_deadline} />
       </div>
+      {saveButton && <div className="flex-shrink-0">{saveButton}</div>}
       <BipApplyCta bip={bip} />
     </div>
   )
