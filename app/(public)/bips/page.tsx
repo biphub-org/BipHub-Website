@@ -67,10 +67,10 @@ export default async function BipsPage(props: {
   const filters = parseSearchParams(sp)
   const { rows, total, totalCountries } = await getBips(filters)
 
-  // Resolve signed-in student identity for the save toggle (per-user, not cached in ISR).
-  // Reading cookies() forces this component into dynamic rendering for authenticated users —
-  // this is acceptable per RESEARCH A2 and the revalidate=3600 ISR declaration is preserved
-  // below (unauthenticated ISR still works; authenticated requests are dynamic by necessity).
+  // /bips reads searchParams (filters), so it is inherently dynamic — never ISR,
+  // regardless of cookies (this was true before Phase 6 too). Computing per-user
+  // saved state server-side is therefore free and paints the correct heart state
+  // in the initial HTML with no flash. See D-bip-02-03.
   const supabase = await createClient()
   const { data: claimsData } = await supabase.auth.getClaims()
   const userId = claimsData?.claims?.sub ?? null

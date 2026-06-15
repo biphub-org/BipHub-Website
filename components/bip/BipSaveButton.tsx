@@ -13,24 +13,19 @@ import { SaveToggleIsland } from '@/components/bip/SaveToggleIsland'
 export interface BipSaveButtonProps {
   bipId: string
   bipTitle: string
-  initialSaved: boolean
-  isStudent: boolean
   className?: string
 }
 
-export function BipSaveButton({
-  bipId,
-  bipTitle,
-  initialSaved,
-  isStudent,
-  className,
-}: BipSaveButtonProps) {
+/**
+ * Saved state is read from the client store (populated by <SavedBipsHydrator />),
+ * so this wrapper does not need server-computed initialSaved / isStudent props —
+ * keeping the /bip/[slug] detail page cookie-free and ISR-cached (D-bip-02-03).
+ */
+export function BipSaveButton({ bipId, bipTitle, className }: BipSaveButtonProps) {
   return (
     <SaveToggleIsland
       bipId={bipId}
       bipTitle={bipTitle}
-      initialSaved={initialSaved}
-      isStudent={isStudent}
       displayStyle="button"
       className={className}
     />

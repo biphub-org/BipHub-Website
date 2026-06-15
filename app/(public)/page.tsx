@@ -29,6 +29,7 @@ import { Hero } from '@/components/home/Hero'
 import { CategoriesBar } from '@/components/home/CategoriesBar'
 import { StatsSection } from '@/components/home/StatsSection'
 import { RecentBips } from '@/components/home/RecentBips'
+import { SavedBipsHydrator } from '@/components/bip/SavedBipsHydrator'
 import { HowItWorks } from '@/components/home/HowItWorks'
 import { UniversityCTA } from '@/components/home/UniversityCTA'
 // EuropeMapWrapper is a 'use client' component that hosts the dynamic({ ssr: false }) import.
@@ -91,6 +92,9 @@ export default async function HomePage() {
 
   return (
     <>
+      {/* Hydrates the client saved-state store so RecentBips heart toggles work */}
+      <SavedBipsHydrator />
+
       {/* FOUN-07: post-deletion toast island — fires on /?deleted=1, then strips
           the param. Renders null otherwise. Suspense is required because
           useSearchParams must be wrapped in Next.js 15. */}

@@ -16,6 +16,26 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { SaveBipSchema } from '@/lib/schemas/saved-bips'
+import { getSavedBipIds } from '@/lib/queries/savedBips'
+
+/**
+ * Resolve the caller's saved-BIP state for client-side hydration (D-bip-02-03).
+ *
+ * Called from SavedBipsHydrator on mount so /bips and /bip/[slug] can stay ISR
+ * (cookie-free server render — see lib/store/saved-bips.ts). Returns the user's
+ * saved bip IDs and whether they are a signed-in student. Anonymous / invalid-JWT
+ * callers get an empty set and isStudent=false. Reading cookies here is fine: a
+ * Server Action runs at request time on the client's behalf, not during the
+ * page's static render, so it does not opt the page out of ISR.
+ */
+export async function getSavedStateAction(): Promise<{ savedIds: string[]; isStudent: boolean }> {
+  const supabase = await createClient()
+  const { data, error } = await supabase.auth.getClaims()
+  if (error || !data?.claims?.sub) return { savedIds: [], isStudent: false }
+  const isStudent = data.claims.app_metadata?.role === 'student'
+  const ids = await getSavedBipIds(data.claims.sub)
+  return { savedIds: [...ids], isStudent }
+}
 
 /**
  * Internal helper — resolves the caller's user_id from the signed JWT.
