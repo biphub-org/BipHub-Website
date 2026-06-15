@@ -41,7 +41,7 @@ Full phase details, success criteria, and per-plan breakdown: [milestones/v1.0-R
 **Plans**: 4 plans
   - [x] 05-01-PLAN.md — DB foundation: 00015 migration (role CHECK, handle_new_user trigger, Custom Access Token Hook, tightened RLS), config.toml hook, bip-submit assertion, [BLOCKING] schema push
   - [x] 05-02-PLAN.md — Auth flow: signInWithOtpAction + signOutStudentAction, callback magiclink branch, middleware D-11 matrix
-  - [ ] 05-03-PLAN.md — UI: /register/student magic-link page + form, (student) route group layout + nav + dashboard shell
+  - [x] 05-03-PLAN.md — UI: /register/student magic-link page + form, (student) route group layout + nav + dashboard shell
   - [ ] 05-04-PLAN.md — E2E validation: student seed fixture + student-auth.spec.ts (all SC + FOUN-07/08 + D-11/D-15)
 **UI hint**: yes
 
@@ -95,7 +95,7 @@ Full phase details, success criteria, and per-plan breakdown: [milestones/v1.0-R
 | 2. Coordinator Auth + Submission | v1.0 | 7/7 | Complete | 2026-05-11 |
 | 3. Admin Review + Email Notifications | v1.0 | 8/8 | Complete | 2026-05-12 |
 | 4. Polish + Static Content + Performance Hardening | v1.0 | 7/7 | Complete | 2026-06-14 |
-| 5. Student Auth + Role Model | v1.1 | 0/4 | Planned | - |
+| 5. Student Auth + Role Model | v1.1 | 3/4 | Executing | - |
 | 6. Saved BIPs Sync | v1.1 | 0/TBD | Not started | - |
 | 7. Alert Subscriptions + Email Pipeline | v1.1 | 0/TBD | Not started | - |
 | 8. Edit-Approved + Request-Changes | v1.1 | 0/TBD | Not started | - |

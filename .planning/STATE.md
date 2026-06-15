@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Product Depth & Engagement
 status: executing
-stopped_at: Phase 5 UI-SPEC approved
-last_updated: "2026-06-15T10:01:03.028Z"
+stopped_at: Completed 05-03-PLAN.md
+last_updated: "2026-06-15T12:00:00.000Z"
 last_activity: 2026-06-15
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 4
-  completed_plans: 2
-  percent: 50
+  completed_plans: 3
+  percent: 75
 ---
 
 # Project State
@@ -26,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-06-14 after v1.0 milestone)
 ## Current Position
 
 Phase: 05 (student-auth-role-model) — EXECUTING
-Plan: 2 of 4
-Status: Ready to execute
+Plan: 3 of 4
+Status: Completed 05-03; ready for 05-04
 Last activity: 2026-06-15
 
 ```
@@ -138,6 +138,9 @@ Recent decisions affecting current work:
 - Plan 05-02: middleware matcher (line 97) intentionally unchanged — /student-dashboard/* is not excluded so new (3d) guard reaches it; /register/student excluded by existing 'register' negative-lookahead (D-13/OQ-2)
 - Plan 05-02: signOutStudentAction is a separate export redirecting to / (not /login); coordinator signOutAction untouched (D-15)
 - Plan 05-02: callback route type-discriminator branching — magiclink errors → /register/student?error=expired; non-magiclink errors keep existing /login path; open-redirect safety preserved (T-05-08)
+- Plan 05-03: No shadcn Card installed in this repo — student dashboard cards use raw div with rounded-lg border border-border bg-white shadow-sm p-6 (equivalent output, no primitive gap)
+- Plan 05-03: StudentMagicLinkForm uses native `<input type="email">` (not shadcn Input) to avoid @base-ui/react wrapper conflict with form action={handleSubmit} under useTransition
+- Plan 05-03: State B "Re-enter your email" escape is a button resetting local state (not a Link with ?step= URL param) — keeps URL clean at /register/student
 
 ### Pending Todos
 
@@ -166,11 +169,11 @@ Items acknowledged and deferred at v1.0 milestone close on 2026-06-14:
 
 ## Session Continuity
 
-Last session: 2026-06-15T10:01:02.980Z
-Stopped at: Phase 5 UI-SPEC approved
+Last session: 2026-06-15T12:00:00.000Z
+Stopped at: Completed 05-03-PLAN.md (student UI surfaces)
 Resume file: None
-Resume instructions: Roadmap phases 5–8 defined. 29/29 requirements mapped. Next: `/gsd-plan-phase 5`
+Resume instructions: Phase 5 plans 01/02/03 complete. Next: execute 05-04 (e2e tests for student auth).
 
 ## Operator Next Steps
 
-- Run `/gsd-plan-phase 5` to create the plan for Phase 5: Student Auth + Role Model
+- Run `/gsd-execute-phase 5` (plan 04) to execute the student auth e2e tests
