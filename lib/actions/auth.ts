@@ -16,6 +16,7 @@
 
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
+import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import {
   loginSchema,
@@ -201,4 +202,46 @@ export async function updatePasswordAction(
     return { error: 'Failed to update password. Please try again.' }
   }
   redirect('/dashboard')
+}
+
+// STUD-01 / D-01: single entry for new signup + returning sign-in via magic link.
+// options.data.role → raw_user_meta_data at creation; the handle_new_user trigger
+// (00015) reads it to set profiles.role='student'. emailRedirectTo carries
+// type=magiclink so the callback routes to /student-dashboard (D-04).
+export async function signInWithOtpAction(
+  formData: FormData,
+): Promise<{ error?: string; success?: true }> {
+  const email = String(formData.get('email') ?? '').trim().toLowerCase()
+  const result = z.string().email().safeParse(email)
+  if (!result.success) {
+    return { error: 'Please enter a valid email address.' }
+  }
+
+  const supabase = await createClient()
+  const { error } = await supabase.auth.signInWithOtp({
+    email: result.data,
+    options: {
+      shouldCreateUser: true,
+      data: { role: 'student' },
+      emailRedirectTo: `${SITE_URL}/auth/callback?type=magiclink`,
+    },
+  })
+
+  if (error) {
+    const msg = error.message.toLowerCase()
+    if (msg.includes('rate limit') || error.status === 429) {
+      return { error: 'Too many requests. Please wait a few minutes before trying again.' }
+    }
+    return { error: 'Something went wrong. Please try again.' }
+  }
+  return { success: true }
+}
+
+// D-15: student sign-out lands on / (public home), NOT /login. Separate export
+// keeps the coordinator signOutAction behavior unchanged.
+export async function signOutStudentAction(): Promise<void> {
+  const supabase = await createClient()
+  await supabase.auth.signOut()
+  revalidatePath('/', 'layout')
+  redirect('/')
 }
