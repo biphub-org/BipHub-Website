@@ -11,6 +11,10 @@
 --   2. e2e-coordinator-fresh@biphub.test — verified, NO profile (forces /onboarding;
 --                                          DESTRUCTIVELY consumed by auth.spec.ts)
 --   3. e2e-admin@biphub.test             — app_metadata.role='admin'
+--   4. e2e-student@biphub.test           — verified, role=student (Phase 5 / Plan 05-04)
+--                                          NON-DESTRUCTIVE (not consumed by any spec;
+--                                          student-auth.spec.ts signs in + signs out,
+--                                          leaving the fixture intact for the next run)
 --
 -- The passwords here are DEMO PASSWORDS for local-only fixtures. gitleaks
 -- allowlists this file path (.gitleaks.toml in Plan 04-04). Do NOT use
@@ -285,3 +289,47 @@ values (
   'The virtual component needs at least three structured online sessions before the mobility week.',
   'reject'
 );
+
+-- ----------------------------------------------------------------------------
+-- Step 5: Phase 5 — student fixture (user 4, Plan 05-04).
+--
+-- User 4: e2e-student@biphub.test (verified, role=student).
+-- Magic-link only — password is kept non-null to satisfy the column shape
+-- but student-auth.spec.ts authenticates via admin generate_link (type=magiclink).
+-- NON-DESTRUCTIVE: student-auth.spec.ts signs in + signs out; the fixture
+-- remains intact for re-runs. Do NOT use this account for destructive tests.
+--
+-- The existing '%@biphub.test' cleanup block (lines 32-49) covers this user —
+-- NO change to the cleanup block is needed.
+--
+-- defense-in-depth: raw_app_meta_data.role='student' is set here; the
+-- profiles_sync_role trigger (00002) mirrors profiles.role back into
+-- raw_app_meta_data on any future profiles UPDATE. The Custom Access Token
+-- Hook (00015) reads profiles.role at JWT issuance to stamp app_metadata.role
+-- into the JWT claims.
+-- ----------------------------------------------------------------------------
+
+-- User 4: e2e-student (verified, role=student in app_metadata AND profiles).
+insert into auth.users (
+  instance_id, id, aud, role, email, encrypted_password,
+  email_confirmed_at, raw_app_meta_data, raw_user_meta_data,
+  created_at, updated_at, confirmation_token, email_change,
+  email_change_token_new, recovery_token
+)
+values (
+  '00000000-0000-0000-0000-000000000000',
+  '44444444-4444-4444-4444-444444444444',
+  'authenticated', 'authenticated',
+  'e2e-student@biphub.test',
+  crypt('Student!Test1', gen_salt('bf')),
+  now(),
+  '{"provider":"email","providers":["email"],"role":"student"}'::jsonb,
+  '{"role":"student"}'::jsonb,
+  now(), now(), '', '', '', ''
+);
+
+-- Student profile: NO university_id / erasmus_code / full_name (D-08 / Pitfall 2).
+-- profiles_sync_role trigger mirrors role into raw_app_meta_data; Custom Access
+-- Token Hook (00015) reads this profiles.role at JWT issuance.
+insert into public.profiles (id, role)
+values ('44444444-4444-4444-4444-444444444444', 'student');
