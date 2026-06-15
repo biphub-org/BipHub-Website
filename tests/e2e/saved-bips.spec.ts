@@ -37,6 +37,9 @@ const STUDENT_EMAIL = 'e2e-student@biphub.test'
 /**
  * Sign in the student fixture by injecting a session cookie directly.
  * Equivalent to student-auth.spec.ts signInStudent — reused verbatim.
+ *
+ * The cloud e2e-student fixture must have password='Student!Test1' and
+ * profiles.role='student'. If either diverges, update via the Supabase admin API.
  */
 async function signInStudent(page: Page): Promise<void> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -171,25 +174,28 @@ async function countSavedBipsForUser(page: Page, userId: string): Promise<number
 }
 
 /**
- * Save a BIP via direct REST API (anon key + user JWT) — used in setup for the
- * deletion test to ensure a saved_bips row exists before we drive the UI delete flow.
+ * Save a BIP directly via service-role REST (RLS bypass) — used in test setup to
+ * plant a saved_bips row for the throwaway user before driving the UI deletion flow.
+ *
+ * Service-role is correct here: this is a test setup action, not app code. The actual
+ * save pathway (RLS-scoped) is exercised by the STUD-04 browser tests.
  */
-async function saveBipViaApi(
+async function saveBipViaServiceRole(
   page: Page,
-  accessToken: string,
+  userId: string,
   bipId: string,
 ): Promise<void> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
   const resp = await page.request.post(`${supabaseUrl}/rest/v1/saved_bips`, {
     headers: {
-      apikey: anonKey,
-      Authorization: `Bearer ${accessToken}`,
+      apikey: serviceRoleKey,
+      Authorization: `Bearer ${serviceRoleKey}`,
       'Content-Type': 'application/json',
       Prefer: 'return=minimal,resolution=ignore-duplicates',
     },
-    data: { bip_id: bipId },
+    data: { user_id: userId, bip_id: bipId },
   })
   // 201 Created or 204 No Content (ignore-duplicates) — both are success
   expect([201, 204]).toContain(resp.status())
@@ -304,8 +310,18 @@ test.describe('saved bips', () => {
     await expect(unsaveBtnInList).toBeVisible({ timeout: 5_000 })
     await unsaveBtnInList.click()
 
-    // After unsave, the card (identified by its title text) must disappear
-    await expect(page.getByText(bipTitle, { exact: false })).not.toBeVisible({ timeout: 10_000 })
+    // After unsave, the optimistic state flips: the "Unsave" button becomes "Save".
+    // The card stays rendered until a reload; asserting the Unsave label is gone proves
+    // the action was processed (optimistic update succeeded).
+    await expect(
+      page.getByRole('button', { name: `Unsave ${bipTitle}` }),
+    ).not.toBeVisible({ timeout: 10_000 })
+
+    // A full reload confirms the card is gone from the server-side list
+    await page.reload()
+    await page.waitForURL(/\/student-dashboard\/saved/, { timeout: 10_000 })
+    // Either empty state or the card does not appear (the BIP was actually removed)
+    await expect(page.getByText(bipTitle, { exact: false })).not.toBeVisible({ timeout: 5_000 })
   })
 
   // -------------------------------------------------------------------------
@@ -338,11 +354,14 @@ test.describe('saved bips', () => {
     // The saved BIP title must be visible (live metadata from the bips table)
     await expect(page.getByText(bipTitle, { exact: false })).toBeVisible({ timeout: 10_000 })
 
-    // Clean up
+    // Clean up: flip back to unsaved so the fixture is clean for re-runs
     const unsaveBtn = page.getByRole('button', { name: `Unsave ${bipTitle}` }).first()
     if (await unsaveBtn.isVisible()) {
       await unsaveBtn.click()
-      await expect(page.getByText(bipTitle, { exact: false })).not.toBeVisible({ timeout: 8_000 })
+      // Optimistic state flips: Unsave button becomes Save button
+      await expect(
+        page.getByRole('button', { name: `Unsave ${bipTitle}` }),
+      ).not.toBeVisible({ timeout: 8_000 })
     }
   })
 
@@ -399,64 +418,58 @@ test.describe('saved bips', () => {
     })
 
     // ------------------------------------------------------------------
-    // Step 2: Obtain an access token for the throwaway student.
-    // ------------------------------------------------------------------
-    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    const tokenResp = await page.request.post(
-      `${supabaseUrl}/auth/v1/token?grant_type=password`,
-      {
-        headers: { apikey: anonKey, 'Content-Type': 'application/json' },
-        data: { email: throwawayEmail, password: throwawayPassword },
-      },
-    )
-    expect(tokenResp.ok()).toBeTruthy()
-    const throwawaySession = await tokenResp.json()
-    const throwawayToken: string = throwawaySession.access_token
-    expect(throwawayToken).toBeTruthy()
-
-    // ------------------------------------------------------------------
-    // Step 3: Save a BIP via the REST API using the throwaway user's JWT.
+    // Step 2: Save a BIP via service-role REST (RLS bypass for test setup).
+    //
+    // Using service-role here rather than the user's JWT because:
+    //   a) The throwaway user's JWT was obtained immediately after account creation —
+    //      the Custom Access Token Hook may not yet reflect profiles.role='student'.
+    //   b) This is a test setup action; the actual RLS-scoped save is exercised
+    //      in the STUD-04 browser tests.
     // ------------------------------------------------------------------
     const { bipId: testBipId } = await getFirstApprovedBip(page)
-    await saveBipViaApi(page, throwawayToken, testBipId)
+    await saveBipViaServiceRole(page, throwawayUserId, testBipId)
 
     // ------------------------------------------------------------------
-    // Step 4: Assert exactly one saved_bips row exists for the throwaway user.
+    // Step 3: Assert exactly one saved_bips row exists for the throwaway user.
     // ------------------------------------------------------------------
     const countBefore = await countSavedBipsForUser(page, throwawayUserId)
     expect(countBefore).toBe(1)
 
     // ------------------------------------------------------------------
-    // Step 5: Sign in as the throwaway student and drive the DeleteAccountDialog UI.
+    // Step 4: Sign in as the throwaway student and drive the DeleteAccountDialog UI.
     // ------------------------------------------------------------------
     await signInUser(page, throwawayEmail, throwawayPassword)
     await page.waitForURL(/\/student-dashboard/, { timeout: 15_000 })
 
-    // Open the Delete Account dialog — the button triggers the dialog
-    const deleteBtn = page.getByRole('button', { name: /delete account/i })
+    // Open the Delete Account dialog — the trigger button is "Delete account"
+    // Use first() since the dialog trigger and confirm button share the same label
+    const deleteBtn = page.getByRole('button', { name: /^delete account$/i }).first()
     await expect(deleteBtn).toBeVisible({ timeout: 10_000 })
     await deleteBtn.click()
 
-    // The dialog should now be open — look for the confirmation input
+    // The dialog should now be open — look for the confirmation input (email textbox)
     const emailInput = page.getByRole('textbox')
     await expect(emailInput).toBeVisible({ timeout: 5_000 })
 
     // Type the throwaway email to confirm deletion
     await emailInput.fill(throwawayEmail)
 
-    // Click the destructive confirm button (it is the danger/destructive variant)
-    const confirmBtn = page.getByRole('button', { name: /permanently delete my account/i })
+    // Click the destructive confirm button — the submit button inside the dialog form.
+    // There are now 3 buttons visible (trigger still in DOM, Cancel, Delete account submit).
+    // The submit is the LAST "Delete account" button (inside the form, not the trigger).
+    const confirmBtn = page.getByRole('button', { name: /^delete account$/i }).last()
     await expect(confirmBtn).toBeVisible({ timeout: 5_000 })
+    await expect(confirmBtn).toBeEnabled({ timeout: 5_000 })
     await confirmBtn.click()
 
     // ------------------------------------------------------------------
-    // Step 6: Assert redirect to /?deleted=1 (the RPC + cascade happened).
+    // Step 5: Assert redirect to /?deleted=1 (the RPC + cascade happened).
     // ------------------------------------------------------------------
     await page.waitForURL(/\?deleted=1/, { timeout: 20_000 })
     expect(page.url()).toContain('deleted=1')
 
     // ------------------------------------------------------------------
-    // Step 7: Assert ZERO saved_bips rows for the deleted user (FOUN-09).
+    // Step 6: Assert ZERO saved_bips rows for the deleted user (FOUN-09).
     //
     // The FK cascade (ON DELETE CASCADE on saved_bips.user_id → auth.users)
     // removes all saved_bips rows when the auth.users row is deleted by the RPC.
@@ -476,8 +489,8 @@ test.describe('saved bips', () => {
     // "Saved BIPs" heading/label must be visible (FOUN-10 primary criterion)
     await expect(page.getByText('Saved BIPs', { exact: false })).toBeVisible({ timeout: 5_000 })
 
-    // saved_bips table name must appear in the page content
-    await expect(page.getByText('saved_bips', { exact: false })).toBeVisible({ timeout: 5_000 })
+    // saved_bips table name must appear in the page content (multiple occurrences are expected)
+    await expect(page.getByText('saved_bips', { exact: false }).first()).toBeVisible({ timeout: 5_000 })
 
     // cascading deletion language must be present
     await expect(page.getByText('cascading deletion', { exact: false })).toBeVisible({ timeout: 5_000 })
