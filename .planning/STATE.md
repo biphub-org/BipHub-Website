@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Product Depth & Engagement
 status: executing
-stopped_at: Phase 6 UI-SPEC approved (4 PASS, 2 non-blocking FLAGs)
-last_updated: "2026-06-15T13:39:29.750Z"
-last_activity: 2026-06-15 -- Phase 06 planning complete
+stopped_at: "06-01 complete: saved_bips migration applied to cloud, types regenerated, SaveBipSchema + parseLegacyBookmarkIds with 11 green tests"
+last_updated: "2026-06-15T13:54:38.793Z"
+last_activity: 2026-06-15
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 8
-  completed_plans: 4
-  percent: 50
+  completed_plans: 5
+  percent: 63
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-14 after v1.0 milestone)
 
 **Core value:** Students can reliably discover Erasmus+ BIPs by country, field of study, and dates, and universities can self-service list their BIPs through a fast, professional submission flow with admin review.
-**Current focus:** Phase 05 — student-auth-role-model
+**Current focus:** Phase 06 — saved-bips-sync
 
 ## Current Position
 
-Phase: 05 (student-auth-role-model) — COMPLETE
-Plan: 4 of 4
-Status: Ready to execute
-Last activity: 2026-06-15 -- Phase 06 planning complete
+Phase: 06 (saved-bips-sync) — EXECUTING
+Plan: 2 of 4
+Status: 06-01 complete, executing 06-02
+Last activity: 2026-06-15 -- 06-01 executed: migration 00016 applied to cloud, types regenerated, SaveBipSchema + parseLegacyBookmarkIds 11 tests green
 
 ```
 v1.1 Progress: [░░░░░░░░░░░░░░░░░░░░] 0%
@@ -144,6 +144,9 @@ Recent decisions affecting current work:
 - Plan 05-04: Cloud Supabase redirect allowlist restricted to Vercel URL — student e2e session established via @supabase/ssr cookie injection (base64url-encoded password-auth session) rather than browser magic-link navigation; auth-method independent for tested behaviors
 - Plan 05-04: playwright.config auth-flow testMatch narrowed to /(?:^|[/\\])auth\.spec\.ts$/ to exclude student-auth.spec.ts from running under the wrong project
 - Plan 05-04: FOUN-07 WITH CHECK violation returns HTTP 500 from cloud PostgREST (not 401/403); assertion accepts >=400 + post-hoc service-role read to confirm role unchanged
+- Plan 06-01: D-06 — migration 00016 DDL from ARCHITECTURE.md 166-204 verbatim; 4 RLS policies (select_own/insert_own/delete_own/select_admin), no UPDATE policy, applied via db push to linked cloud; db push --dry-run confirms "Remote database is up to date"
+- Plan 06-01: FOUN-09 — FK-driven GDPR cascade; user_id references auth.users(id) ON DELETE CASCADE; delete_my_account() RPC (00013) untouched (cascade is automatic)
+- Plan 06-01: parseLegacyBookmarkIds is a pure module (no react/next/@supabase imports) — testable without JSDOM; D-02a proven by 11 green unit tests
 
 ### Pending Todos
 
@@ -172,9 +175,9 @@ Items acknowledged and deferred at v1.0 milestone close on 2026-06-14:
 
 ## Session Continuity
 
-Last session: 2026-06-15T13:02:18.047Z
+Last session: 2026-06-15T13:54:38.779Z
 Stopped at: Phase 6 UI-SPEC approved (4 PASS, 2 non-blocking FLAGs)
-Resume file: .planning/phases/06-saved-bips-sync/06-UI-SPEC.md
+Resume file: None
 Resume instructions: Phase 5 complete (all 4 plans). Next: Phase 6 (saved BIPs / student value depth). Run /gsd-plan-phase 6 when ready.
 
 ## Operator Next Steps
