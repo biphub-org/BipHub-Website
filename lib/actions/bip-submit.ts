@@ -123,6 +123,15 @@ export async function submitBipAction(
   }
   const userId = claimsData.claims.sub
 
+  // D-12 / FOUN-08 belt-and-suspenders: RLS bips_insert_coordinator now requires
+  // app_metadata.role IN ('coordinator','admin'), but RLS is subject to the JWT-timing
+  // caveat (Pitfall 1/3). This synchronous application-layer assertion guards the
+  // submit path regardless of JWT refresh state. (T-05-02)
+  const role = (claimsData.claims as { app_metadata?: { role?: string } })?.app_metadata?.role
+  if (role !== 'coordinator' && role !== 'admin') {
+    return { error: 'Forbidden.' }
+  }
+
   // Server-side full re-validation. The wizard's per-step Zod schemas already
   // enforced this client-side, but submit is the trust boundary for entering
   // the public review queue (T-02-07-02 mitigation).
