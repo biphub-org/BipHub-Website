@@ -21,7 +21,7 @@ Full phase details, success criteria, and per-plan breakdown: [milestones/v1.0-R
 
 ### v1.1 Product Depth & Engagement (Phases 5–8)
 
-- [ ] **Phase 5: Student Auth + Role Model** - Students can register, sign in, and land on a dedicated dashboard; student role cannot access coordinator or admin areas
+- [x] **Phase 5: Student Auth + Role Model** - Students can register, sign in, and land on a dedicated dashboard; student role cannot access coordinator or admin areas (completed 2026-06-15)
 - [ ] **Phase 6: Saved BIPs Sync** - Students can save BIPs server-side, sync across devices, migrate localStorage bookmarks, and delete their account with full cascade
 - [ ] **Phase 7: Alert Subscriptions + Email Pipeline** - Students can subscribe to new-BIP alerts, receive idempotent digest emails with working unsubscribe, and manage subscriptions from their dashboard
 - [ ] **Phase 8: Edit-Approved + Request-Changes** - Coordinators can submit edits to live BIPs without taking them offline; admins can approve, reject, or request changes with a full audit trail
@@ -42,7 +42,7 @@ Full phase details, success criteria, and per-plan breakdown: [milestones/v1.0-R
   - [x] 05-01-PLAN.md — DB foundation: 00015 migration (role CHECK, handle_new_user trigger, Custom Access Token Hook, tightened RLS), config.toml hook, bip-submit assertion, [BLOCKING] schema push
   - [x] 05-02-PLAN.md — Auth flow: signInWithOtpAction + signOutStudentAction, callback magiclink branch, middleware D-11 matrix
   - [x] 05-03-PLAN.md — UI: /register/student magic-link page + form, (student) route group layout + nav + dashboard shell
-  - [ ] 05-04-PLAN.md — E2E validation: student seed fixture + student-auth.spec.ts (all SC + FOUN-07/08 + D-11/D-15)
+  - [x] 05-04-PLAN.md — E2E validation: student seed fixture + student-auth.spec.ts (all SC + FOUN-07/08 + D-11/D-15)
 **UI hint**: yes
 
 ### Phase 6: Saved BIPs Sync
@@ -95,7 +95,7 @@ Full phase details, success criteria, and per-plan breakdown: [milestones/v1.0-R
 | 2. Coordinator Auth + Submission | v1.0 | 7/7 | Complete | 2026-05-11 |
 | 3. Admin Review + Email Notifications | v1.0 | 8/8 | Complete | 2026-05-12 |
 | 4. Polish + Static Content + Performance Hardening | v1.0 | 7/7 | Complete | 2026-06-14 |
-| 5. Student Auth + Role Model | v1.1 | 3/4 | Executing | - |
+| 5. Student Auth + Role Model | v1.1 | 4/4 | Complete   | 2026-06-15 |
 | 6. Saved BIPs Sync | v1.1 | 0/TBD | Not started | - |
 | 7. Alert Subscriptions + Email Pipeline | v1.1 | 0/TBD | Not started | - |
 | 8. Edit-Approved + Request-Changes | v1.1 | 0/TBD | Not started | - |

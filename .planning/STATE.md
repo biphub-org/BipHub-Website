@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Product Depth & Engagement
 status: executing
-stopped_at: Completed 05-03-PLAN.md
-last_updated: "2026-06-15T12:00:00.000Z"
+stopped_at: Completed 05-04-PLAN.md (student e2e tests — Phase 5 complete)
+last_updated: "2026-06-15T10:58:36.937Z"
 last_activity: 2026-06-15
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 4
-  completed_plans: 3
-  percent: 75
+  completed_plans: 4
+  percent: 100
 ---
 
 # Project State
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-06-14 after v1.0 milestone)
 
 ## Current Position
 
-Phase: 05 (student-auth-role-model) — EXECUTING
-Plan: 3 of 4
-Status: Completed 05-03; ready for 05-04
+Phase: 05 (student-auth-role-model) — COMPLETE
+Plan: 4 of 4
+Status: Completed 05-04 (student e2e tests, all Phase 5 criteria proven)
 Last activity: 2026-06-15
 
 ```
@@ -141,6 +141,9 @@ Recent decisions affecting current work:
 - Plan 05-03: No shadcn Card installed in this repo — student dashboard cards use raw div with rounded-lg border border-border bg-white shadow-sm p-6 (equivalent output, no primitive gap)
 - Plan 05-03: StudentMagicLinkForm uses native `<input type="email">` (not shadcn Input) to avoid @base-ui/react wrapper conflict with form action={handleSubmit} under useTransition
 - Plan 05-03: State B "Re-enter your email" escape is a button resetting local state (not a Link with ?step= URL param) — keeps URL clean at /register/student
+- Plan 05-04: Cloud Supabase redirect allowlist restricted to Vercel URL — student e2e session established via @supabase/ssr cookie injection (base64url-encoded password-auth session) rather than browser magic-link navigation; auth-method independent for tested behaviors
+- Plan 05-04: playwright.config auth-flow testMatch narrowed to /(?:^|[/\\])auth\.spec\.ts$/ to exclude student-auth.spec.ts from running under the wrong project
+- Plan 05-04: FOUN-07 WITH CHECK violation returns HTTP 500 from cloud PostgREST (not 401/403); assertion accepts >=400 + post-hoc service-role read to confirm role unchanged
 
 ### Pending Todos
 
@@ -169,11 +172,11 @@ Items acknowledged and deferred at v1.0 milestone close on 2026-06-14:
 
 ## Session Continuity
 
-Last session: 2026-06-15T12:00:00.000Z
-Stopped at: Completed 05-03-PLAN.md (student UI surfaces)
+Last session: 2026-06-15T10:58:36.923Z
+Stopped at: Completed 05-04-PLAN.md (student e2e tests — Phase 5 complete)
 Resume file: None
-Resume instructions: Phase 5 plans 01/02/03 complete. Next: execute 05-04 (e2e tests for student auth).
+Resume instructions: Phase 5 complete (all 4 plans). Next: Phase 6 (saved BIPs / student value depth). Run /gsd-plan-phase 6 when ready.
 
 ## Operator Next Steps
 
-- Run `/gsd-execute-phase 5` (plan 04) to execute the student auth e2e tests
+- Phase 5 is complete. Run `/gsd-plan-phase 6` to plan Phase 6 (saved BIPs, student value).
