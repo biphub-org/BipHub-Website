@@ -77,6 +77,16 @@ interface Props {
    * Defaults to `'coordinator'` so Phase 2 callers are unchanged.
    */
   mode?: 'coordinator' | 'admin'
+  /**
+   * Phase 8 EDIT-09 / D-10 dual-guard — client side.
+   *
+   * When true the wizard MUST NOT render any slug input in the DOM.
+   * Currently no wizard step has a slug field; this prop is the
+   * future-proof gate that prevents one from being accidentally added
+   * for approved-BIP edit sessions (T-08-20). Set to true by the edit
+   * page whenever status === 'approved'.
+   */
+  omitSlug?: boolean
 }
 
 const STEPS = [
@@ -114,7 +124,14 @@ export function BipSubmissionWizard({
   initialUniversities,
   previewStep,
   mode = 'coordinator',
+  omitSlug = false,
 }: Props) {
+  // omitSlug is unused at runtime because no wizard step currently renders a
+  // slug input. The prop exists as the client-side half of the EDIT-09 / D-10
+  // dual-guard (T-08-20): if a slug field is ever added to a step, this flag
+  // must gate it. The RSC edit page passes omitSlug={true} when editing an
+  // approved BIP; the server action also excludes slug from every payload.
+  void omitSlug
   const router = useRouter()
   const {
     bipId,
