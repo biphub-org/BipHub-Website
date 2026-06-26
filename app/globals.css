@@ -148,6 +148,19 @@
   --color-status-pending-bg: #fffbeb;
   --color-status-approved-bg: #f0fdf4;
   --color-status-rejected-bg: #fef2f2;
+
+  /* ---------- Phase 8 — changes_requested status color ----------
+     PITFALLS Pitfall 13: Tailwind v4 cannot resolve dynamic class names.
+     Consumers MUST use the STATUS_BADGE_CLASSES literal lookup in
+     lib/utils/status.ts. No template literals.
+
+     Safelist — the static scanner MUST see these full class strings:
+       bg-status-changes-requested-bg
+       text-status-changes-requested
+       border-status-changes-requested
+  */
+  --color-status-changes-requested: #b45309;
+  --color-status-changes-requested-bg: #fffbeb;
 }
 
 :root {

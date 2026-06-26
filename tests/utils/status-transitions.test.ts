@@ -41,3 +41,39 @@ describe('validateTransition (D-06 state machine)', () => {
     expect(() => validateTransition('pending', 'approved', 'coordinator')).toThrow(/Invalid status transition/)
   })
 })
+
+// Phase 8: changes_requested transitions (D-06a)
+describe('validateTransition — changes_requested transitions (Phase 8)', () => {
+  it('allows pending → changes_requested by admin (D-06a request-changes on new submission)', () => {
+    expect(() => validateTransition('pending', 'changes_requested', 'admin')).not.toThrow()
+  })
+  it('allows changes_requested → pending by coordinator (D-06a coordinator resubmit)', () => {
+    expect(() => validateTransition('changes_requested', 'pending', 'coordinator')).not.toThrow()
+  })
+  it('allows changes_requested → approved by admin (admin approves after changes)', () => {
+    expect(() => validateTransition('changes_requested', 'approved', 'admin')).not.toThrow()
+  })
+  it('allows changes_requested → rejected by admin (admin rejects after changes)', () => {
+    expect(() => validateTransition('changes_requested', 'rejected', 'admin')).not.toThrow()
+  })
+  it('throws on changes_requested → pending by admin (only coordinator can resubmit)', () => {
+    expect(() => validateTransition('changes_requested', 'pending', 'admin')).toThrow(/Invalid status transition/)
+  })
+  it('throws on changes_requested → approved by coordinator (privilege escalation)', () => {
+    expect(() => validateTransition('changes_requested', 'approved', 'coordinator')).toThrow(/Invalid status transition/)
+  })
+})
+
+describe('STATUS_BADGE_CLASSES — changes_requested entry (Phase 8)', () => {
+  it('has a literal class string for changes_requested with no template literals', async () => {
+    const { STATUS_BADGE_CLASSES } = await import('@/lib/utils/status')
+    const badgeClass = (STATUS_BADGE_CLASSES as Record<string, string>)['changes_requested']
+    expect(badgeClass).toBeDefined()
+    expect(badgeClass).toContain('bg-status-changes-requested-bg')
+    expect(badgeClass).toContain('text-status-changes-requested')
+    expect(badgeClass).toContain('border-status-changes-requested')
+    // Must be a complete literal — no template literal syntax in the value itself
+    expect(badgeClass).not.toContain('${')
+    expect(badgeClass).not.toContain('`')
+  })
+})
