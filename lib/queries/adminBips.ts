@@ -94,7 +94,7 @@ function normalize(row: RawAdminBipRow): AdminBip {
   }
 }
 
-const ADMIN_BIP_SELECT = `
+export const ADMIN_BIP_SELECT = `
   id, slug, title, status, host_city,
   physical_start_date, physical_end_date,
   created_at, updated_at,
