@@ -36,13 +36,23 @@ import { STATUS_BADGE_CLASSES, STATUS_LABELS } from '@/lib/utils/status'
 import { cn } from '@/lib/utils/cn'
 import type { AdminBip } from '@/lib/queries/adminBips'
 
+// ── Edit badge (T-08-18): literal class string — no template literals (Tailwind v4 / CLAUDE.md)
+const EDIT_BADGE_CLASSES =
+  'inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold bg-eu-blue-50 text-eu-blue border-eu-blue-light'
+
 const UPDATED_FORMAT = new Intl.DateTimeFormat('en-GB', {
   day: 'numeric',
   month: 'short',
   year: 'numeric',
 })
 
-export function AdminBipRow({ bip }: { bip: AdminBip }) {
+interface AdminBipRowProps {
+  bip: AdminBip
+  /** 'edit' → show Edit badge after the status pill */
+  kind?: 'submission' | 'edit'
+}
+
+export function AdminBipRow({ bip, kind }: AdminBipRowProps) {
   const [rejectOpen, setRejectOpen] = useState(false)
 
   return (
@@ -66,6 +76,10 @@ export function AdminBipRow({ bip }: { bip: AdminBip }) {
       >
         {STATUS_LABELS[bip.status]}
       </span>
+      {/* Edit type badge — D-08 / T-08-18: literal class string, no concat */}
+      {kind === 'edit' && (
+        <span className={EDIT_BADGE_CLASSES}>Edit</span>
+      )}
       <span className="hidden text-xs text-muted md:inline">
         Updated {UPDATED_FORMAT.format(new Date(bip.updated_at))}
       </span>

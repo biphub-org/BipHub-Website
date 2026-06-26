@@ -23,6 +23,10 @@ import { STATUS_BADGE_CLASSES, STATUS_LABELS } from '@/lib/utils/status'
 import { cn } from '@/lib/utils/cn'
 import type { AdminBip } from '@/lib/queries/adminBips'
 
+// ── Edit badge (T-08-18): literal class string — no template literals (Tailwind v4 / CLAUDE.md)
+const EDIT_BADGE_CLASSES =
+  'inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold bg-eu-blue-50 text-eu-blue border-eu-blue-light'
+
 const DATE_RANGE_FORMAT = new Intl.DateTimeFormat('en-GB', {
   day: 'numeric',
   month: 'short',
@@ -47,7 +51,18 @@ function formatRange(start: string | null, end: string | null): string {
 
 export type { AdminBip }
 
-export function AdminBipCard({ bip }: { bip: AdminBip }) {
+interface AdminBipCardProps {
+  bip: AdminBip
+  /** 'edit' → show Edit badge and use editId for the review link; 'submission' or omitted → no badge */
+  kind?: 'submission' | 'edit'
+  /**
+   * For edit items: the bip_edits.id used to construct the review link
+   * (/admin/bip-edits/[editId]/review). Required when kind==='edit'.
+   */
+  reviewHref?: string
+}
+
+export function AdminBipCard({ bip, kind, reviewHref }: AdminBipCardProps) {
   const submittedAgo = daysAgo(bip.created_at)
   const submittedLabel =
     submittedAgo === 0
@@ -82,7 +97,11 @@ export function AdminBipCard({ bip }: { bip: AdminBip }) {
           >
             {STATUS_LABELS[bip.status]}
           </span>
-          <Link href={`/admin/bips/${bip.id}/review`}>
+          {/* Edit type badge — D-08 / T-08-18: literal class string, no concat */}
+          {kind === 'edit' && (
+            <span className={EDIT_BADGE_CLASSES}>Edit</span>
+          )}
+          <Link href={reviewHref ?? `/admin/bips/${bip.id}/review`}>
             <Button variant="primary" size="sm">
               Review →
             </Button>
