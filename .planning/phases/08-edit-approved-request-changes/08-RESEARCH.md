@@ -944,22 +944,26 @@ The exhaustive `never` check in `resolveSubject()` and the switch in `sendEmail(
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Virtual start/end date in the diff view (UI-SPEC items 10 and 11)**
+   - **RESOLVED (08-06 Task 1):** No `virtual_start_date`/`virtual_end_date` columns exist; UI-SPEC rows 10/11 are dropped. `BipEditDiffView` renders the real editable column set (incl. `virtual_timing` + `virtual_component_description`), slug excluded.
    - What we know: the `bips` schema (migration 00003) has NO `virtual_start_date` or `virtual_end_date` columns. The virtual component has `virtual_component_description`, `virtual_timing`, `virtual_sessions_count`, `virtual_duration_notes`.
    - What's unclear: the UI-SPEC Surface 3 lists "Virtual start date" (row 10) and "Virtual end date" (row 11) as diff fields.
    - Recommendation: Treat this as a UI-SPEC authoring error. Replace "Virtual start date" and "Virtual end date" with `virtual_timing` (timing relative to physical component) in the diff view. Alternatively, raise with user to confirm. The planner should confirm this before implementing `BipEditDiffView`.
 
 2. **New-submission admin note storage (D-06a — explicitly delegated)**
+   - **RESOLVED (08-05 Task 2):** Stored in `bip_status_history.note` where `action_kind=request_changes` (Option A); read back via `getLatestChangesRequest` (08-04 Task 2). No column added to `bips`.
    - What we know: CONTEXT.md D-06a explicitly delegates this to the planner.
    - Recommendation: Store in `bip_status_history.note` (consistent with existing rejection reason pattern). The coordinator dashboard queries `getLatestChangesRequest(bipId)` the same way it already queries `getLatestRejection(bipId)`.
 
 3. **Admin edit-review URL structure**
+   - **RESOLVED (08-08 Task 2):** New route `/admin/bip-edits/[editId]/review` for edit items; new-submission reviews stay on `/admin/bips/[id]/review`.
    - What we know: D-08 specifies a unified queue with Edit badges. The review link from each card must go somewhere.
    - Recommendation: New route `/admin/bip-edits/[editId]/review` for edit items (separate from `/admin/bips/[id]/review` which handles new submissions). Clean separation, easier to pass edit-specific props to the review page.
 
 4. **`bip_edits` audit trigger vs explicit Server Action inserts**
+   - **RESOLVED (08-02 Task 2):** SECURITY DEFINER `log_bip_edit_status_change()` trigger logs coordinator transitions (`submit_edit`/`resubmit_edit`); admin verdict transitions are logged explicitly by the Server Actions (08-05).
    - What we know: the existing pattern is trigger for coordinator transitions, Server Action for admin transitions. Pitfall 7 above identifies that coordinator `bip_edits` transitions (submit_edit, resubmit_edit) need a write path that bypasses the admin-only `bsh_insert_admin` RLS.
    - Recommendation: Add a SECURITY DEFINER trigger `log_bip_edit_status_change()` on `bip_edits` for coordinator transitions, mirroring the existing `bips` trigger. This is the safest and most consistent approach.
 
