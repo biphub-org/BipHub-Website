@@ -27,6 +27,12 @@ import {
   AdminNotificationEmail,
   type AdminNotificationEmailProps,
 } from './templates/AdminNotificationEmail'
+import { EditApprovalEmail, type EditApprovalEmailProps } from './templates/EditApprovalEmail'
+import { EditRejectionEmail, type EditRejectionEmailProps } from './templates/EditRejectionEmail'
+import {
+  EditChangesRequestedEmail,
+  type EditChangesRequestedEmailProps,
+} from './templates/EditChangesRequestedEmail'
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 
@@ -34,6 +40,9 @@ export type EmailPayload =
   | { template: 'approval'; props: ApprovalEmailProps }
   | { template: 'rejection'; props: RejectionEmailProps }
   | { template: 'admin-notification'; props: AdminNotificationEmailProps }
+  | { template: 'edit-approved'; props: EditApprovalEmailProps }
+  | { template: 'edit-rejected'; props: EditRejectionEmailProps }
+  | { template: 'edit-changes-requested'; props: EditChangesRequestedEmailProps }
 
 /**
  * Compute the email subject. Approval + rejection use static strings;
@@ -47,6 +56,12 @@ function resolveSubject(payload: EmailPayload): string {
       return 'Update needed on your BIP submission'
     case 'admin-notification':
       return `New BIP pending review: ${payload.props.bipTitle}`
+    case 'edit-approved':
+      return 'Your BIP edit is live'
+    case 'edit-rejected':
+      return 'Your BIP edit was not approved'
+    case 'edit-changes-requested':
+      return 'Changes requested on your BIP edit'
     default: {
       const _exhaustive: never = payload
       throw new Error(
@@ -73,6 +88,15 @@ export async function sendEmail(to: string, payload: EmailPayload): Promise<void
       break
     case 'admin-notification':
       element = React.createElement(AdminNotificationEmail, payload.props)
+      break
+    case 'edit-approved':
+      element = React.createElement(EditApprovalEmail, payload.props)
+      break
+    case 'edit-rejected':
+      element = React.createElement(EditRejectionEmail, payload.props)
+      break
+    case 'edit-changes-requested':
+      element = React.createElement(EditChangesRequestedEmail, payload.props)
       break
     default: {
       const _exhaustive: never = payload
