@@ -23,7 +23,7 @@ Full phase details, success criteria, and per-plan breakdown: [milestones/v1.0-R
 
 - [x] **Phase 5: Student Auth + Role Model** - Students can register, sign in, and land on a dedicated dashboard; student role cannot access coordinator or admin areas
  (completed 2026-06-15)
-- [x] **Phase 6: Saved BIPs Sync** - Students can save BIPs server-side, sync across devices, migrate localStorage bookmarks, and delete their account with full cascade (completed 2026-06-15)
+- [x] **Phase 6: Saved BIPs Sync** - Students can save BIPs server-side, sync across devices, migrate localStorage bookmarks, and delete their account with full cascade (completed 2026-06-15)
 - [ ] **Phase 7: Alert Subscriptions + Email Pipeline** - Students can subscribe to new-BIP alerts, receive idempotent digest emails with working unsubscribe, and manage subscriptions from their dashboard
 - [ ] **Phase 8: Edit-Approved + Request-Changes** - Coordinators can submit edits to live BIPs without taking them offline; admins can approve, reject, or request changes with a full audit trail
 
@@ -89,7 +89,16 @@ Full phase details, success criteria, and per-plan breakdown: [milestones/v1.0-R
   4. An admin who rejects the edit leaves the live BIP content unchanged; the coordinator receives an email notification; `bip_status_history` gains an `edit_rejected` row
   5. An admin who requests changes sends the coordinator a note; the coordinator sees a `changes_requested` state on their dashboard with the admin's note and can revise and resubmit
   6. The slug of a BIP cannot be changed through the edit flow — the edit form excludes the slug field and the merge Server Action enforces immutability
-**Plans**: TBD
+**Plans**: 9 plans
+  - [ ] 08-01-PLAN.md — Wave 0: failing bip-edits.spec.ts (EDIT-01..09) + approved/pending-edit seed + playwright admin-authed wiring
+  - [ ] 08-02-PLAN.md — DB foundation: 00017 bip_edits + RLS, 00018 bips changes_requested + trigger, 00019 action_kind + edit audit trigger, [BLOCKING] linked-cloud db push + type regen
+  - [ ] 08-03-PLAN.md — Status vocabulary (changes_requested token/badge/transitions) + 3 Edit outcome email templates + send.ts exhaustive union
+  - [ ] 08-04-PLAN.md — Schemas (edit verdict + request-changes) + queries (admin-queue union, edit detail, coordinator approved-BIP load, latest-changes-request note)
+  - [ ] 08-05-PLAN.md — Server Actions: coordinator submit/resubmit edit + admin approve/reject/request-changes (edit + new-submission), audit + email + slug guard
+  - [ ] 08-06-PLAN.md — Admin reads: BipEditDiffView (all-fields side-by-side) + Edit-badged union review queue
+  - [ ] 08-07-PLAN.md — Coordinator surface: EditStatusCallout + edit-page States A/B/C CTAs + slug omission
+  - [ ] 08-08-PLAN.md — Admin verdict surface: RequestChangesBipModal + 3-button AdminActionsPanel + new /admin/bip-edits/[editId]/review route + submission review request-changes
+  - [ ] 08-09-PLAN.md — Verification gate: full build + Playwright suite, human-verify Resend delivery + ISR refresh
 **UI hint**: yes
 
 ## Progress
@@ -103,4 +112,4 @@ Full phase details, success criteria, and per-plan breakdown: [milestones/v1.0-R
 | 5. Student Auth + Role Model | v1.1 | 4/4 | Complete   | 2026-06-15 |
 | 6. Saved BIPs Sync | v1.1 | 4/4 | Complete   | 2026-06-15 |
 | 7. Alert Subscriptions + Email Pipeline | v1.1 | 0/TBD | Not started | - |
-| 8. Edit-Approved + Request-Changes | v1.1 | 0/TBD | Not started | - |
+| 8. Edit-Approved + Request-Changes | v1.1 | 0/9 | Planned | - |
