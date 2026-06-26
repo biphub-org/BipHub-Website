@@ -33,15 +33,15 @@ Requirements for the v1.1 release. Each maps to a roadmap phase.
 
 ### Listing Editing & Re-Review (EDIT)
 
-- [ ] **EDIT-01**: A coordinator can submit an edit to an already-approved BIP for admin re-review
-- [ ] **EDIT-02**: An approved BIP stays publicly visible (showing the live approved version) while an edit is under re-review
-- [ ] **EDIT-03**: An admin can view the proposed edit as a diff against the live BIP
-- [ ] **EDIT-04**: An admin can approve an edit, merging it into the live BIP and refreshing the public page
-- [ ] **EDIT-05**: An admin can reject an edit, leaving the live BIP unchanged
-- [ ] **EDIT-06**: An admin can "request changes" on a pending submission (a third moderation state) with a note
-- [ ] **EDIT-07**: A coordinator is emailed when their edit is approved, rejected, or has changes requested
-- [ ] **EDIT-08**: Every edit and re-review action is recorded in the BIP status-history audit log
-- [ ] **EDIT-09**: A BIP's slug cannot be changed through the edit flow (immutable after first approval)
+- [x] **EDIT-01**: A coordinator can submit an edit to an already-approved BIP for admin re-review
+- [x] **EDIT-02**: An approved BIP stays publicly visible (showing the live approved version) while an edit is under re-review
+- [x] **EDIT-03**: An admin can view the proposed edit as a diff against the live BIP
+- [x] **EDIT-04**: An admin can approve an edit, merging it into the live BIP and refreshing the public page
+- [x] **EDIT-05**: An admin can reject an edit, leaving the live BIP unchanged
+- [x] **EDIT-06**: An admin can "request changes" on a pending submission (a third moderation state) with a note
+- [x] **EDIT-07**: A coordinator is emailed when their edit is approved, rejected, or has changes requested
+- [x] **EDIT-08**: Every edit and re-review action is recorded in the BIP status-history audit log
+- [x] **EDIT-09**: A BIP's slug cannot be changed through the edit flow (immutable after first approval)
 
 ### Foundation / Compliance (FOUN — continuing from v1.0)
 
@@ -106,15 +106,15 @@ Which phases cover which requirements. Filled in during roadmap creation.
 | ALRT-06 | Phase 7 | Pending |
 | ALRT-07 | Phase 7 | Pending |
 | ALRT-08 | Phase 7 | Pending |
-| EDIT-01 | Phase 8 | Pending |
-| EDIT-02 | Phase 8 | Pending |
-| EDIT-03 | Phase 8 | Pending |
-| EDIT-04 | Phase 8 | Pending |
-| EDIT-05 | Phase 8 | Pending |
-| EDIT-06 | Phase 8 | Pending |
-| EDIT-07 | Phase 8 | Pending |
-| EDIT-08 | Phase 8 | Pending |
-| EDIT-09 | Phase 8 | Pending |
+| EDIT-01 | Phase 8 | Complete |
+| EDIT-02 | Phase 8 | Complete |
+| EDIT-03 | Phase 8 | Complete |
+| EDIT-04 | Phase 8 | Complete |
+| EDIT-05 | Phase 8 | Complete |
+| EDIT-06 | Phase 8 | Complete |
+| EDIT-07 | Phase 8 | Complete |
+| EDIT-08 | Phase 8 | Complete |
+| EDIT-09 | Phase 8 | Complete |
 | FOUN-07 | Phase 5 | Complete |
 | FOUN-08 | Phase 5 | Complete |
 | FOUN-09 | Phase 6 | Complete |
