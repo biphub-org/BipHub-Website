@@ -1,18 +1,24 @@
 /**
- * Coordinator edit-mode query (DASH-03 / DASH-04).
+ * Coordinator edit-mode query (DASH-03 / DASH-04 / Phase 8 EDIT-01).
  *
  * Fetches a single BIP by id and reshapes it into the wizard's flat
  * `BipDraftData` so Plan 02-07's edit page can hydrate the wizard via
  * `hydrateFromServer`.
+ *
+ * Phase 8 extensions (Pitfall 1):
+ *   - Status whitelist extended to include 'approved' and 'changes_requested'.
+ *   - Returns an `openEdit` sub-object populated from `bip_edits` when an open
+ *     edit exists (status approved or changes_requested with an edit row).
+ *   - `openEdit.data` is the proposed content (BipDraftData) that pre-fills the
+ *     coordinator edit form; `data` remains the LIVE bips content (diff reference).
  *
  * Authorization (defense-in-depth):
  *   - `getClaims()` for JWT-validated user identity.
  *   - Explicit `eq('created_by', claims.sub)` filter — RLS
  *     `bips_select_own_or_approved` would also surface approved BIPs by
  *     other coordinators, which we do NOT want on the edit route.
- *   - Status whitelist: only `draft` and `pending` are editable per D-10
- *     (approved / rejected are read-only on the dashboard; the edit route
- *     returns null which Plan 02-07's edit page surfaces as 404).
+ *   - Status whitelist: draft, pending, approved, changes_requested are editable /
+ *     edit-initializable. Rejected BIPs remain inaccessible via this route.
  *
  * Round-trip behaviour:
  *   - `how_to_apply_value` is split back into `how_to_apply_url` (when
@@ -25,6 +31,7 @@
  * unvalidated session reader server-side).
  */
 import { createClient } from '@/lib/supabase/server'
+import { getOpenEditForBip } from '@/lib/queries/bipEdits'
 import type { BipDraftData } from '@/lib/store/bip-draft'
 
 export type CoordinatorBipForEdit = {
@@ -32,7 +39,14 @@ export type CoordinatorBipForEdit = {
   data: BipDraftData
   updatedAt: string
   hostUniversity: { id: string; name: string; country: string } | null
-  status: 'draft' | 'pending'
+  status: 'draft' | 'pending' | 'approved' | 'rejected' | 'changes_requested'
+  /** The open bip_edits row, if any (Phase 8). */
+  openEdit?: {
+    id: string
+    status: 'pending' | 'changes_requested'
+    admin_note: string | null
+    data: BipDraftData
+  } | null
 } | null
 
 export async function getCoordinatorBipById(
@@ -66,10 +80,10 @@ export async function getCoordinatorBipById(
 
   if (error || !data) return null
 
-  // Editability gate: only draft + pending are editable. Approved / rejected
-  // fall back to null (404 on the route) so users cannot mutate live records.
-  if (data.status !== 'draft' && data.status !== 'pending') return null
-  const status = data.status as 'draft' | 'pending'
+  // Phase 8 Pitfall 1: whitelist extended to include 'approved' and 'changes_requested'.
+  // 'rejected' is intentionally excluded — rejected BIPs have no edit flow.
+  if (!['draft', 'pending', 'approved', 'changes_requested'].includes(data.status)) return null
+  const status = data.status as 'draft' | 'pending' | 'approved' | 'changes_requested'
 
   // Split how_to_apply_value back into url vs contact_email branches.
   const isUrl = data.how_to_apply_type === 'url'
@@ -152,11 +166,28 @@ export async function getCoordinatorBipById(
     }),
   }
 
+  // Phase 8: For approved or changes_requested BIPs, fetch the open bip_edits row
+  // so the coordinator form can pre-fill from the proposed content (D-09).
+  let openEdit: CoordinatorBipForEdit extends null ? never : NonNullable<CoordinatorBipForEdit>['openEdit'] = null
+
+  if (status === 'approved' || status === 'changes_requested') {
+    const editDetail = await getOpenEditForBip(id)
+    if (editDetail && (editDetail.status === 'pending' || editDetail.status === 'changes_requested')) {
+      openEdit = {
+        id: editDetail.id,
+        status: editDetail.status as 'pending' | 'changes_requested',
+        admin_note: editDetail.admin_note,
+        data: editDetail.data,
+      }
+    }
+  }
+
   return {
     id: data.id,
     data: draft,
     updatedAt: data.updated_at,
     hostUniversity,
     status,
+    openEdit,
   }
 }
