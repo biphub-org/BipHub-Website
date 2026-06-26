@@ -57,15 +57,21 @@ Source: Codebase scan of `components/admin/` and `components/dashboard/`.
 
 ## Typography
 
-| Role | Size | Weight | Line Height |
-|------|------|--------|-------------|
-| Body | 14px (`text-sm`) | 400 | 1.5 |
-| Label | 14px (`text-sm`) | 600 (`font-semibold`) | 1.4 |
-| Heading | 22px (`text-[22px]`) | 600 (`font-semibold`) | 1.2 |
-| Display | 28px | 600 (`font-semibold`) | 1.2 |
+Exactly 4 declared sizes. No surface may introduce a size outside this scale.
 
-No new sizes introduced this phase. All four roles match the existing admin
-and dashboard component patterns.
+| Role | Size | Weight | Line Height | Used for |
+|------|------|--------|-------------|----------|
+| Micro-label | 12px (`text-xs`) | 400 / 600 (`font-semibold`) | 1.4 | Diff column headers, char counters, mobile field prefixes, context/footer lines |
+| Body / Label | 14px (`text-sm`) | 400 (body) / 600 (label) | 1.5 body / 1.4 label | All body copy, form labels, callout text, BIP-title callouts, button labels |
+| Heading | 22px (`text-[22px]`) | 600 (`font-semibold`) | 1.2 | Modal titles, panel titles, page headers, diff card header |
+| Display | 28px | 600 (`font-semibold`) | 1.2 | Reserved (not used by a Phase 8 surface; declared for scale completeness) |
+
+Weights are limited to 400 and 600 only. The micro-label role uses 400 for
+running context lines and 600 for emphasis labels (column headers, prefixes).
+
+No `text-base` (16px) and no `text-[18px]` anywhere — both collapse into the
+scale above (16px → 14px label; 18px → 22px heading). The 4px delta between
+the original 18px diff header and the 22px heading role is imperceptible.
 
 Source: `components/admin/AdminActionsPanel.tsx`, `components/admin/ApproveBipModal.tsx`,
 `app/(admin)/admin/page.tsx`.
@@ -154,6 +160,12 @@ All required shadcn primitives are already installed:
 
 **File extended:** `app/(dashboard)/dashboard/bips/[id]/edit/page.tsx`
 (the page and its `BipSubmissionWizard` render-prop area)
+
+**Primary visual anchor:** the gold pill CTA at the bottom of the form is the
+single focal point. All status callouts sit above the fields and orient
+attention downward toward the action; nothing competes with the gold pill for
+emphasis (status badges are amber/blue but small, callouts are low-saturation
+tinted blocks).
 
 **Slug field:** Omitted entirely when BIP is `approved` — the field must not
 appear in the form DOM (EDIT-09 / D-10).
@@ -263,7 +275,7 @@ automatically. No additional JSX changes needed beyond accepting the updated
 | N items, ≥1 edit | `"Pending review"` (unchanged) | `"N items awaiting review · includes new submissions and edits"` |
 
 The sub-line update is in `app/(admin)/admin/page.tsx`. Separator is a centered
-dot `·` with non-breaking spaces (` · `).
+dot `·` with non-breaking spaces (` · `).
 
 ---
 
@@ -281,7 +293,7 @@ below the breadcrumb row, replacing or preceding `BipBody`.
 #### Card header
 
 `px-6 py-4 border-b border-border flex items-center justify-between`
-- Left: `"Field Comparison"` — `text-[18px] font-semibold text-ink`
+- Left: `"Field Comparison"` — `text-[22px] font-semibold text-ink` (heading role)
 - Right: `"{N} field{s} changed"` — `text-sm text-muted` (computed at render)
   - If 0 changes: `"No fields changed"` — `text-sm text-muted italic`
 
@@ -406,7 +418,7 @@ Mirrors `RejectBipModal` structure exactly, with these differences:
 | Dialog title | `"Request Changes"` — `text-[22px] font-semibold text-ink` |
 | Dialog description | `"You're about to request changes to:"` — `text-sm text-muted` |
 | BIP title callout | `bg-bg-soft border-l-4 border-eu-gold rounded-r px-4 py-3 mb-4` (gold border, matching approve modal) |
-| BIP title text | `text-base font-semibold text-ink` |
+| BIP title text | `text-sm font-semibold text-ink` (label role) |
 | Note field label | `"Note for the coordinator (required)"` — `text-sm font-semibold text-ink` |
 | Note field | `Textarea` `id="request-changes-note"` `rows={4}` `maxLength={1000}` |
 | Note validation | Required, min 10 chars, max 1000 chars (Zod schema, same pattern as `RejectBipSchema`) |
