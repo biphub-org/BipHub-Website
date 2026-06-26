@@ -354,3 +354,100 @@ values (
 insert into public.profiles (id, role)
 values ('44444444-4444-4444-4444-444444444444', 'student')
 on conflict (id) do update set role = excluded.role;
+
+-- ----------------------------------------------------------------------------
+-- Step 6: Phase 8 — bip-edits fixture (Plan 08-01 Wave 0).
+--
+-- Feeds tests/e2e/bip-edits.spec.ts.
+--
+-- Row a) One bips row with status='approved' owned by e2e-coordinator@biphub.test.
+--   - Fixed UUID: e2e0bbbb-bbbb-bbbb-bbbb-000000000010
+--   - Fixed slug: e2e-edit-target-bip
+--   - Must NOT be one of the admin-review.spec.ts BIPs (Machine Learning / Data Ethics).
+--   - All required NOT-NULL columns populated, mirroring the existing seed BIP shape.
+--
+-- Row b) One bip_edits row with status='pending' referencing the approved BIP above.
+--   - The proposed title differs from the live BIP title so the diff view shows a change.
+--   - partner_institutions = '[]'::jsonb (no partners in this edit).
+--   - The bip_edits INSERT requires migration 00017 (applied before test run).
+--
+-- Idempotency: delete-then-insert (mirrors existing seed idempotency pattern).
+-- bip_edits rows are cleaned up by cascade: `bips ON DELETE CASCADE` in bip_edits.bip_id.
+-- The outer bips cleanup (Step 0) therefore also removes any bip_edits rows — safe.
+-- ----------------------------------------------------------------------------
+
+-- Cleanup: remove any bip_edits rows for this BIP before re-inserting the bip
+-- (the outer Step 0 cleanup deletes bips rows, which cascades to bip_edits once
+-- migration 00017 is applied; this explicit delete is a belt-and-suspenders guard
+-- for environments where the migration has already been applied before seed re-run).
+delete from public.bip_edits where bip_id = 'e2e0bbbb-bbbb-bbbb-bbbb-000000000010';
+
+-- Row a: Approved BIP for edit flow tests
+insert into public.bips (
+  id, slug, title, status, is_seed,
+  description, learning_outcomes, virtual_component_description, virtual_timing,
+  physical_start_date, physical_end_date, application_deadline,
+  host_city, ects_credits, max_participants,
+  language_of_instruction, language_level_min,
+  subject_area, isced_f_code,
+  study_levels, green_travel, inclusion_support,
+  contact_name, contact_email,
+  how_to_apply_type, how_to_apply_value,
+  host_university_id, created_by
+)
+select
+  'e2e0bbbb-bbbb-bbbb-bbbb-000000000010',
+  'e2e-edit-target-bip',
+  'E2E Edit Target BIP',
+  'approved', false,
+  'A 10-day BIP on sustainable materials science for engineering students. Covers bio-composites, circular-economy design, and a hands-on lab project fabricating a prototype from recycled feedstock.',
+  E'- Select appropriate bio-composite materials for a given engineering constraint\n- Apply circular-economy principles to product lifecycle analysis\n- Fabricate and test a small prototype from recycled feedstock',
+  'Three online pre-mobility workshops covering materials databases, simulation tools, and a group design brief.',
+  'before',
+  '2027-06-09', '2027-06-19', '2027-04-01',
+  'Munich', 4, 18,
+  'en', 'B2',
+  'engineering', '0711',
+  ARRAY['bachelor','master'], false, false,
+  'E2E Coordinator', 'e2e-coordinator@biphub.test',
+  'url', 'https://tum.example/materials/apply',
+  u.id,
+  '11111111-1111-1111-1111-111111111111'
+from public.universities u
+where u.erasmus_code = 'D MUNCHEN02' limit 1;
+
+-- Row b: Pending bip_edits row for the approved BIP above.
+-- Requires migration 00017 (applied before test run).
+-- The proposed title '[EDIT] E2E Edit Target BIP — revised' differs from the live
+-- title 'E2E Edit Target BIP' so the diff view renders a changed field for tests.
+insert into public.bip_edits (
+  id, bip_id, status, created_by,
+  title, isced_f_code, description, learning_outcomes,
+  virtual_component_description, virtual_timing,
+  host_city, physical_start_date, physical_end_date, application_deadline,
+  ects_credits, max_participants,
+  study_levels, language_of_instruction, language_level_min,
+  green_travel, inclusion_support, eligibility_notes,
+  how_to_apply_type, how_to_apply_value,
+  contact_name, contact_email,
+  partner_institutions
+)
+values (
+  'e2e0cccc-cccc-cccc-cccc-000000000001',
+  'e2e0bbbb-bbbb-bbbb-bbbb-000000000010',
+  'pending',
+  '11111111-1111-1111-1111-111111111111',
+  '[EDIT] E2E Edit Target BIP — revised',
+  '0711',
+  'A 10-day BIP on sustainable materials science for engineering students. Covers bio-composites, circular-economy design, and a hands-on lab project fabricating a prototype from recycled feedstock.',
+  E'- Select appropriate bio-composite materials for a given engineering constraint\n- Apply circular-economy principles to product lifecycle analysis\n- Fabricate and test a small prototype from recycled feedstock',
+  'Three online pre-mobility workshops covering materials databases, simulation tools, and a group design brief.',
+  'before',
+  'Munich', '2027-06-09', '2027-06-19', '2027-04-01',
+  4, 18,
+  ARRAY['bachelor','master'], 'en', 'B2',
+  false, false, null,
+  'url', 'https://tum.example/materials/apply',
+  'E2E Coordinator', 'e2e-coordinator@biphub.test',
+  '[]'::jsonb
+);

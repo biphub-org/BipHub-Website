@@ -79,7 +79,7 @@ export default defineConfig({
     },
     {
       name: 'admin-authed',
-      testMatch: /admin-review\.spec\.ts$/,
+      testMatch: /(admin-review|bip-edits)\.spec\.ts$/,
       dependencies: ['setup'],
       use: {
         ...devices['Desktop Chrome'],
