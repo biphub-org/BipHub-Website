@@ -1,3 +1,4 @@
+Initialising login role...
 export type Json =
   | string
   | number
@@ -39,6 +40,113 @@ export type Database = {
   }
   public: {
     Tables: {
+      bip_edits: {
+        Row: {
+          admin_note: string | null
+          application_deadline: string | null
+          bip_id: string
+          contact_email: string | null
+          contact_name: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          ects_credits: number | null
+          eligibility_notes: string | null
+          green_travel: boolean | null
+          host_city: string | null
+          how_to_apply_type: string | null
+          how_to_apply_value: string | null
+          id: string
+          inclusion_support: boolean | null
+          isced_f_code: string | null
+          language_level_min: string | null
+          language_of_instruction: string | null
+          learning_outcomes: string | null
+          max_participants: number | null
+          partner_institutions: Json
+          physical_end_date: string | null
+          physical_start_date: string | null
+          status: string
+          study_levels: string[] | null
+          title: string | null
+          updated_at: string
+          virtual_component_description: string | null
+          virtual_timing: string | null
+        }
+        Insert: {
+          admin_note?: string | null
+          application_deadline?: string | null
+          bip_id: string
+          contact_email?: string | null
+          contact_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          ects_credits?: number | null
+          eligibility_notes?: string | null
+          green_travel?: boolean | null
+          host_city?: string | null
+          how_to_apply_type?: string | null
+          how_to_apply_value?: string | null
+          id?: string
+          inclusion_support?: boolean | null
+          isced_f_code?: string | null
+          language_level_min?: string | null
+          language_of_instruction?: string | null
+          learning_outcomes?: string | null
+          max_participants?: number | null
+          partner_institutions?: Json
+          physical_end_date?: string | null
+          physical_start_date?: string | null
+          status?: string
+          study_levels?: string[] | null
+          title?: string | null
+          updated_at?: string
+          virtual_component_description?: string | null
+          virtual_timing?: string | null
+        }
+        Update: {
+          admin_note?: string | null
+          application_deadline?: string | null
+          bip_id?: string
+          contact_email?: string | null
+          contact_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          ects_credits?: number | null
+          eligibility_notes?: string | null
+          green_travel?: boolean | null
+          host_city?: string | null
+          how_to_apply_type?: string | null
+          how_to_apply_value?: string | null
+          id?: string
+          inclusion_support?: boolean | null
+          isced_f_code?: string | null
+          language_level_min?: string | null
+          language_of_instruction?: string | null
+          learning_outcomes?: string | null
+          max_participants?: number | null
+          partner_institutions?: Json
+          physical_end_date?: string | null
+          physical_start_date?: string | null
+          status?: string
+          study_levels?: string[] | null
+          title?: string | null
+          updated_at?: string
+          virtual_component_description?: string | null
+          virtual_timing?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bip_edits_bip_id_fkey"
+            columns: ["bip_id"]
+            isOneToOne: false
+            referencedRelation: "bips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bip_partner_universities: {
         Row: {
           bip_id: string
@@ -515,3 +623,6 @@ export const Constants = {
     Enums: {},
   },
 } as const
+<claude-code-hint v="1" type="plugin" value="supabase@claude-plugins-official" />
+A new version of Supabase CLI is available: v2.108.0 (currently installed v2.98.2)
+We recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli
