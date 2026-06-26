@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Product Depth & Engagement
 status: executing
-stopped_at: "Completed 08-03-PLAN.md: changes_requested status token + 3 edit-outcome email templates"
-last_updated: "2026-06-26T10:24:56.689Z"
+stopped_at: "Completed 08-04-PLAN.md: validation + data-access layer (bip-edits schemas, bipEdits queries, coordinatorBipById extension)"
+last_updated: "2026-06-26T10:35:00.370Z"
 last_activity: 2026-06-26
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 17
-  completed_plans: 11
-  percent: 65
+  completed_plans: 12
+  percent: 71
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-06-14 after v1.0 milestone)
 ## Current Position
 
 Phase: 8 (edit-approved-request-changes) — EXECUTING
-Plan: 4 of 9
+Plan: 5 of 9
 Status: Ready to execute
 Last activity: 2026-06-26
 
@@ -59,6 +59,7 @@ Phase 5 ░  Phase 6 ░  Phase 7 ░  Phase 8 ░
 | Phase 08 P01 | 600 | 2 tasks | 3 files |
 | Phase 08-edit-approved-request-changes P02 | 1200 | 3 tasks | 4 files |
 | Phase 08-edit-approved-request-changes P03 | 480 | 3 tasks | 8 files |
+| Phase 08 P04 | 900 | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -165,6 +166,7 @@ Recent decisions affecting current work:
 - Plan 06-04: cloud e2e-student fixture profile.role corrected to 'student' (was 'coordinator' — trigger default) + password reset to Student!Test1 during execution; this also fixed pre-existing student-auth.spec.ts failures
 - Plan 08-03: changes_requested amber badge reuses #b45309/#fffbeb (same hex as status-pending) — semantically equivalent "pending with feedback" per UI-SPEC; no new hue introduced
 - Plan 08-03: EditApprovalEmail has no adminNote prop — approval is clean/final; only rejection and changes-requested embed the admin note with whiteSpace:pre-wrap (T-08-08)
+- [Phase ?]: Plan 08-04: Two-query merge for getAdminPendingEdits (bip_edits + bips joined in-process); ADMIN_BIP_SELECT exported; openEdit on CoordinatorBipForEdit for approved/changes_requested BIPs
 
 ### Pending Todos
 
@@ -193,8 +195,8 @@ Items acknowledged and deferred at v1.0 milestone close on 2026-06-14:
 
 ## Session Continuity
 
-Last session: 2026-06-26T10:24:56.678Z
-Stopped at: Completed 08-02-PLAN.md: bip_edits table + status machine extensions + cloud push + type regen
+Last session: 2026-06-26T10:35:00.354Z
+Stopped at: Completed 08-04-PLAN.md: validation + data-access layer (bip-edits schemas, bipEdits queries, coordinatorBipById extension)
 Resume file: None
 Resume instructions: Phase 5 complete (all 4 plans). Next: Phase 6 (saved BIPs / student value depth). Run /gsd-plan-phase 6 when ready.
 

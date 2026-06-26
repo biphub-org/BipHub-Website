@@ -93,7 +93,7 @@ Full phase details, success criteria, and per-plan breakdown: [milestones/v1.0-R
   - [x] 08-01-PLAN.md — Wave 0: failing bip-edits.spec.ts (EDIT-01..09) + approved/pending-edit seed + playwright admin-authed wiring
   - [x] 08-02-PLAN.md — DB foundation: 00017 bip_edits + RLS, 00018 bips changes_requested + trigger, 00019 action_kind + edit audit trigger, [BLOCKING] linked-cloud db push + type regen
   - [x] 08-03-PLAN.md — Status vocabulary (changes_requested token/badge/transitions) + 3 Edit outcome email templates + send.ts exhaustive union
-  - [ ] 08-04-PLAN.md — Schemas (edit verdict + request-changes) + queries (admin-queue union, edit detail, coordinator approved-BIP load, latest-changes-request note)
+  - [x] 08-04-PLAN.md — Schemas (edit verdict + request-changes) + queries (admin-queue union, edit detail, coordinator approved-BIP load, latest-changes-request note)
   - [ ] 08-05-PLAN.md — Server Actions: coordinator submit/resubmit edit + admin approve/reject/request-changes (edit + new-submission), audit + email + slug guard
   - [ ] 08-06-PLAN.md — Admin reads: BipEditDiffView (all-fields side-by-side) + Edit-badged union review queue
   - [ ] 08-07-PLAN.md — Coordinator surface: EditStatusCallout + edit-page States A/B/C CTAs + slug omission
@@ -112,4 +112,4 @@ Full phase details, success criteria, and per-plan breakdown: [milestones/v1.0-R
 | 5. Student Auth + Role Model | v1.1 | 4/4 | Complete   | 2026-06-15 |
 | 6. Saved BIPs Sync | v1.1 | 4/4 | Complete   | 2026-06-15 |
 | 7. Alert Subscriptions + Email Pipeline | v1.1 | 0/TBD | Not started | - |
-| 8. Edit-Approved + Request-Changes | v1.1 | 3/9 | In Progress|  |
+| 8. Edit-Approved + Request-Changes | v1.1 | 4/9 | In Progress|  |
