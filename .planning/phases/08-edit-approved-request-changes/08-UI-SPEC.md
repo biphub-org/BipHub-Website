@@ -1,10 +1,11 @@
 ---
 phase: 8
 slug: edit-approved-request-changes
-status: draft
+status: approved
 shadcn_initialized: true
 preset: b2fA
 created: 2026-06-26
+reviewed_at: 2026-06-26
 ---
 
 # Phase 8 — UI Design Contract
