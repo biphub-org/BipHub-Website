@@ -7,16 +7,22 @@
  * - Required reason textarea: min 10, max 1000 (RejectBipSchema enforced
  *   client-side via RHF + zodResolver AND server-side via safeParse).
  * - Confirm Button is disabled until form is valid (`!form.formState.isValid`).
- * - Calls `rejectBipAction` inside `useTransition`. On success the action
- *   redirects to the next pending BIP (or /admin) so reaching the
+ * - Calls `rejectBipAction` (or `rejectEditAction` in edit mode) inside
+ *   `useTransition`. On success the action redirects, so reaching the
  *   "toast.success + onOpenChange(false)" line implies redirect was queued
  *   but not yet flushed — the toast still appears on the destination page.
  * - On `{ error }`, surfaces a destructive Alert inside the modal.
  *
- * Important Next.js semantics: `rejectBipAction` calls `redirect()` on
- * success, which throws a `NEXT_REDIRECT` Error. React's useTransition
- * catches it silently and performs the navigation. Do NOT wrap the call
- * in a try/catch — that would swallow the redirect.
+ * Phase 8 edit-mode extension (08-08-PLAN "small edit branch"):
+ *   - isEdit=true + editId: title/button become "Reject Edit"; uses
+ *     RejectEditSchema (field: `note`) and calls rejectEditAction(editId, note).
+ *   - isEdit=false (default): title/button remain "Reject BIP"; uses
+ *     RejectBipSchema (field: `reason`) and calls rejectBipAction(bipId, reason).
+ *
+ * Important Next.js semantics: Both actions call `redirect()` on success,
+ * which throws a `NEXT_REDIRECT` Error. React's useTransition catches it
+ * silently and performs the navigation. Do NOT wrap the call in a try/catch —
+ * that would swallow the redirect.
  */
 
 import { useState, useTransition } from 'react'
@@ -37,7 +43,9 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { RejectBipSchema, type RejectBipInput } from '@/lib/schemas/admin-bips'
+import { RejectEditSchema, type RejectEditInput } from '@/lib/schemas/bip-edits'
 import { rejectBipAction } from '@/lib/actions/admin-bips'
+import { rejectEditAction } from '@/lib/actions/admin-edit-bips'
 
 interface Props {
   open: boolean
@@ -45,6 +53,10 @@ interface Props {
   bipId: string
   bipTitle: string
   coordinatorName: string
+  /** Phase 8: true → shows "Reject Edit" and calls rejectEditAction(editId, note) */
+  isEdit?: boolean
+  /** Phase 8: required when isEdit=true; the bip_edits.id */
+  editId?: string
 }
 
 export function RejectBipModal({
@@ -53,19 +65,32 @@ export function RejectBipModal({
   bipId,
   bipTitle,
   coordinatorName,
+  isEdit = false,
+  editId,
 }: Props) {
   const [serverError, setServerError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
-  const form = useForm<RejectBipInput>({
+  // Always call both hooks (React rules); select which one is active at runtime.
+  const submissionForm = useForm<RejectBipInput>({
     resolver: zodResolver(RejectBipSchema),
     mode: 'onChange',
     defaultValues: { bipId, reason: '' },
   })
-  const reasonValue = form.watch('reason') ?? ''
-  const reasonError = form.formState.errors.reason?.message
+  const editRejectForm = useForm<RejectEditInput>({
+    resolver: zodResolver(RejectEditSchema),
+    mode: 'onChange',
+    defaultValues: { editId: editId ?? '', note: '' },
+  })
 
-  function handleConfirm(data: RejectBipInput) {
+  const reasonValue = submissionForm.watch('reason') ?? ''
+  const noteValue = editRejectForm.watch('note') ?? ''
+  const charCount = isEdit ? noteValue.length : reasonValue.length
+  const fieldError = isEdit
+    ? editRejectForm.formState.errors.note?.message
+    : submissionForm.formState.errors.reason?.message
+
+  function handleSubmissionConfirm(data: RejectBipInput) {
     setServerError(null)
     startTransition(async () => {
       const result = await rejectBipAction(data.bipId, data.reason)
@@ -83,15 +108,38 @@ export function RejectBipModal({
     })
   }
 
+  function handleEditConfirm(data: RejectEditInput) {
+    setServerError(null)
+    startTransition(async () => {
+      const result = await rejectEditAction(data.editId, data.note)
+      // rejectEditAction redirects on success; we only reach here on { error }.
+      if (result?.error) {
+        setServerError(result.error)
+        return
+      }
+      toast.success(
+        `Edit rejected. Email sent to ${coordinatorName || 'the coordinator'}.`,
+      )
+      onOpenChange(false)
+    })
+  }
+
+  const title = isEdit ? 'Reject Edit' : 'Reject BIP'
+  const description = isEdit
+    ? "You're about to reject this edit:"
+    : "You're about to reject:"
+  const confirmLabel = isEdit ? 'Reject Edit' : 'Reject BIP'
+  const rejectingLabel = 'Rejecting…'
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[480px]">
         <DialogHeader>
           <DialogTitle className="text-[22px] font-semibold text-ink">
-            Reject BIP
+            {title}
           </DialogTitle>
           <DialogDescription className="text-sm text-muted">
-            You&apos;re about to reject:
+            {description}
           </DialogDescription>
         </DialogHeader>
 
@@ -101,68 +149,133 @@ export function RejectBipModal({
           </p>
         </div>
 
-        <form
-          onSubmit={form.handleSubmit(handleConfirm)}
-          className="flex flex-col gap-2"
-        >
-          <Label
-            htmlFor="reject-reason"
-            className="text-sm font-semibold text-ink"
+        {isEdit ? (
+          <form
+            onSubmit={editRejectForm.handleSubmit(handleEditConfirm)}
+            className="flex flex-col gap-2"
           >
-            Reason (required, shown to the coordinator)
-          </Label>
-          <Textarea
-            id="reject-reason"
-            rows={4}
-            maxLength={1000}
-            {...form.register('reason')}
-            placeholder="Explain what needs to change before this BIP can be approved. Be specific — the coordinator will see this verbatim and use it to revise their submission."
-            aria-invalid={!!reasonError}
-          />
-          <p className="text-xs text-muted text-right">
-            {reasonValue.length}/1000 characters
-          </p>
-          {reasonError ? (
-            <p className="text-sm text-status-rejected" role="alert">
-              {reasonError}
+            <Label
+              htmlFor="reject-reason"
+              className="text-sm font-semibold text-ink"
+            >
+              Reason (required, shown to the coordinator)
+            </Label>
+            <Textarea
+              id="reject-reason"
+              rows={4}
+              maxLength={1000}
+              {...editRejectForm.register('note')}
+              placeholder="Explain what needs to change before this edit can be approved. Be specific — the coordinator will see this verbatim and use it to revise their submission."
+              aria-invalid={!!fieldError}
+            />
+            <p className="text-xs text-muted text-right">
+              {charCount}/1000 characters
             </p>
-          ) : null}
-          <p className="text-sm text-muted">
-            This reason will be included in the rejection email and shown on
-            the coordinator&apos;s dashboard.
-          </p>
+            {fieldError ? (
+              <p className="text-sm text-status-rejected" role="alert">
+                {fieldError}
+              </p>
+            ) : null}
+            <p className="text-sm text-muted">
+              This reason will be included in the rejection email and shown on
+              the coordinator&apos;s dashboard.
+            </p>
 
-          {serverError ? (
-            <Alert variant="destructive" className="mt-3">
-              <AlertDescription>{serverError}</AlertDescription>
-            </Alert>
-          ) : null}
+            {serverError ? (
+              <Alert variant="destructive" className="mt-3">
+                <AlertDescription>{serverError}</AlertDescription>
+              </Alert>
+            ) : null}
 
-          <DialogFooter className="mt-4 flex gap-3 justify-end">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => onOpenChange(false)}
-              disabled={isPending}
+            <DialogFooter className="mt-4 flex gap-3 justify-end">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => onOpenChange(false)}
+                disabled={isPending}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isPending || !editRejectForm.formState.isValid}
+                className="bg-status-rejected text-white hover:bg-red-700 rounded-pill px-5 py-2 font-semibold"
+              >
+                {isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+                    {rejectingLabel}
+                  </>
+                ) : (
+                  confirmLabel
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        ) : (
+          <form
+            onSubmit={submissionForm.handleSubmit(handleSubmissionConfirm)}
+            className="flex flex-col gap-2"
+          >
+            <Label
+              htmlFor="reject-reason"
+              className="text-sm font-semibold text-ink"
             >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isPending || !form.formState.isValid}
-              className="bg-status-rejected text-white hover:bg-red-700 rounded-pill px-5 py-2 font-semibold"
-            >
-              {isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
-                  Rejecting…
-                </>
-              ) : (
-                'Reject BIP'
-              )}
-            </Button>
-          </DialogFooter>
-        </form>
+              Reason (required, shown to the coordinator)
+            </Label>
+            <Textarea
+              id="reject-reason"
+              rows={4}
+              maxLength={1000}
+              {...submissionForm.register('reason')}
+              placeholder="Explain what needs to change before this BIP can be approved. Be specific — the coordinator will see this verbatim and use it to revise their submission."
+              aria-invalid={!!fieldError}
+            />
+            <p className="text-xs text-muted text-right">
+              {charCount}/1000 characters
+            </p>
+            {fieldError ? (
+              <p className="text-sm text-status-rejected" role="alert">
+                {fieldError}
+              </p>
+            ) : null}
+            <p className="text-sm text-muted">
+              This reason will be included in the rejection email and shown on
+              the coordinator&apos;s dashboard.
+            </p>
+
+            {serverError ? (
+              <Alert variant="destructive" className="mt-3">
+                <AlertDescription>{serverError}</AlertDescription>
+              </Alert>
+            ) : null}
+
+            <DialogFooter className="mt-4 flex gap-3 justify-end">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => onOpenChange(false)}
+                disabled={isPending}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isPending || !submissionForm.formState.isValid}
+                className="bg-status-rejected text-white hover:bg-red-700 rounded-pill px-5 py-2 font-semibold"
+              >
+                {isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+                    {rejectingLabel}
+                  </>
+                ) : (
+                  confirmLabel
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        )}
       </DialogContent>
     </Dialog>
   )
