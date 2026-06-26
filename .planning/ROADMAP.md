@@ -96,7 +96,7 @@ Full phase details, success criteria, and per-plan breakdown: [milestones/v1.0-R
   - [x] 08-04-PLAN.md — Schemas (edit verdict + request-changes) + queries (admin-queue union, edit detail, coordinator approved-BIP load, latest-changes-request note)
   - [x] 08-05-PLAN.md — Server Actions: coordinator submit/resubmit edit + admin approve/reject/request-changes (edit + new-submission), audit + email + slug guard
   - [x] 08-06-PLAN.md — Admin reads: BipEditDiffView (all-fields side-by-side) + Edit-badged union review queue
-  - [ ] 08-07-PLAN.md — Coordinator surface: EditStatusCallout + edit-page States A/B/C CTAs + slug omission
+  - [x] 08-07-PLAN.md — Coordinator surface: EditStatusCallout + edit-page States A/B/C CTAs + slug omission
   - [ ] 08-08-PLAN.md — Admin verdict surface: RequestChangesBipModal + 3-button AdminActionsPanel + new /admin/bip-edits/[editId]/review route + submission review request-changes
   - [ ] 08-09-PLAN.md — Verification gate: full build + Playwright suite, human-verify Resend delivery + ISR refresh
 **UI hint**: yes
@@ -112,4 +112,4 @@ Full phase details, success criteria, and per-plan breakdown: [milestones/v1.0-R
 | 5. Student Auth + Role Model | v1.1 | 4/4 | Complete   | 2026-06-15 |
 | 6. Saved BIPs Sync | v1.1 | 4/4 | Complete   | 2026-06-15 |
 | 7. Alert Subscriptions + Email Pipeline | v1.1 | 0/TBD | Not started | - |
-| 8. Edit-Approved + Request-Changes | v1.1 | 6/9 | In Progress|  |
+| 8. Edit-Approved + Request-Changes | v1.1 | 7/9 | In Progress|  |
