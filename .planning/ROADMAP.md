@@ -25,7 +25,7 @@ Full phase details, success criteria, and per-plan breakdown: [milestones/v1.0-R
  (completed 2026-06-15)
 - [x] **Phase 6: Saved BIPs Sync** - Students can save BIPs server-side, sync across devices, migrate localStorage bookmarks, and delete their account with full cascade (completed 2026-06-15)
 - [ ] **Phase 7: Alert Subscriptions + Email Pipeline** - Students can subscribe to new-BIP alerts, receive idempotent digest emails with working unsubscribe, and manage subscriptions from their dashboard
-- [ ] **Phase 8: Edit-Approved + Request-Changes** - Coordinators can submit edits to live BIPs without taking them offline; admins can approve, reject, or request changes with a full audit trail
+- [x] **Phase 8: Edit-Approved + Request-Changes** - Coordinators can submit edits to live BIPs without taking them offline; admins can approve, reject, or request changes with a full audit trail (completed 2026-06-26)
 
 ## Phase Details
 
@@ -98,7 +98,7 @@ Full phase details, success criteria, and per-plan breakdown: [milestones/v1.0-R
   - [x] 08-06-PLAN.md — Admin reads: BipEditDiffView (all-fields side-by-side) + Edit-badged union review queue
   - [x] 08-07-PLAN.md — Coordinator surface: EditStatusCallout + edit-page States A/B/C CTAs + slug omission
   - [x] 08-08-PLAN.md — Admin verdict surface: RequestChangesBipModal + 3-button AdminActionsPanel + new /admin/bip-edits/[editId]/review route + submission review request-changes
-  - [ ] 08-09-PLAN.md — Verification gate: full build + Playwright suite, human-verify Resend delivery + ISR refresh
+  - [x] 08-09-PLAN.md — Verification gate: full build + Playwright suite, human-verify Resend delivery + ISR refresh
 **UI hint**: yes
 
 ## Progress
@@ -112,4 +112,4 @@ Full phase details, success criteria, and per-plan breakdown: [milestones/v1.0-R
 | 5. Student Auth + Role Model | v1.1 | 4/4 | Complete   | 2026-06-15 |
 | 6. Saved BIPs Sync | v1.1 | 4/4 | Complete   | 2026-06-15 |
 | 7. Alert Subscriptions + Email Pipeline | v1.1 | 0/TBD | Not started | - |
-| 8. Edit-Approved + Request-Changes | v1.1 | 8/9 | In Progress|  |
+| 8. Edit-Approved + Request-Changes | v1.1 | 9/9 | Complete   | 2026-06-26 |
