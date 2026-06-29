@@ -22,7 +22,7 @@ Phase requirements: INFO-01, INFO-02, INFO-04, FOUN-05, FOUN-06, FOUN-07, FOUN-1
 | FOUN-05 | PASS | Zero-analytics posture satisfies FOUN-05 by absence-of-trackers (D-01/D-02 + Plan 04-02 + CONTRIBUTING.md Section 4). `/privacy` documents the posture; no banner needed. |
 | FOUN-06 | PASS | `app/(public)/privacy/page.tsx` exists with `export const dynamic = 'force-static'`, 8 sections, ~772 words inside the 600–900 lock; `components/home/Footer.tsx:79` links it (build lists `○ /privacy`). |
 | FOUN-07 | PASS | `supabase/migrations/00013_delete_my_account.sql` (SECURITY DEFINER, search_path locked, EXECUTE→authenticated only) + `lib/actions/account.ts` + `components/dashboard/DeleteAccountDialog.tsx` + `/dashboard/settings` page + `AccountDeletedToastIsland`. Anonymizes approved (`contact_name='—'`, `contact_email=NULL`), hard-deletes drafts/pending/rejected, removes `auth.users` row atomically. |
-| FOUN-10 | PASS (impl) / PARTIAL (runtime) | `playwright.config.ts` + `tests/e2e/{setup,auth,submission,admin-review,map-filter}.spec.ts` (17 tests) + `supabase/seed.e2e.sql` (3 fixture users + 2 pending BIPs) + `.github/workflows/e2e.yml` single-shard CI. Runtime execution deferred to user local-dev + CI gate; `npx playwright test --list` per Plan 04-07 SUMMARY confirms parse OK. One TS error in `map-filter.spec.ts:46` (RegExp vs string in `selectOption`) — non-blocking for `next build` but blocks `tsc --noEmit` clean. |
+| FOUN-10 | PASS (impl) / PARTIAL (runtime) | `playwright.config.ts` + `tests/e2e/{setup,auth,submission,admin-review,map-filter}.spec.ts` (17 tests) + `supabase/seed.e2e.sql` (3 fixture users + 2 pending BIPs) + `.github/workflows/e2e.yml` single-shard CI. Runtime execution deferred to user local-dev + CI gate; `npx playwright test --list` per Plan 04-07 SUMMARY confirms parse OK. (Earlier TS error in `map-filter.spec.ts` selectOption — RESOLVED in commit `a178c46`; `tsc --noEmit` now passes clean, see Build / Typecheck.) |
 
 ## Guardrail Spot-Checks
 
@@ -41,29 +41,26 @@ Phase requirements: INFO-01, INFO-02, INFO-04, FOUN-05, FOUN-06, FOUN-07, FOUN-1
 
 ## Manual Gates Outstanding
 
-1. **Lighthouse capture (D-20).** 4 PNGs awaited at `.planning/phases/04-polish-static-content-performance-hardening/lighthouse/` for `/`, `/bips`, `/bip/{slug}`, `/what-is-a-bip`. Targets locked at FOUN-02: Performance/Accessibility/SEO ≥ 90, LCP < 1.5s mobile 4G simulated. README staged with capture protocol; user runs locally and commits PNGs.
+1. ~~**Lighthouse capture (D-20).**~~ **RESOLVED 2026-06-13** — user confirmed all four routes (`/`, `/bips`, `/bip/{slug}`, `/what-is-a-bip`) PASS the FOUN-02 targets (Performance/Accessibility/SEO ≥ 90, LCP < 1.5s mobile 4G simulated). Screenshot baseline PNGs not yet committed (optional for v1; recommended before v1.1 regression gating).
 2. **axe-DevTools sweep (D-27, Plan 04-07 Task 10).** 13 route screenshots awaited at `.planning/phases/04-polish-static-content-performance-hardening/axe/` with 0 critical / 0 serious findings + verified skip-to-content link Tab order. README staged with procedure.
 3. **Local Playwright spec runtime verification.** Plan 04-07 SUMMARY notes the 17 tests parse via `--list` but were not executed in a live local stack during plan execution; user runs `npm run test:e2e` once locally before merge.
 
 ## Build / Typecheck
 
 - `npm run build` → **PASS**. 39 routes generated; `/privacy` and `/what-is-a-bip` listed as `○ (Static)`; `/dashboard/settings`, `/admin/*`, `/bips` listed as `ƒ (Dynamic)`. No build errors; Middleware compiled at 88.8 kB.
-- `npx tsc --noEmit` → **1 ERROR** (non-blocking for `next build`):
-  - `tests/e2e/map-filter.spec.ts(46,31)`: `selectOption({ label: /…/ })` passes a `RegExp` where the Playwright type signature expects `string`. Fix is a one-line spec edit (use literal label or filter then click); the production build path strips the `tests/` tree, hence build succeeded. This must be patched before the E2E suite runs cleanly in CI but does not block phase verification because:
-    1. The failing token is in an E2E spec, not application code.
-    2. `next build`'s own type pass (which scopes to `app/`, `lib/`, `components/`) passes clean.
-    3. The fix is one line.
+- `npx tsc --noEmit` → **PASS** (exit 0; root `tsconfig.json` includes `**/*.ts`, so `tests/e2e/*.ts` is type-checked).
+  - The E2E-spec type error originally flagged here (`tests/e2e/map-filter.spec.ts` — `selectOption` passing a `RegExp` where Playwright expects `string`) was **RESOLVED** in commit `a178c46` (`fix(04-07): use string label in selectOption to satisfy Playwright types`). Re-verified 2026-06-13: no `selectOption` call passes a `RegExp`/`{ label }`; remaining uses pass `{ index: 1 }`, `'B2'`, `'AT'`.
 
 ## Verdict
 
-**READY_FOR_MERGE — with two clearly documented manual gates + one trivial E2E typecheck patch outstanding before v1 launch.**
+**READY_FOR_MERGE — one manual gate outstanding before v1 launch (axe-DevTools sweep).** (E2E typecheck patch resolved in commit `a178c46`, `tsc --noEmit` clean; Lighthouse gate D-20 confirmed PASS by user 2026-06-13.)
 
 Rationale:
 - All 7 phase requirements (INFO-01/02/04, FOUN-05/06/07/10) are implementation-complete in source. Code is auditable, decisions are documented per-plan, and atomic commits are recorded for each task.
 - All CLAUDE.md guardrails spot-checked PASS: 11-star LogoMark, no `framer-motion` imports, no `getSession()` server-side, footer disclaimer intact, migration 00013 hardened, no real secrets in `.env.example`.
 - `next build` succeeds across 39 routes.
-- `npx tsc --noEmit` surfaces a single E2E-spec type error in `tests/e2e/map-filter.spec.ts:46` — non-blocking for the production build pipeline but should be fixed before the next E2E CI run to keep the suite green.
-- Two manual gates remain (Lighthouse capture, axe sweep) and are explicitly staged with executable READMEs. These are the "manual followup" decisions taken in Plans 04-06 D-20 and 04-07 D-27 — both are intentional human-in-the-loop gates, not deferrals.
+- `npx tsc --noEmit` passes clean (the previously-flagged `map-filter.spec.ts` type error was fixed in commit `a178c46`).
+- One manual gate remains (axe-DevTools sweep, D-27) and is explicitly staged with an executable README. The Lighthouse gate (D-20) was confirmed PASS by the user on 2026-06-13. Both were the "manual followup" decisions taken in Plans 04-06 and 04-07 — intentional human-in-the-loop gates, not deferrals.
 - No source-code changes were made during verification (read-only on the codebase per instructions).
 
 ---
