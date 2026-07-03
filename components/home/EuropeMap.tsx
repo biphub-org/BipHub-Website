@@ -269,7 +269,7 @@ export function EuropeMap({ countsByCountry }: EuropeMapProps) {
                           tier.fillClass,
                           'stroke-white stroke-[0.6] cursor-pointer outline-none',
                           'transition-[fill] duration-200 ease',
-                          'hover:fill-eu-gold hover:stroke-ink hover:stroke-1',
+                          'hover:fill-eu-gold',
                           'focus-visible:outline-2 focus-visible:outline-eu-gold',
                         )}
                         onClick={() => handleCountryClick(countryCode)}
