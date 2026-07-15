@@ -75,16 +75,21 @@ async function main() {
     `got ${distinctHosts.size} distinct host universities`,
   )
 
-  // 3. All 8 ISCED categories represented — D-03 requires CategoriesBar to show >0 for each
-  const ISCED_FIELDS_CONST = ISCED_FIELDS
-  const seenSubjects = new Set(bips.map((b) => b.subject_area))
-  const missingSubjects = ISCED_FIELDS_CONST.map((f) => f.id).filter(
-    (id) => !seenSubjects.has(id),
+  // 3. Field coverage — with 12 finer-grained fields and 20 synthetic BIPs we no
+  //    longer require every field to be represented (dentistry/sports/education
+  //    have no fitting synthetic BIP). Require a healthy spread of >= 8 of 12.
+  const validFieldIds = new Set(ISCED_FIELDS.map((f) => f.id))
+  const seenSubjects = new Set(
+    bips.map((b) => b.subject_area).filter((s): s is string => Boolean(s)),
   )
+  const unknownSubjects = [...seenSubjects].filter((s) => !validFieldIds.has(s as never))
+  const coveredCount = [...seenSubjects].filter((s) => validFieldIds.has(s as never)).length
   check(
-    'all_8_isced_categories',
-    missingSubjects.length === 0,
-    missingSubjects.length === 0 ? '8/8 present' : `missing: ${missingSubjects.join(', ')}`,
+    'field_coverage_min_8_of_12',
+    coveredCount >= 8 && unknownSubjects.length === 0,
+    unknownSubjects.length > 0
+      ? `unknown field ids in seed: ${unknownSubjects.join(', ')}`
+      : `${coveredCount}/12 fields represented`,
   )
 
   // 4. Open (future deadline) ~12, Closed (past) ~8 — relative to today

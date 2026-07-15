@@ -38,9 +38,10 @@ test.describe('submission wizard', () => {
 
     // ----- Step 1: Basic info -----
     await page.getByLabel(/bip title/i).fill(E2E_TITLE)
-    // ISCED-F selector — pick any option; the wizard surfaces it as a <select>
-    // or a custom combobox. Read the value the form expects from step1Schema:
-    // a 4-digit ISCED code. Pick "0613" (Software & app dev) for engineering fit.
+    // Field-of-study selector — pick any option; the wizard surfaces it as a
+    // <select> or a custom combobox. Options are the BipHub field ids from
+    // lib/isced.ts (e.g. it-engineering, medicine). We select by index so this
+    // stays valid regardless of the exact taxonomy.
     const iscedField = page.getByLabel(/field of study|isced/i)
     // The control may be a native <select> or a combobox; try selectOption first.
     try {

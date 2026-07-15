@@ -1,7 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/supabase/database.types'
 import type { BipFilterState } from './parseSearchParams'
-import { ISCED_FIELDS } from '@/lib/isced'
 import { PAGE_SIZE } from './parseSearchParams'
 
 type BipsQuery = ReturnType<
@@ -28,16 +27,11 @@ export function applyFilters(
     q = q.in('host_university.country', upper)
   }
 
-  // BROW-03 Field — map ISCED group ids to isced_f_code prefixes
+  // BROW-03 Field — exact match on subject_area (the canonical field id).
+  // subject_area holds the ISCED_FIELDS id for both seed and submitted BIPs,
+  // and is the same column the homepage counts key off (getBipCountsByField).
   if (filters.field && filters.field.length > 0) {
-    const codes = filters.field
-      .map((id) => ISCED_FIELDS.find((f) => f.id === id)?.isced)
-      .filter((v): v is NonNullable<typeof v> => Boolean(v))
-    if (codes.length > 0) {
-      // isced_f_code is a 4-digit code; group is the leading 2 digits
-      const orClause = codes.map((c) => `isced_f_code.like.${c}%`).join(',')
-      q = q.or(orClause)
-    }
+    q = q.in('subject_area', filters.field)
   }
 
   // BROW-04 Language

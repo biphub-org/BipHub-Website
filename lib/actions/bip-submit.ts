@@ -195,6 +195,10 @@ export async function submitBipAction(
   const updatePayload = {
     title: parsed.data.title,
     isced_f_code: parsed.data.isced_f_code,
+    // subject_area is the canonical field-of-study id (mirrors the selected
+    // field). Homepage counts + the /bips field filter both key off it, so
+    // submitted BIPs must populate it, not just isced_f_code.
+    subject_area: parsed.data.isced_f_code,
     description: parsed.data.description,
     learning_outcomes: parsed.data.learning_outcomes,
     virtual_component_description: parsed.data.virtual_component_description,

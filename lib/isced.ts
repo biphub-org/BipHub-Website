@@ -1,23 +1,31 @@
 /**
- * The 8 field-of-study categories shown on the homepage CategoriesBar
+ * The 12 field-of-study categories shown on the homepage CategoriesBar
  * (DISC-03) and used as the BROW-03 filter facet.
  *
- * `id` is the URL-safe identifier used in `/bips?field=engineering`.
- * `isced` is the ISCED-F 2013 broad-field code (used for SEO + DB query
- * via bips.subject_area = id).
+ * `id` is the URL-safe identifier used in `/bips?field=medicine` and is the
+ * canonical value stored in `bips.subject_area`. Both the homepage counts
+ * (getBipCountsByField) and the /bips field filter (applyFilters) key off
+ * `subject_area = id`, so ids are a locked contract — do not rename an id
+ * without a data migration of `bips.subject_area` + the seed catalog.
  *
- * Source: STACK.md lines 156-169 (locked — do not rename ids without
- * updating /bips URL contract and seed data).
+ * NOTE: this is a BipHub-specific taxonomy, intentionally finer-grained than
+ * the ISCED-F 2013 broad fields (e.g. Dentistry / Medicine / Health Sciences
+ * are separate here but all fall under ISCED 09). The export names keep the
+ * historical `ISCED_*` prefix to avoid churn across the ~10 consuming files.
  */
 export const ISCED_FIELDS = [
-  { id: 'engineering',     label: 'Engineering',      isced: '07' },
-  { id: 'business',        label: 'Business',         isced: '04' },
-  { id: 'sciences',        label: 'Natural Sciences', isced: '05' },
-  { id: 'arts',            label: 'Arts & Design',    isced: '02' },
-  { id: 'health',          label: 'Health',           isced: '09' },
-  { id: 'social-sciences', label: 'Social Sciences',  isced: '03' },
-  { id: 'environment',     label: 'Environment',      isced: '08' },
-  { id: 'humanities',      label: 'Humanities',       isced: '02' },
+  { id: 'dentistry',          label: 'Dentistry' },
+  { id: 'medicine',           label: 'Medicine' },
+  { id: 'law',                label: 'Law' },
+  { id: 'business-economics', label: 'Business & Economics' },
+  { id: 'sports',             label: 'Sports' },
+  { id: 'arts-design',        label: 'Arts & Design' },
+  { id: 'it-engineering',     label: 'IT & Engineering' },
+  { id: 'architecture',       label: 'Architecture' },
+  { id: 'education',          label: 'Education' },
+  { id: 'communication',      label: 'Communication' },
+  { id: 'health-sciences',    label: 'Health Sciences' },
+  { id: 'social-sciences',    label: 'Social Sciences' },
 ] as const
 
 export type IscedField = (typeof ISCED_FIELDS)[number]

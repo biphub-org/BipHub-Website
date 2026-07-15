@@ -3,7 +3,7 @@
 /**
  * CategoriesBar — DISC-03, UI-SPEC line 328.
  *
- * 8-column grid on desktop (md), 3-column on mobile.
+ * 6-column grid on desktop (12 fields over 2 rows), narrowing to 2 on mobile.
  * Each card links to /bips?field={isced.id}.
  * Icon square flips from bg-eu-blue-50 to bg-eu-gold on hover.
  *
@@ -13,14 +13,18 @@
 import { useRef } from 'react'
 import Link from 'next/link'
 import {
-  IconCpu,
+  IconDental,
+  IconStethoscope,
+  IconGavel,
   IconBriefcase,
-  IconFlask,
+  IconRun,
   IconPalette,
-  IconHeart,
+  IconCpu,
+  IconBuildingArch,
+  IconSchool,
+  IconMessages,
+  IconHeartbeat,
   IconUsers,
-  IconLeaf,
-  IconBook,
 } from '@tabler/icons-react'
 import {
   LazyMotion,
@@ -60,19 +64,23 @@ const cardVariants: Variants = {
 }
 
 /**
- * ISCED field → Tabler icon mapping.
+ * Field → Tabler icon mapping.
  * Icons chosen to semantically match each field of study.
  * Static object — no template literals (Pitfall 13).
  */
 const ISCED_ICONS: Record<IscedFieldId, React.ComponentType<{ size?: number; className?: string }>> = {
-  'engineering':     IconCpu,
-  'business':        IconBriefcase,
-  'sciences':        IconFlask,
-  'arts':            IconPalette,
-  'health':          IconHeart,
-  'social-sciences': IconUsers,
-  'environment':     IconLeaf,
-  'humanities':      IconBook,
+  'dentistry':          IconDental,
+  'medicine':           IconStethoscope,
+  'law':                IconGavel,
+  'business-economics': IconBriefcase,
+  'sports':             IconRun,
+  'arts-design':        IconPalette,
+  'it-engineering':     IconCpu,
+  'architecture':       IconBuildingArch,
+  'education':          IconSchool,
+  'communication':      IconMessages,
+  'health-sciences':    IconHeartbeat,
+  'social-sciences':    IconUsers,
 }
 
 interface CategoriesBarProps {
@@ -124,13 +132,13 @@ export function CategoriesBar({ countsByField }: CategoriesBarProps) {
                 href="/bips"
                 className="text-sm font-semibold text-eu-blue hover:text-eu-blue-dark transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eu-blue focus-visible:ring-offset-2 rounded-sm"
               >
-                All fields →
+                Browse all →
               </Link>
             </m.div>
 
-            {/* 8-column grid desktop, 3-column mobile (per UI-SPEC + mockup) */}
+            {/* 6-column grid desktop (12 fields → 2 rows), down to 2 on mobile */}
             <m.div
-              className="grid grid-cols-3 gap-3 md:grid-cols-8"
+              className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6"
               variants={gridVariants}
               initial="hidden"
               animate={inView ? 'visible' : 'hidden'}
