@@ -26,7 +26,7 @@ export function RecentBips({ totalApprovedCount, bips }: RecentBipsProps) {
   return (
     <RecentBipsAnimated totalApprovedCount={totalApprovedCount}>
       {bips.map((bip) => (
-        <BipCard key={bip.id} bip={bip} initialSaved={false} isStudent={false} />
+        <BipCard key={bip.id} bip={bip} />
       ))}
     </RecentBipsAnimated>
   )

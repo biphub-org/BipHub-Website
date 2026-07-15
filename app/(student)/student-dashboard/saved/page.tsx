@@ -61,11 +61,7 @@ export default async function SavedBipsPage() {
           {saved.length > 50 && (
             <p className="text-sm text-muted">Showing all {saved.length} saved BIPs</p>
           )}
-          <BipGrid
-            bips={saved}
-            savedBipIds={new Set(saved.map((b) => b.id))}
-            isStudent={true}
-          />
+          <BipGrid bips={saved} />
         </>
       )}
     </div>

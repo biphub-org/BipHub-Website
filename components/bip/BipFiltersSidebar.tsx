@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import {
   Award,
   Calendar,
@@ -89,6 +89,30 @@ export function BipFiltersSidebar({ filters }: { filters: BipFilterState }) {
     if (set.has(value)) set.delete(value)
     else set.add(value)
     update(key, set.size === 0 ? undefined : Array.from(set).join(','))
+  }
+
+  // ECTS slider: drag updates local state only (smooth), and we commit both
+  // bounds to the URL in a SINGLE navigation on release. Driving router.push on
+  // every drag tick (via a URL-controlled value) made the thumb snap back —
+  // that was the "slider doesn't drag" bug.
+  const [ectsLocal, setEctsLocal] = useState<[number, number]>([
+    filters.ectsMin ?? 1,
+    filters.ectsMax ?? 30,
+  ])
+  useEffect(() => {
+    setEctsLocal([filters.ectsMin ?? 1, filters.ectsMax ?? 30])
+  }, [filters.ectsMin, filters.ectsMax])
+
+  const commitEcts = (min: number, max: number) => {
+    const next = new URLSearchParams(params)
+    if (min <= 1) next.delete('ectsMin')
+    else next.set('ectsMin', String(min))
+    if (max >= 30) next.delete('ectsMax')
+    else next.set('ectsMax', String(max))
+    next.delete('page')
+    startTransition(() => {
+      router.push(next.toString() ? `/bips?${next}` : '/bips')
+    })
   }
 
   const sectionActive = {
@@ -188,7 +212,9 @@ export function BipFiltersSidebar({ filters }: { filters: BipFilterState }) {
           </AccordionTrigger>
           <AccordionContent>
             <ul className="space-y-2">
-              {ISCED_FIELDS.map((f) => (
+              {[...ISCED_FIELDS]
+                .sort((a, b) => a.label.localeCompare(b.label))
+                .map((f) => (
                 <li key={f.id}>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -211,7 +237,9 @@ export function BipFiltersSidebar({ filters }: { filters: BipFilterState }) {
           </AccordionTrigger>
           <AccordionContent>
             <ul className="space-y-2">
-              {LANGS.map((l) => (
+              {[...LANGS]
+                .sort((a, b) => a.label.localeCompare(b.label))
+                .map((l) => (
                 <li key={l.code}>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -265,15 +293,18 @@ export function BipFiltersSidebar({ filters }: { filters: BipFilterState }) {
               min={1}
               max={30}
               step={1}
-              value={[filters.ectsMin ?? 1, filters.ectsMax ?? 30]}
+              value={ectsLocal}
               onValueChange={(v) => {
                 const arr = Array.isArray(v) ? (v as number[]) : [v as number]
-                update('ectsMin', arr[0] === 1 ? undefined : String(arr[0]))
-                update('ectsMax', (arr[1] ?? 30) === 30 ? undefined : String(arr[1]))
+                setEctsLocal([arr[0], arr[1] ?? 30])
+              }}
+              onValueCommitted={(v) => {
+                const arr = Array.isArray(v) ? (v as number[]) : [v as number]
+                commitEcts(arr[0], arr[1] ?? 30)
               }}
             />
             <p className="text-xs text-muted mt-2">
-              {filters.ectsMin ?? 1}–{filters.ectsMax ?? 30} ECTS
+              {ectsLocal[0]}–{ectsLocal[1]} ECTS
             </p>
           </AccordionContent>
         </AccordionItem>

@@ -2,8 +2,6 @@ import { Suspense } from 'react'
 import type { Metadata } from 'next'
 import { parseSearchParams, PAGE_SIZE } from '@/lib/filters/parseSearchParams'
 import { getBips } from '@/lib/queries/bips'
-import { createClient } from '@/lib/supabase/server'
-import { getSavedBipIds } from '@/lib/queries/savedBips'
 import { BipFiltersSidebar } from '@/components/bip/BipFiltersSidebar'
 import { BipFiltersSidebarSkeleton } from '@/components/bip/BipFiltersSidebarSkeleton'
 import { BipFiltersDrawer } from '@/components/bip/BipFiltersDrawer'
@@ -66,16 +64,6 @@ export default async function BipsPage(props: {
   const sp = await props.searchParams
   const filters = parseSearchParams(sp)
   const { rows, total, totalCountries } = await getBips(filters)
-
-  // /bips reads searchParams (filters), so it is inherently dynamic — never ISR,
-  // regardless of cookies (this was true before Phase 6 too). Computing per-user
-  // saved state server-side is therefore free and paints the correct heart state
-  // in the initial HTML with no flash. See D-bip-02-03.
-  const supabase = await createClient()
-  const { data: claimsData } = await supabase.auth.getClaims()
-  const userId = claimsData?.claims?.sub ?? null
-  const isStudent = claimsData?.claims?.app_metadata?.role === 'student'
-  const savedBipIds = await getSavedBipIds(userId)
 
   const startIdx = (filters.page - 1) * PAGE_SIZE + 1
   const endIdx = Math.min(filters.page * PAGE_SIZE, total)
@@ -181,7 +169,7 @@ export default async function BipsPage(props: {
               <BipsEmptyState />
             ) : (
               <>
-                <BipGrid bips={rows} savedBipIds={savedBipIds} isStudent={isStudent} />
+                <BipGrid bips={rows} />
                 {totalPages > 1 && (
                   <div className="mt-12">
                     <Suspense fallback={<BipPaginationSkeleton />}>

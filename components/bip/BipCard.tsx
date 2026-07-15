@@ -3,22 +3,17 @@
  *
  * Pure RSC (no client islands in this file).
  *
- * HTML structure (UI-SPEC Structural Note lines 324-351):
+ * HTML structure:
  *   <div card outer — group, hover classes>         ← carries hover/translate/shadow
  *     <Link href="/bip/{slug}" — block child>       ← wraps header + body
  *       <div gradient header relative>              ← 140px, gradient bg
  *         {country pill} {deadline pill}
  *       </div>
- *       <div card body>                             ← field tag, title, university, meta
- *         ...
+ *       <div card body>                             ← field tag, title, university, meta,
+ *         ...                                          "Learn more →" affordance
  *       </div>
  *     </Link>
- *     <SaveToggleIsland absolute right-3 top-[102px] />  ← SIBLING of Link, NOT inside it
  *   </div>
- *
- * The island is positioned `absolute right-3 top-[102px]` (within the 140px header, lower-right
- * — 140 - 44/2 ≈ 118, but top-[102px] puts the 44px button centered near the bottom of the header).
- * It is a SIBLING of the Link so the 44px <button> is NEVER a DOM descendant of the <a>.
  *
  * Visual:
  *   - 1px border, 16px radius (rounded-lg), overflow-hidden
@@ -38,7 +33,6 @@ import type { BipWithRelations } from '@/lib/types/bip'
 import { getCountryName } from '@/lib/countries'
 import { ISCED_FIELD_BY_ID } from '@/lib/isced'
 import { CountryFlag } from '@/components/ui/country-flag'
-import { SaveToggleIsland } from '@/components/bip/SaveToggleIsland'
 import { cn } from '@/lib/utils/cn'
 
 /** 3 gradient variants for the card header — keyed by bip.id mod 3 */
@@ -50,16 +44,15 @@ const GRADIENT_VARIANTS = [
 
 interface BipCardProps {
   bip: BipWithRelations
-  initialSaved: boolean
-  isStudent: boolean
 }
 
-export function BipCard({ bip, initialSaved, isStudent }: BipCardProps) {
+export function BipCard({ bip }: BipCardProps) {
   const gradientClass = GRADIENT_VARIANTS[hashId(bip.id) % 3]
   const country = bip.host_university?.country ?? ''
   const countryName = country ? getCountryName(country) : ''
   const fieldLabel = bip.subject_area
-    ? (ISCED_FIELD_BY_ID[bip.subject_area as keyof typeof ISCED_FIELD_BY_ID]?.label ?? bip.subject_area)
+    ? (ISCED_FIELD_BY_ID[bip.subject_area as keyof typeof ISCED_FIELD_BY_ID]?.label
+        ?? bip.subject_area.replace(/-/g, ' '))
     : null
 
   const deadlineFormatted = bip.application_deadline
@@ -117,7 +110,7 @@ export function BipCard({ bip, initialSaved, isStudent }: BipCardProps) {
         <div className="flex flex-1 flex-col p-5 pt-4">
           {/* Field tag chip */}
           {fieldLabel && (
-            <span className="mb-2 inline-flex self-start rounded-sm bg-eu-blue-50 px-2 py-0.5 text-[12px] font-medium text-eu-blue">
+            <span className="mb-2 inline-flex self-start rounded-sm bg-eu-blue-50 px-2 py-0.5 text-[12px] font-medium capitalize text-eu-blue">
               {fieldLabel}
             </span>
           )}
@@ -159,28 +152,21 @@ export function BipCard({ bip, initialSaved, isStudent }: BipCardProps) {
               />
             )}
           </div>
+
+          {/* Learn more affordance — bottom-right of the card */}
+          <div className="mt-3 flex items-center justify-end">
+            <span className="inline-flex items-center gap-1 text-[13px] font-semibold text-eu-blue">
+              Learn more
+              <span
+                aria-hidden="true"
+                className="transition-transform duration-200 ease-out group-hover:translate-x-0.5"
+              >
+                →
+              </span>
+            </span>
+          </div>
         </div>
       </Link>
-
-      {/*
-       * === SaveToggleIsland — SIBLING of the Link, NEVER inside it ===
-       *
-       * Positioned absolute against the card <div> (which is `relative`).
-       * top-[102px]: places the 44px button centred over the lower portion of
-       * the 140px gradient header (102 + 44/2 = 124px from top — clearly within
-       * the header). right-3 avoids the deadline pill at top-3 right-3.
-       *
-       * The button is NOT a DOM descendant of the <a> — invalid HTML avoided.
-       * (UI-SPEC Structural Note; HTML spec; Pitfall 1 in 06-RESEARCH.md)
-       */}
-      <SaveToggleIsland
-        className="absolute right-3 top-[102px] z-10"
-        bipId={bip.id}
-        bipTitle={bip.title}
-        initialSaved={initialSaved}
-        isStudent={isStudent}
-        displayStyle="icon"
-      />
     </div>
   )
 }
