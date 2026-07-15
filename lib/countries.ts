@@ -4,17 +4,34 @@ import enLocale from 'i18n-iso-countries/langs/en.json'
 countries.registerLocale(enLocale)
 
 /**
- * Erasmus+ KA131 programme countries — ISO 3166-1 alpha-2 codes (uppercase).
- * Source: Erasmus+ Programme Guide Part A, "Eligible countries".
+ * Display-name overrides for codes whose i18n-iso-countries name is verbose or
+ * absent. Keys are uppercase ISO 3166-1 alpha-2.
+ *   - MD: library returns "Moldova, Republic of"; we prefer the short form.
+ * (XK/Kosovo already resolves to "Kosovo" in the library, so needs no override.)
+ */
+const NAME_OVERRIDES: Record<string, string> = {
+  MD: 'Moldova',
+}
+
+/**
+ * Countries selectable in BipHub — ISO 3166-1 alpha-2 codes (uppercase).
  *
- * 33 countries total:
- *   EU-27: AT, BE, BG, HR, CY, CZ, DK, EE, FI, FR, DE, GR, HU, IE, IT, LV,
- *          LT, LU, MT, NL, PL, PT, RO, SK, SI, ES, SE
- *   EEA + associated: IS (Iceland), LI (Liechtenstein), NO (Norway)
- *   Candidate countries: MK (North Macedonia), RS (Serbia), TR (Türkiye)
+ * 39 countries total:
+ *   Erasmus+ programme countries (33):
+ *     EU-27: AT, BE, BG, HR, CY, CZ, DK, EE, FI, FR, DE, GR, HU, IE, IT, LV,
+ *            LT, LU, MT, NL, PL, PT, RO, SK, SI, ES, SE
+ *     EEA + associated: IS (Iceland), LI (Liechtenstein), NO (Norway)
+ *     Candidate countries: MK (North Macedonia), RS (Serbia), TR (Türkiye)
+ *   Additional partner / neighbourhood countries (6, added 2026-07):
+ *     GB (United Kingdom), UA (Ukraine), MD (Moldova), AL (Albania),
+ *     XK (Kosovo), BA (Bosnia and Herzegovina)
+ *
+ * Note: the additional six are not all official Erasmus+ programme countries;
+ * they are included so BIPs hosted or partnered there are discoverable.
  *
  * Used by:
- *   - <EuropeMap> (Plan 01-05) — choropleth fills 29 visible European countries
+ *   - <EuropeMap> (Plan 01-05) — choropleth basemap (public/eu-countries.json
+ *     is regenerated from this list via `npm run build:topojson`)
  *   - /bips country filter (Plan 01-06) — facet list
  *   - lib/types/bip.ts validation contexts
  *
@@ -31,10 +48,12 @@ export const ERASMUS_COUNTRIES: ReadonlyArray<{
     'IT','LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE',
     'IS','LI','NO',
     'MK','RS','TR',
+    // Additional partner / neighbourhood countries (2026-07)
+    'GB','UA','MD','AL','XK','BA',
   ] as const
 ).map((code) => ({
   code,
-  name: countries.getName(code, 'en') ?? code,
+  name: getCountryName(code),
 }))
 
 export const ERASMUS_COUNTRY_CODES = ERASMUS_COUNTRIES.map((c) => c.code)
@@ -45,11 +64,12 @@ export type ErasmusCountryCode = (typeof ERASMUS_COUNTRY_CODES)[number]
  * Falls back to the uppercase code if not found.
  */
 export function getCountryName(code: string): string {
-  return countries.getName(code.toUpperCase(), 'en') ?? code.toUpperCase()
+  const upper = code.toUpperCase()
+  return NAME_OVERRIDES[upper] ?? countries.getName(upper, 'en') ?? upper
 }
 
 /**
- * Returns true if the code is one of the 33 Erasmus+ programme countries.
+ * Returns true if the code is one of the 39 countries selectable in BipHub.
  */
 export function isErasmusCountry(code: string): code is ErasmusCountryCode {
   return ERASMUS_COUNTRY_CODES.includes(code.toUpperCase() as ErasmusCountryCode)
