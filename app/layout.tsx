@@ -23,8 +23,16 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={inter.variable}>
-      <body className="font-sans bg-white text-ink antialiased">
+    // suppressHydrationWarning: browser extensions (e.g. ColorZilla adds
+    // `cz-shortcut-listen`, Grammarly, dark-reader) inject attributes onto
+    // <html>/<body> before React hydrates. That is client-only noise, not an
+    // app mismatch — suppress it on these two elements only (one level deep;
+    // real mismatches inside the tree are still reported).
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
+      <body
+        className="font-sans bg-white text-ink antialiased"
+        suppressHydrationWarning
+      >
         {children}
       </body>
     </html>
