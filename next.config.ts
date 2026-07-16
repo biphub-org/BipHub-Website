@@ -10,6 +10,14 @@ const withBundleAnalyzer = bundleAnalyzer({
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Serialize the page-data collection worker pool. With the default
+  // multi-worker pool, `next build` intermittently throws
+  // `PageNotFoundError: Cannot find module for page: /_document` as an
+  // unhandledRejection during "Collecting page data" — a worker race on
+  // module resolution (Windows exacerbates it). One worker removes the race.
+  experimental: {
+    cpus: 1,
+  },
 }
 
 export default withBundleAnalyzer(nextConfig)
