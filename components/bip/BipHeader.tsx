@@ -1,6 +1,7 @@
 import { getCountryName } from '@/lib/countries'
 import type { BipDetail } from '@/lib/queries/bipDetail'
 import { CountryFlag } from '@/components/ui/country-flag'
+import { ISCED_FIELD_BY_ID } from '@/lib/isced'
 import { cn } from '@/lib/utils/cn'
 
 /**
@@ -17,6 +18,11 @@ import { cn } from '@/lib/utils/cn'
 export function BipHeader({ bip }: { bip: BipDetail }) {
   const host = bip.host_university
   const countryName = host?.country ? getCountryName(host.country) : ''
+  const fieldLabels = (bip.subject_areas ?? []).map(
+    (id) =>
+      ISCED_FIELD_BY_ID[id as keyof typeof ISCED_FIELD_BY_ID]?.label ??
+      id.replace(/-/g, ' '),
+  )
 
   return (
     <header className="mb-8">
@@ -41,6 +47,20 @@ export function BipHeader({ bip }: { bip: BipDetail }) {
             </span>
           )}
         </p>
+      )}
+
+      {/* Fields of study — one chip per field */}
+      {fieldLabels.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {fieldLabels.map((label) => (
+            <span
+              key={label}
+              className="inline-flex rounded-sm bg-eu-blue-50 px-2.5 py-0.5 text-[13px] font-medium capitalize text-eu-blue"
+            >
+              {label}
+            </span>
+          ))}
+        </div>
       )}
     </header>
   )

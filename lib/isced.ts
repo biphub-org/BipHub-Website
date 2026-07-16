@@ -2,11 +2,12 @@
  * The 12 field-of-study categories shown on the homepage CategoriesBar
  * (DISC-03) and used as the BROW-03 filter facet.
  *
- * `id` is the URL-safe identifier used in `/bips?field=medicine` and is the
- * canonical value stored in `bips.subject_area`. Both the homepage counts
- * (getBipCountsByField) and the /bips field filter (applyFilters) key off
- * `subject_area = id`, so ids are a locked contract — do not rename an id
- * without a data migration of `bips.subject_area` + the seed catalog.
+ * `id` is the URL-safe identifier used in `/bips?field=medicine` and is a
+ * canonical value stored in the `bips.subject_areas text[]` array (a BIP may
+ * carry several). Both the homepage counts (getBipCountsByField) and the /bips
+ * field filter (applyFilters, via array overlap) key off these ids, so ids are
+ * a locked contract — do not rename an id without a data migration of
+ * `bips.subject_areas` (+ the legacy `subject_area` mirror) + the seed catalog.
  *
  * NOTE: this is a BipHub-specific taxonomy, intentionally finer-grained than
  * the ISCED-F 2013 broad fields (e.g. Dentistry / Medicine / Health Sciences

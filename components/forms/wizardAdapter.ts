@@ -11,9 +11,8 @@
  * the contract those components already consume.
  *
  * Note on `BipDetail` field names (Plan 01-07 contract):
- *   - the public type uses `subject_area` (free-text) rather than the wizard's
- *     `isced_f_code` enum. Phase 1 detail page does not render `subject_area`
- *     anywhere, so the preview leaves it null.
+ *   - both the wizard draft and the public type now use `subject_areas`
+ *     (string[]); the preview carries the draft's selected fields through.
  *   - `host_university` carries `city` + `erasmus_code`. The wizard knows only
  *     the canonical (id, name, country) triple; `city` falls back to the
  *     draft's `host_city`, `erasmus_code` is null in preview.
@@ -75,7 +74,7 @@ export function draftToBipDetail(
     is_seed: false,
     status: ctx.status,
     created_at: ctx.createdAt,
-    subject_area: null,
+    subject_areas: draft.subject_areas ?? [],
     host_university: host
       ? {
           id: host.id,

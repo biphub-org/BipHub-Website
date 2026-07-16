@@ -9,10 +9,13 @@ import { ISCED_FIELDS } from '@/lib/isced'
  * other steps. Submit-time enforcement of the union belongs to Plan 02-07's
  * `submitBipAction`, which re-declares a flat schema without refinements.
  *
- * The ISCED enum sources its values from `ISCED_FIELDS.id` (the URL-safe
+ * The field enum sources its values from `ISCED_FIELDS.id` (the URL-safe
  * identifier locked in Plan 01-06). Phase 1 already commits to this id list
  * via the `/bips?field=` filter — keeping the wizard on the same identifier
  * keeps coordinator-submitted data filterable in the public catalog.
+ *
+ * `subject_areas` is a multi-select: a BIP may span one or more fields (min 1,
+ * no upper cap). Stored as `bips.subject_areas text[]`.
  */
 
 const ISCED_VALUES = ISCED_FIELDS.map((f) => f.id) as [string, ...string[]]
@@ -20,9 +23,9 @@ const ISCED_VALUES = ISCED_FIELDS.map((f) => f.id) as [string, ...string[]]
 // Step 1 — Basic information (UI-SPEC line 264-272).
 export const step1Schema = z.object({
   title: z.string().trim().min(5, 'Title is too short.').max(120, 'Title is too long.'),
-  isced_f_code: z.enum(ISCED_VALUES, {
-    errorMap: () => ({ message: 'Please choose a field of study.' }),
-  }),
+  subject_areas: z
+    .array(z.enum(ISCED_VALUES))
+    .min(1, 'Choose at least one field of study.'),
   description: z
     .string()
     .trim()
@@ -150,7 +153,7 @@ export const fullBipSchema = z
   .object({
     // Step 1
     title: step1Schema.shape.title,
-    isced_f_code: step1Schema.shape.isced_f_code,
+    subject_areas: step1Schema.shape.subject_areas,
     description: step1Schema.shape.description,
     learning_outcomes: step1Schema.shape.learning_outcomes,
     // Step 2 — re-declare without per-step `.refine`s; they live below.

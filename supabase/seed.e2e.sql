@@ -451,3 +451,23 @@ values (
   'E2E Coordinator', 'e2e-coordinator@biphub.test',
   '[]'::jsonb
 );
+
+-- ----------------------------------------------------------------------------
+-- Multi-field support (subject_areas text[]): the inserts above set only the
+-- legacy scalar subject_area/isced_f_code, so populate the array. Two fixtures
+-- use legacy field ids that predate the 12-field taxonomy — remap them to valid
+-- ISCED_FIELDS ids so wizard/edit flows validate (min 1 field). The edit-target
+-- pair also gets a multi-field set to exercise cross-disciplinary edit diffs.
+-- ----------------------------------------------------------------------------
+update public.bips set subject_area = 'it-engineering', subject_areas = '{it-engineering}'
+  where slug = 'e2e-pending-machine-learning';
+update public.bips set subject_area = 'social-sciences', subject_areas = '{social-sciences}'
+  where slug = 'e2e-pending-data-ethics';
+update public.bips set subject_areas = array[subject_area]
+  where is_seed = false and cardinality(subject_areas) = 0 and subject_area is not null;
+
+-- Edit-flow fixtures: give the approved BIP + its proposed edit multiple fields.
+update public.bips set subject_areas = '{it-engineering,arts-design}'
+  where slug = 'e2e-edit-target-bip';
+update public.bip_edits set subject_areas = '{it-engineering,architecture}'
+  where id = 'e2e0cccc-cccc-cccc-cccc-000000000001';

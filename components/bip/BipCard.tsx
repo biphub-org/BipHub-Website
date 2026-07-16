@@ -50,10 +50,11 @@ export function BipCard({ bip }: BipCardProps) {
   const gradientClass = GRADIENT_VARIANTS[hashId(bip.id) % 3]
   const country = bip.host_university?.country ?? ''
   const countryName = country ? getCountryName(country) : ''
-  const fieldLabel = bip.subject_area
-    ? (ISCED_FIELD_BY_ID[bip.subject_area as keyof typeof ISCED_FIELD_BY_ID]?.label
-        ?? bip.subject_area.replace(/-/g, ' '))
-    : null
+  const fieldLabels = (bip.subject_areas ?? []).map(
+    (id) =>
+      ISCED_FIELD_BY_ID[id as keyof typeof ISCED_FIELD_BY_ID]?.label ??
+      id.replace(/-/g, ' '),
+  )
 
   const deadlineFormatted = bip.application_deadline
     ? formatDeadline(bip.application_deadline)
@@ -108,11 +109,18 @@ export function BipCard({ bip }: BipCardProps) {
 
         {/* === Card body === */}
         <div className="flex flex-1 flex-col p-5 pt-4">
-          {/* Field tag chip */}
-          {fieldLabel && (
-            <span className="mb-2 inline-flex self-start rounded-sm bg-eu-blue-50 px-2 py-0.5 text-[12px] font-medium capitalize text-eu-blue">
-              {fieldLabel}
-            </span>
+          {/* Field tag chips — one per field of study */}
+          {fieldLabels.length > 0 && (
+            <div className="mb-2 flex flex-wrap gap-1.5">
+              {fieldLabels.map((label) => (
+                <span
+                  key={label}
+                  className="inline-flex rounded-sm bg-eu-blue-50 px-2 py-0.5 text-[12px] font-medium capitalize text-eu-blue"
+                >
+                  {label}
+                </span>
+              ))}
+            </div>
           )}
 
           {/* BIP title — 2-line clamp */}

@@ -356,7 +356,9 @@ export async function adminUpdateBipAction(
   //    payload EXCEPT we do NOT touch `status` (D-18) or `slug` (T-03-16).
   const updatePayload = {
     title: parsed.data.title,
-    isced_f_code: parsed.data.isced_f_code,
+    subject_areas: parsed.data.subject_areas,
+    subject_area: parsed.data.subject_areas[0],
+    isced_f_code: parsed.data.subject_areas[0],
     description: parsed.data.description,
     learning_outcomes: parsed.data.learning_outcomes,
     virtual_component_description: parsed.data.virtual_component_description,

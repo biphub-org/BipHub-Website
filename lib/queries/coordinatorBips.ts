@@ -26,7 +26,7 @@ export type CoordinatorBip = {
   slug: string
   title: string
   status: CoordinatorBipStatus
-  isced_f_code: string | null
+  subject_areas: string[]
   host_city: string | null
   application_deadline: string | null
   physical_start_date: string | null
@@ -45,7 +45,7 @@ export async function getCoordinatorBips(): Promise<CoordinatorBip[]> {
   const { data, error } = await supabase
     .from('bips')
     .select(`
-      id, slug, title, status, isced_f_code, host_city,
+      id, slug, title, status, subject_areas, host_city,
       application_deadline, physical_start_date,
       updated_at, created_at,
       host_university:host_university_id ( id, name, country )
@@ -70,7 +70,7 @@ export async function getCoordinatorBips(): Promise<CoordinatorBip[]> {
       slug: row.slug,
       title: row.title,
       status: row.status as CoordinatorBipStatus,
-      isced_f_code: row.isced_f_code,
+      subject_areas: row.subject_areas ?? [],
       host_city: row.host_city,
       application_deadline: row.application_deadline,
       physical_start_date: row.physical_start_date,

@@ -27,11 +27,11 @@ export function applyFilters(
     q = q.in('host_university.country', upper)
   }
 
-  // BROW-03 Field — exact match on subject_area (the canonical field id).
-  // subject_area holds the ISCED_FIELDS id for both seed and submitted BIPs,
-  // and is the same column the homepage counts key off (getBipCountsByField).
+  // BROW-03 Field — array overlap on subject_areas (the canonical field ids).
+  // A BIP can carry multiple fields; a row matches if ANY of its fields is in
+  // the selected set. Same column the homepage counts key off (getBipCountsByField).
   if (filters.field && filters.field.length > 0) {
-    q = q.in('subject_area', filters.field)
+    q = q.overlaps('subject_areas', filters.field)
   }
 
   // BROW-04 Language

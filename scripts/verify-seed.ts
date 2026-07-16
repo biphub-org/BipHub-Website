@@ -30,7 +30,7 @@ type Bip = {
   slug: string
   status: string
   is_seed: boolean
-  subject_area: string | null
+  subject_areas: string[] | null
   language_of_instruction: string | null
   application_deadline: string | null
   host_university_id: string | null
@@ -48,7 +48,7 @@ async function main() {
   const { data: bips, error } = await supabase
     .from('bips')
     .select(
-      'slug, status, is_seed, subject_area, language_of_instruction, application_deadline, host_university_id, study_levels, green_travel, inclusion_support',
+      'slug, status, is_seed, subject_areas, language_of_instruction, application_deadline, host_university_id, study_levels, green_travel, inclusion_support',
     )
     .eq('is_seed', true)
     .returns<Bip[]>()
@@ -75,13 +75,13 @@ async function main() {
     `got ${distinctHosts.size} distinct host universities`,
   )
 
-  // 3. Field coverage — with 12 finer-grained fields and 20 synthetic BIPs we no
-  //    longer require every field to be represented (dentistry/sports/education
-  //    have no fitting synthetic BIP). Require a healthy spread of >= 8 of 12.
+  // 3. Field coverage — subject_areas is now a multi-field array. Flatten every
+  //    row's fields; every id must be a valid ISCED_FIELDS id, and we require a
+  //    healthy spread of >= 8 of 12 (dentistry/sports/education have no fitting
+  //    synthetic BIP). Also assert every seed row has at least one field.
   const validFieldIds = new Set(ISCED_FIELDS.map((f) => f.id))
-  const seenSubjects = new Set(
-    bips.map((b) => b.subject_area).filter((s): s is string => Boolean(s)),
-  )
+  const allSeedFields = bips.flatMap((b) => b.subject_areas ?? [])
+  const seenSubjects = new Set(allSeedFields)
   const unknownSubjects = [...seenSubjects].filter((s) => !validFieldIds.has(s as never))
   const coveredCount = [...seenSubjects].filter((s) => validFieldIds.has(s as never)).length
   check(
@@ -90,6 +90,11 @@ async function main() {
     unknownSubjects.length > 0
       ? `unknown field ids in seed: ${unknownSubjects.join(', ')}`
       : `${coveredCount}/12 fields represented`,
+  )
+  check(
+    'every_seed_bip_has_a_field',
+    bips.every((b) => (b.subject_areas?.length ?? 0) >= 1),
+    `${bips.filter((b) => (b.subject_areas?.length ?? 0) >= 1).length}/${bips.length} rows have >=1 field`,
   )
 
   // 4. Open (future deadline) ~12, Closed (past) ~8 — relative to today

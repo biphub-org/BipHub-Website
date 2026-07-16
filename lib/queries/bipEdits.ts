@@ -25,6 +25,7 @@ import type { BipStatus } from '@/lib/utils/status'
 
 type RawBipEditContentRow = {
   title: string | null
+  subject_areas: string[] | null
   isced_f_code: string | null
   description: string | null
   learning_outcomes: string | null
@@ -110,7 +111,7 @@ function mapEditRowToBipDraftData(row: RawBipEditContentRow): BipDraftData {
   const isUrl = row.how_to_apply_type === 'url'
   return {
     title: row.title ?? undefined,
-    isced_f_code: row.isced_f_code ?? undefined,
+    subject_areas: row.subject_areas ?? undefined,
     description: row.description ?? undefined,
     learning_outcomes: row.learning_outcomes ?? undefined,
     virtual_component_description: row.virtual_component_description ?? undefined,
@@ -176,7 +177,7 @@ function normalizeAdminBipRow(row: RawAdminBipRow): AdminBip {
 
 const BIP_EDIT_CONTENT_SELECT = `
   id, bip_id, status, admin_note, created_by,
-  title, isced_f_code, description, learning_outcomes,
+  title, subject_areas, isced_f_code, description, learning_outcomes,
   virtual_component_description, virtual_timing, host_city,
   physical_start_date, physical_end_date, application_deadline,
   ects_credits, max_participants, study_levels,

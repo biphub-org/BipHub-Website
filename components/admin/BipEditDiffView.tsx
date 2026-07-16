@@ -23,6 +23,7 @@
 import type { BipDetail } from '@/lib/queries/bipDetail'
 import type { BipEditDetail } from '@/lib/queries/bipEdits'
 import type { BipDraftData } from '@/lib/store/bip-draft'
+import { ISCED_FIELD_BY_ID } from '@/lib/isced'
 
 // ── Field definition ──────────────────────────────────────────────────────────
 
@@ -44,6 +45,18 @@ function fmtBool(v: boolean | null | undefined): string | null {
 function fmtStudyLevels(levels: string[] | readonly string[] | null | undefined): string | null {
   if (!levels || levels.length === 0) return null
   return [...levels].join(', ')
+}
+
+/** Render the multi-field set as human labels (falls back to the raw id). */
+function fmtFields(ids: string[] | readonly string[] | null | undefined): string | null {
+  if (!ids || ids.length === 0) return null
+  return ids
+    .map(
+      (id) =>
+        ISCED_FIELD_BY_ID[id as keyof typeof ISCED_FIELD_BY_ID]?.label ??
+        id.replace(/-/g, ' '),
+    )
+    .join(', ')
 }
 
 function fmtPartnerLive(bip: BipDetail): string | null {
@@ -78,9 +91,8 @@ function fmtHowToApplyProposed(data: BipDraftData): string | null {
 // NOTE: max_participants is not exposed in BipDetail (only in BipDraftData) — the
 // live column will always render "—". This is correct: the admin sees what's proposed.
 //
-// NOTE: Field of study — BipDetail exposes subject_area (a display-name column);
-// BipDraftData exposes isced_f_code. Both originate from the same BIP data but
-// may use different representations in different query paths.
+// NOTE: Fields of study — both BipDetail and BipDraftData expose subject_areas
+// (string[] of field ids); fmtFields renders them as human labels.
 
 const FIELDS: FieldDef[] = [
   {
@@ -99,9 +111,9 @@ const FIELDS: FieldDef[] = [
     getProposed: (d) => d.learning_outcomes ?? null,
   },
   {
-    label: 'Field of study',
-    getLive: (b) => b.subject_area,
-    getProposed: (d) => d.isced_f_code ?? null,
+    label: 'Fields of study',
+    getLive: (b) => fmtFields(b.subject_areas),
+    getProposed: (d) => fmtFields(d.subject_areas),
   },
   {
     label: 'Language of instruction',

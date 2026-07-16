@@ -73,7 +73,7 @@ export async function getSavedBips(userId: string): Promise<BipWithRelations[]> 
       bips:bip_id (
         id, slug, title, application_deadline, ects_credits, language_of_instruction,
         physical_start_date, physical_end_date, host_city, study_levels,
-        green_travel, inclusion_support, is_seed, status, created_at, subject_area,
+        green_travel, inclusion_support, is_seed, status, created_at, subject_areas,
         host_university:universities!host_university_id (id, name, country, city, erasmus_code)
       )
     `)

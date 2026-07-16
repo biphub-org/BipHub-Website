@@ -58,7 +58,7 @@ const submitSchema = z
   .object({
     // Step 1 — reuse the source-of-truth fields.
     title: step1Schema.shape.title,
-    isced_f_code: step1Schema.shape.isced_f_code,
+    subject_areas: step1Schema.shape.subject_areas,
     description: step1Schema.shape.description,
     learning_outcomes: step1Schema.shape.learning_outcomes,
     // Step 2 — re-declare without the per-step `.refine`s; they live below.
@@ -194,11 +194,13 @@ export async function submitBipAction(
   //    coordinator owns this row and that the status transition is allowed.
   const updatePayload = {
     title: parsed.data.title,
-    isced_f_code: parsed.data.isced_f_code,
-    // subject_area is the canonical field-of-study id (mirrors the selected
-    // field). Homepage counts + the /bips field filter both key off it, so
-    // submitted BIPs must populate it, not just isced_f_code.
-    subject_area: parsed.data.isced_f_code,
+    // subject_areas is the canonical field-of-study set. Homepage counts + the
+    // /bips field filter both key off it. The legacy scalar columns
+    // (subject_area, isced_f_code) are kept mirrored to the first field for any
+    // external/SQL consumer that still reads them.
+    subject_areas: parsed.data.subject_areas,
+    subject_area: parsed.data.subject_areas[0],
+    isced_f_code: parsed.data.subject_areas[0],
     description: parsed.data.description,
     learning_outcomes: parsed.data.learning_outcomes,
     virtual_component_description: parsed.data.virtual_component_description,

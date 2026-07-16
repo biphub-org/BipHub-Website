@@ -3,7 +3,7 @@
 /**
  * Wizard Step 1 — Basic information (UI-SPEC line 264-272).
  *
- * Fields: title, isced_f_code, description, learning_outcomes.
+ * Fields: title, subject_areas (multi-select), description, learning_outcomes.
  *
  * - RHF + zodResolver(step1Schema); mode 'onBlur' to avoid per-keystroke noise.
  * - Every blurred change is mirrored into the Zustand draft store via
@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { Checkbox } from '@/components/ui/checkbox'
 import { useBipDraft } from '@/lib/store/bip-draft'
 import { step1Schema, type Step1Values } from '@/lib/schemas/bip-wizard'
 import { ISCED_FIELDS } from '@/lib/isced'
@@ -43,7 +44,7 @@ export function WizardStep1BasicInfo({ onContinue, onAutoSave }: Props) {
     resolver: zodResolver(step1Schema),
     defaultValues: {
       title: draft.title ?? '',
-      isced_f_code: (draft.isced_f_code ?? '') as Step1Values['isced_f_code'],
+      subject_areas: (draft.subject_areas ?? []) as Step1Values['subject_areas'],
       description: draft.description ?? '',
       learning_outcomes: draft.learning_outcomes ?? '',
     },
@@ -89,25 +90,41 @@ export function WizardStep1BasicInfo({ onContinue, onAutoSave }: Props) {
         />
 
         <FormField
-          name="isced_f_code"
+          name="subject_areas"
           control={form.control}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Field of study (ISCED-F)</FormLabel>
+              <FormLabel>Fields of study</FormLabel>
+              <FormDescription>
+                Select every field this BIP covers — at least one.
+              </FormDescription>
               <FormControl>
-                <select
-                  className="block w-full rounded-md border border-border bg-white px-3 py-2 text-sm"
-                  value={field.value ?? ''}
-                  onChange={(e) => field.onChange(e.target.value)}
-                  onBlur={field.onBlur}
-                >
-                  <option value="">Select a field…</option>
-                  {ISCED_FIELDS.map((f) => (
-                    <option key={f.id} value={f.id}>
-                      {f.label}
-                    </option>
-                  ))}
-                </select>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {ISCED_FIELDS.map((f) => {
+                    const current = (field.value ?? []) as string[]
+                    const checked = current.includes(f.id)
+                    return (
+                      <label
+                        key={f.id}
+                        className="flex items-center gap-2 text-sm text-ink"
+                      >
+                        <Checkbox
+                          checked={checked}
+                          onCheckedChange={(next) => {
+                            if (next) {
+                              if (!current.includes(f.id)) {
+                                field.onChange([...current, f.id])
+                              }
+                            } else {
+                              field.onChange(current.filter((v) => v !== f.id))
+                            }
+                          }}
+                        />
+                        {f.label}
+                      </label>
+                    )
+                  })}
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>

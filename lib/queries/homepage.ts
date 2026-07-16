@@ -71,14 +71,14 @@ export async function getBipCountsByField(
 ): Promise<Record<string, number>> {
   const { data } = await supabase
     .from('bips')
-    .select('subject_area')
+    .select('subject_areas')
     .eq('status', 'approved')
 
+  // A multi-field BIP counts once under EACH of its fields.
   const counts: Record<string, number> = {}
   for (const row of data ?? []) {
-    const sa = row.subject_area
-    if (sa) {
-      counts[sa] = (counts[sa] ?? 0) + 1
+    for (const sa of row.subject_areas ?? []) {
+      if (sa) counts[sa] = (counts[sa] ?? 0) + 1
     }
   }
   return counts

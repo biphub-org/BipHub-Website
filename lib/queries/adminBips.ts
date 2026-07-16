@@ -280,7 +280,7 @@ export async function getAdminBipForEdit(
     .from('bips')
     .select(`
       id, slug, status, updated_at,
-      title, isced_f_code, description, learning_outcomes,
+      title, subject_areas, description, learning_outcomes,
       virtual_component_description, virtual_timing, host_city,
       physical_start_date, physical_end_date, application_deadline,
       ects_credits, max_participants, study_levels,
@@ -331,7 +331,7 @@ export async function getAdminBipForEdit(
 
   const draft: BipDraftData = {
     title: data.title ?? undefined,
-    isced_f_code: data.isced_f_code ?? undefined,
+    subject_areas: data.subject_areas ?? undefined,
     description: data.description ?? undefined,
     learning_outcomes: data.learning_outcomes ?? undefined,
     virtual_component_description:

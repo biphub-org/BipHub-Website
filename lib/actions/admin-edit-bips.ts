@@ -45,7 +45,7 @@ type AdminActionResult = { error: string }
 /** Select string for bip_edits content read (mirrors BIP_EDIT_CONTENT_SELECT in bipEdits.ts) */
 const EDIT_CONTENT_SELECT = `
   id, bip_id, status, admin_note, created_by,
-  title, isced_f_code, description, learning_outcomes,
+  title, subject_areas, isced_f_code, description, learning_outcomes,
   virtual_component_description, virtual_timing, host_city,
   physical_start_date, physical_end_date, application_deadline,
   ects_credits, max_participants, study_levels,
@@ -62,6 +62,7 @@ type RawEditRow = {
   admin_note: string | null
   created_by: string | null
   title: string | null
+  subject_areas: string[] | null
   isced_f_code: string | null
   description: string | null
   learning_outcomes: string | null
@@ -102,7 +103,11 @@ type RawPartnerInstitution = {
 function buildMergePayload(editRow: RawEditRow) {
   return {
     title: editRow.title,
-    isced_f_code: editRow.isced_f_code,
+    // Copy the canonical multi-field set into bips; keep the legacy scalars
+    // (subject_area, isced_f_code) mirrored to the first field.
+    subject_areas: editRow.subject_areas ?? [],
+    subject_area: editRow.subject_areas?.[0] ?? editRow.isced_f_code,
+    isced_f_code: editRow.subject_areas?.[0] ?? editRow.isced_f_code,
     description: editRow.description,
     learning_outcomes: editRow.learning_outcomes,
     virtual_component_description: editRow.virtual_component_description,

@@ -28,7 +28,7 @@ export type Step3PartnerDraft = {
 export type BipDraftData = {
   // Step 1
   title?: string
-  isced_f_code?: string
+  subject_areas?: string[]
   description?: string
   learning_outcomes?: string
   // Step 2

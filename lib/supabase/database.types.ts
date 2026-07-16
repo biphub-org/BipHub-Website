@@ -67,6 +67,7 @@ export type Database = {
           physical_start_date: string | null
           status: string
           study_levels: string[] | null
+          subject_areas: string[] | null
           title: string | null
           updated_at: string
           virtual_component_description: string | null
@@ -99,6 +100,7 @@ export type Database = {
           physical_start_date?: string | null
           status?: string
           study_levels?: string[] | null
+          subject_areas?: string[] | null
           title?: string | null
           updated_at?: string
           virtual_component_description?: string | null
@@ -131,6 +133,7 @@ export type Database = {
           physical_start_date?: string | null
           status?: string
           study_levels?: string[] | null
+          subject_areas?: string[] | null
           title?: string | null
           updated_at?: string
           virtual_component_description?: string | null
@@ -272,6 +275,7 @@ export type Database = {
           status: string
           study_levels: string[]
           subject_area: string | null
+          subject_areas: string[]
           title: string
           updated_at: string
           virtual_component_description: string | null
@@ -311,6 +315,7 @@ export type Database = {
           status?: string
           study_levels?: string[]
           subject_area?: string | null
+          subject_areas?: string[]
           title: string
           updated_at?: string
           virtual_component_description?: string | null
@@ -350,6 +355,7 @@ export type Database = {
           status?: string
           study_levels?: string[]
           subject_area?: string | null
+          subject_areas?: string[]
           title?: string
           updated_at?: string
           virtual_component_description?: string | null

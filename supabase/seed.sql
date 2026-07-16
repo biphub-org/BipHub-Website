@@ -841,6 +841,23 @@ values
    null, 'University of Strathclyde', 'UK', null)
 ;
 
+-- ----------------------------------------------------------------------------
+-- Multi-field support (subject_areas text[]): seed rows are inserted with the
+-- single legacy `subject_area`, so backfill the array from it (the migration
+-- backfill ran BEFORE these rows existed and cannot see them). Then give a few
+-- cross-disciplinary BIPs multiple fields to exercise the new capability.
+-- ----------------------------------------------------------------------------
+update public.bips
+  set subject_areas = array[subject_area]
+  where is_seed = true and cardinality(subject_areas) = 0;
+
+update public.bips set subject_areas = '{architecture,it-engineering}'
+  where slug = 'smart-heritage-cities-madrid-2026';
+update public.bips set subject_areas = '{health-sciences,medicine}'
+  where slug = 'one-health-zoonosis-prague-2025';
+update public.bips set subject_areas = '{business-economics,it-engineering}'
+  where slug = 'responsible-ai-business-strategy-leuven-2026';
+
 -- ============================================================
 -- Seed summary (target — re-verified by scripts/verify-seed.ts)
 -- 20 BIPs, all is_seed=true, all status=approved

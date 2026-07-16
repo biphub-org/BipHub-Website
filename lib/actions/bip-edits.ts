@@ -31,7 +31,7 @@ export type EditActionResult = { success: true; editId?: string } | { error: str
  */
 function buildContentPayload(data: {
   title: string
-  isced_f_code: string
+  subject_areas: string[]
   description: string
   learning_outcomes: string
   virtual_component_description: string
@@ -55,7 +55,12 @@ function buildContentPayload(data: {
 }) {
   return {
     title: data.title,
-    isced_f_code: data.isced_f_code,
+    // subject_areas is the canonical multi-field set. isced_f_code is kept
+    // mirrored to the first field (shared column present on both bip_edits and
+    // bips); subject_area (bips-only) is not set here to keep the payload valid
+    // for bip_edits inserts.
+    subject_areas: data.subject_areas,
+    isced_f_code: data.subject_areas[0] ?? null,
     description: data.description,
     learning_outcomes: data.learning_outcomes,
     virtual_component_description: data.virtual_component_description,
