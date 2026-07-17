@@ -256,6 +256,88 @@ from public.universities u
 where u.erasmus_code = 'D MUNCHEN02' limit 1;
 
 -- ----------------------------------------------------------------------------
+-- Two DEDICATED disposable pending BIPs owned by the coordinator (BUG-002).
+--
+-- Both "E2E Pending: Machine Learning…" and "…Data Ethics…" above are
+-- coordinator-owned, so they appear on the coordinator's own
+-- /dashboard?status=pending. submission.spec.ts previously withdrew ".first()"
+-- pending card and bip-edits.spec.ts scavenged "any leftover" non-edit pending
+-- card — both silently consumed the admin-review fixtures when the submission
+-- wizard flaked (no throwaway BIP created to shield them). These two rows give
+-- those tests their OWN targets so they can never touch the admin-review BIPs.
+--
+--   Row c) e2e-withdraw-target        → submission.spec.ts "withdraws pending BIP"
+--   Row d) e2e-request-changes-target → bip-edits.spec.ts  "request changes new submission"
+--
+-- Both target by exact title in the specs; created_at order is irrelevant.
+-- ----------------------------------------------------------------------------
+insert into public.bips (
+  id, slug, title, status, is_seed,
+  description, learning_outcomes, virtual_component_description, virtual_timing,
+  physical_start_date, physical_end_date, application_deadline,
+  host_city, ects_credits, max_participants,
+  language_of_instruction, language_level_min,
+  subject_area, isced_f_code,
+  study_levels, green_travel, inclusion_support,
+  contact_name, contact_email,
+  how_to_apply_type, how_to_apply_value,
+  host_university_id, created_by
+)
+select
+  'e2e0bbbb-bbbb-bbbb-bbbb-000000000004',
+  'e2e-withdraw-target',
+  'E2E Withdraw Target',
+  'pending', false,
+  'A 10-day BIP fixture that exists solely so the submission spec can withdraw a pending BIP it owns without disturbing the admin-review fixtures. Covers nothing of substance beyond satisfying the renderable-detail column set.',
+  E'- Placeholder outcome one for the withdraw-target fixture\n- Placeholder outcome two\n- Placeholder outcome three',
+  'Two short online sessions before the mobility week (fixture content only).',
+  'before',
+  '2027-07-10', '2027-07-20', '2027-05-01',
+  'Munich', 4, 20,
+  'en', 'B2',
+  'computer-science', '0613',
+  ARRAY['bachelor'], false, false,
+  'E2E Coordinator', 'e2e-coordinator@biphub.test',
+  'url', 'https://tum.example/withdraw-target/apply',
+  u.id,
+  '11111111-1111-1111-1111-111111111111'
+from public.universities u
+where u.erasmus_code = 'D MUNCHEN02' limit 1;
+
+insert into public.bips (
+  id, slug, title, status, is_seed,
+  description, learning_outcomes, virtual_component_description, virtual_timing,
+  physical_start_date, physical_end_date, application_deadline,
+  host_city, ects_credits, max_participants,
+  language_of_instruction, language_level_min,
+  subject_area, isced_f_code,
+  study_levels, green_travel, inclusion_support,
+  contact_name, contact_email,
+  how_to_apply_type, how_to_apply_value,
+  host_university_id, created_by
+)
+select
+  'e2e0bbbb-bbbb-bbbb-bbbb-000000000005',
+  'e2e-request-changes-target',
+  'E2E Request Changes Target',
+  'pending', false,
+  'A 10-day BIP fixture that exists solely as a NEW pending submission for the bip-edits admin "request changes on new submission" test, so it never has to scavenge a leftover admin-review card. Renderable-detail column set only.',
+  E'- Placeholder outcome one for the request-changes-target fixture\n- Placeholder outcome two\n- Placeholder outcome three',
+  'Two short online sessions before the mobility week (fixture content only).',
+  'before',
+  '2027-08-10', '2027-08-20', '2027-06-01',
+  'Munich', 4, 20,
+  'en', 'B2',
+  'computer-science', '0613',
+  ARRAY['bachelor'], false, false,
+  'E2E Coordinator', 'e2e-coordinator@biphub.test',
+  'url', 'https://tum.example/request-changes-target/apply',
+  u.id,
+  '11111111-1111-1111-1111-111111111111'
+from public.universities u
+where u.erasmus_code = 'D MUNCHEN02' limit 1;
+
+-- ----------------------------------------------------------------------------
 -- Step 4: seed 1 rejected BIP owned by e2e-coordinator (for resubmit.spec.ts).
 --
 -- Exercises the rejected → revise → draft → resubmit loop closed after the

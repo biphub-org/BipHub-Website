@@ -139,8 +139,16 @@ test.describe('submission wizard', () => {
 
   test('coordinator withdraws pending BIP', async ({ page }) => {
     await page.goto('/dashboard?status=pending')
-    // WithdrawBipDialog is triggered from the pending list.
-    await page.getByRole('button', { name: /withdraw/i }).first().click()
+    // Scope to the dedicated disposable "E2E Withdraw Target" fixture
+    // (seed.e2e.sql). Do NOT use .first(): the seeded admin-review BIPs
+    // ("Machine Learning…", "Data Ethics…") are coordinator-owned and also
+    // appear in this pending list, so withdrawing .first() could remove a BIP
+    // admin-review.spec.ts depends on (BUG-002). The coordinator card is an
+    // <article> with an <h3> title + a "Withdraw" button (DashboardBipCard).
+    const withdrawCard = page.locator('article', {
+      hasText: /E2E Withdraw Target/i,
+    })
+    await withdrawCard.getByRole('button', { name: /withdraw/i }).click()
     // Dialog opens with a confirm button.
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5_000 })
     await page
