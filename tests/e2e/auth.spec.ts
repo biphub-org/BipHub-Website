@@ -6,8 +6,8 @@
  *   2. Invalid credentials show an inline error
  *   3. Logout from /dashboard via the sign-out form
  *   4. Password reset request shows the "check your email" confirmation
- *   5. Account deletion via /dashboard/settings (destructively consumes
- *      e2e-coordinator-fresh@biphub.test)
+ *   5. Account deletion via /dashboard/settings (self-provisions its own
+ *      throwaway coordinator via the admin API, so it is fully re-runnable)
  *
  * Selectors use the semantic Playwright API (getByLabel / getByRole /
  * getByText) — no className targeting — so the suite is resilient to
@@ -128,37 +128,77 @@ test.describe('auth flow', () => {
     // deferred (see tests/e2e/EDGE-CASES-DEFERRED.md).
   })
 
-  // Skipped: destructively consumes its own seeded fixture user, so a second
-  // run in the same DB state finds no onboarding form and times out at the
-  // "Full name" locator. Feature itself is covered by DeleteAccountDialog +
-  // the server action; revisit once the e2e seed re-runs before each test.
-  test.skip('account deletion via /dashboard/settings', async ({ page }) => {
-    // Uses e2e-coordinator-fresh@biphub.test — a dedicated, destructively-
-    // consumed fixture user. NO other spec depends on this account; its
-    // deletion is the explicit purpose of this test. (See seed.e2e.sql.)
-    const accountEmail = 'e2e-coordinator-fresh@biphub.test'
+  // Self-provisioning: this test creates its OWN throwaway coordinator via the
+  // admin API (with a pre-completed profile inserted via service-role) and
+  // deletes it. That makes it fully re-runnable — it no longer destructively
+  // consumes the shared e2e-coordinator-fresh seed fixture, so a second run in
+  // the same DB state can't fail for lack of a fresh user. Pattern mirrors the
+  // throwaway-student setup in saved-bips.spec.ts (Plan 06-04 D-throwaway).
+  test('account deletion via /dashboard/settings (self-provisioned coordinator)', async ({
+    page,
+  }) => {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (!supabaseUrl || !serviceRoleKey) {
+      throw new Error('NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY missing')
+    }
+    const adminHeaders = {
+      apikey: serviceRoleKey,
+      Authorization: `Bearer ${serviceRoleKey}`,
+      'Content-Type': 'application/json',
+    }
+    const accountEmail = `e2e-delete-coordinator-throwaway-${Date.now()}@biphub.test`
+    const accountPassword = 'Throwaway!Test1'
 
-    // Sign in. The fresh user has no profile row → always lands on /onboarding.
+    // Step 1: create the throwaway coordinator via the admin API.
+    const createResp = await page.request.post(`${supabaseUrl}/auth/v1/admin/users`, {
+      headers: adminHeaders,
+      data: {
+        email: accountEmail,
+        password: accountPassword,
+        email_confirm: true,
+        app_metadata: { role: 'coordinator' },
+        user_metadata: { role: 'coordinator' },
+      },
+    })
+    expect(createResp.ok()).toBeTruthy()
+    const throwawayUserId: string = (await createResp.json()).id
+    expect(throwawayUserId).toBeTruthy()
+
+    // Step 2: resolve the demo host university (D MUNCHEN02, from supabase/seed.sql)
+    // so the profile can carry a real university_id.
+    const uniResp = await page.request.get(
+      `${supabaseUrl}/rest/v1/universities?erasmus_code=eq.D%20MUNCHEN02&select=id`,
+      { headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` } },
+    )
+    expect(uniResp.ok()).toBeTruthy()
+    const unis = await uniResp.json()
+    expect(Array.isArray(unis) && unis.length > 0).toBeTruthy()
+    const universityId: string = unis[0].id
+
+    // Step 3: complete the profile via service-role (RLS bypass for setup) so the
+    // (dashboard) layout profile-complete gate passes — full_name && university_id
+    // && contact_email && erasmus_code — letting us reach /dashboard/settings
+    // directly, without driving the onboarding UI.
+    const profResp = await page.request.post(`${supabaseUrl}/rest/v1/profiles`, {
+      headers: { ...adminHeaders, Prefer: 'resolution=merge-duplicates,return=minimal' },
+      data: {
+        id: throwawayUserId,
+        full_name: 'E2E Delete Coordinator',
+        contact_email: accountEmail,
+        university_id: universityId,
+        erasmus_code: 'TEST DEL01',
+        role: 'coordinator',
+      },
+    })
+    expect(profResp.ok()).toBeTruthy()
+
+    // Step 4: sign in through the real login UI. Complete profile → /dashboard.
     await page.goto('/login')
     await page.getByLabel(/email/i).fill(accountEmail)
-    await page.getByLabel(/password/i).fill('Fresh!Test1')
+    await page.getByLabel(/password/i).fill(accountPassword)
     await page.getByRole('button', { name: /sign in/i }).click()
-    await page.waitForURL(/\/onboarding/, { timeout: 10_000 })
-
-    // Settings sits behind the (dashboard) layout's profile-complete gate, so
-    // complete onboarding first. Locators match components/dashboard/
-    // OnboardingForm.tsx + UniversityCombobox.tsx.
-    await page.getByLabel(/full name/i).fill('E2E Fresh Coordinator')
-    // UniversityCombobox is a role="combobox" trigger button — opening it shows
-    // the pre-fetched universities immediately (no typing needed); pick the first.
-    await page
-      .getByRole('combobox', { name: /search by university/i })
-      .click()
-    await page.getByRole('option').first().click()
-    // Picking a university auto-fills Country; Erasmus code is still required.
-    await page.getByLabel(/erasmus code/i).fill('TEST FRESH01')
-    await page.getByRole('button', { name: /complete profile/i }).click()
-    await page.waitForURL(/\/dashboard/, { timeout: 10_000 })
+    await page.waitForURL(/\/dashboard/, { timeout: 15_000 })
 
     await page.goto('/dashboard/settings')
     await expect(
@@ -187,14 +227,22 @@ test.describe('auth flow', () => {
 
     await confirm.click()
 
-    // Server Action redirects to /?deleted=1 and signs out.
+    // Server Action redirects to /?deleted=1 and signs out — reaching this URL
+    // is itself proof the delete_my_account RPC succeeded. (The ?deleted=1 toast
+    // is transient; we assert deletion deterministically below instead.)
     await page.waitForURL(/\/\?deleted=1/, { timeout: 15_000 })
-    await expect(page.getByText(/your account.*deleted|deleted/i)).toBeVisible()
 
-    // Verify deletion: logging back in with the deleted credentials fails.
+    // Verify deletion deterministically: the auth user is gone (admin API 404).
+    const goneResp = await page.request.get(
+      `${supabaseUrl}/auth/v1/admin/users/${throwawayUserId}`,
+      { headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` } },
+    )
+    expect(goneResp.status()).toBe(404)
+
+    // And the UI login path rejects the deleted credentials.
     await page.goto('/login')
     await page.getByLabel(/email/i).fill(accountEmail)
-    await page.getByLabel(/password/i).fill('Fresh!Test1')
+    await page.getByLabel(/password/i).fill(accountPassword)
     await page.getByRole('button', { name: /sign in/i }).click()
     await expect(page.getByText(/incorrect|invalid/i)).toBeVisible({
       timeout: 5_000,
