@@ -27,17 +27,17 @@ function addDays(days: number): string {
 const E2E_TITLE = 'E2E Test BIP — Renewable Energy in the Alps'
 
 /**
- * Click an element and retry until a post-condition holds (BUG-002 item C).
+ * Retry an IDEMPOTENT click until a post-condition holds (BUG-002 item C).
  *
- * A Next.js <Link> click can be swallowed during the hydration window (the
- * client router intercepts + preventDefaults the anchor before router.push is
- * wired), and a wizard "Save & continue" click can race the `motion`
- * step-transition. Both leave the app on the current view with no error — an
- * intermittent, timing-only flake (the unchanged CI re-run went green). This is
- * an in-test resilience pattern for a known client-timing race, not a global
- * `retries` bump (D-16): the app is correct for real users; only superhuman-fast
- * automation hits the window. `toPass` re-runs the whole block, so the action is
- * repeated only while the post-condition is still false.
+ * Use only for side-effect-free navigation: a Next.js <Link> click can be
+ * swallowed during the hydration window (the client router intercepts +
+ * preventDefaults the anchor before router.push is wired), leaving the app on
+ * the current URL with no error — an intermittent, timing-only flake. `toPass`
+ * re-runs the block, so the click repeats only while the post-condition is
+ * false. This is an in-test resilience pattern for a known client-timing race,
+ * not a global `retries` bump (D-16). Do NOT use this for the wizard's
+ * "Save & continue" — that click writes a draft (optimistic-concurrency save),
+ * so repeating it self-conflicts; use `advance()` instead.
  */
 async function clickUntil(
   click: () => Promise<void>,
@@ -51,19 +51,38 @@ async function clickUntil(
 }
 
 /**
- * Advance the wizard one step via the footer "Save & continue" button, retrying
- * until the step counter shows the next step (BUG-002 item C). The "Step N of 5"
- * counter lives in the wizard header, outside the animated body, and flips
- * synchronously with the step — a reliable post-condition even mid-fade.
+ * Advance the wizard one step via the footer "Save & continue" button.
+ *
+ * Clicked exactly ONCE — the button triggers a `saveDraftAction` UPDATE guarded
+ * by optimistic concurrency (`lastKnownUpdatedAt`), and a 1.5s debounced
+ * auto-save (BipSubmissionWizard) fires on the same draft. If the two saves
+ * overlap, the second sends a stale `updated_at` and the wizard raises its
+ * "Draft updated in another tab" conflict dialog, which overlays the step and
+ * blocks the next field (BUG-002 item C — this is what made Step 4 flake). In a
+ * single-user test our in-memory draft is authoritative, so on conflict we
+ * "Overwrite with this version" and re-submit to advance. Re-clicking the save
+ * button on a retry would itself trip this guard, so we never blind-retry it.
  */
 async function advance(page: Page, fromStep: number): Promise<void> {
-  await clickUntil(
-    () => page.getByRole('button', { name: /save.*continue/i }).click(),
-    () =>
-      expect(
-        page.getByText(new RegExp(`step\\s*${fromStep + 1}\\s*of\\s*5`, 'i')),
-      ).toBeVisible({ timeout: 6_000 }),
+  const saveBtn = page.getByRole('button', { name: /save.*continue/i })
+  const nextStep = page.getByText(
+    new RegExp(`step\\s*${fromStep + 1}\\s*of\\s*5`, 'i'),
   )
+  const overwriteBtn = page.getByRole('button', {
+    name: /overwrite with this version/i,
+  })
+
+  await saveBtn.click()
+  // Either the step advances, or the concurrency guard pops the conflict dialog.
+  await expect(nextStep.or(overwriteBtn).first()).toBeVisible({ timeout: 15_000 })
+  if (await overwriteBtn.isVisible().catch(() => false)) {
+    // handleOverwrite re-reads updated_at and re-saves but does NOT advance the
+    // step, so click "Save & continue" once more to move forward.
+    await overwriteBtn.click()
+    await expect(saveBtn).toBeVisible({ timeout: 10_000 })
+    await saveBtn.click()
+    await expect(nextStep).toBeVisible({ timeout: 15_000 })
+  }
 }
 
 test.describe('submission wizard', () => {
