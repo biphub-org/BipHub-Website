@@ -21,9 +21,11 @@
  * only. The binding assertion is always the UI/DB OUTCOME (State B, approved
  * content on public page, audit row in bip_status_history), NOT the log line.
  *
- * Wave 0: this spec is expected to be RED until later plan waves implement the
- * feature. All selectors reference routes/elements that do not exist yet. This
- * is correct. The spec exists to lock the observable success criteria up front.
+ * BUG-001 (resolved): the coordinator-submits-an-edit flows in this file drive
+ * the wizard Step 1 → Step 5 via driveEditWizardToStep5() below — the edit CTAs
+ * ("Submit Edit for Review" / "Resubmit Edit" / "Edit in review") only render in
+ * the Step 5 previewStep slot, never on Step 1. See .planning/debug/resolved/
+ * bug-001-approved-edit.md for the root cause and fix.
  *
  * EDIT-08 service-role reads use the Supabase REST API + SUPABASE_SERVICE_ROLE_KEY
  * (same pattern as saved-bips.spec.ts::countSavedBipsForUser). RLS bypass is
@@ -81,21 +83,71 @@ async function assertAuditRow(
 }
 
 // ---------------------------------------------------------------------------
+// Wizard driver helper — BUG-001 fix
+// ---------------------------------------------------------------------------
+
+/**
+ * Drive the approved-BIP edit wizard from Step 1 through Step 5.
+ *
+ * BUG-001: the "Submit Edit for Review" / "Resubmit Edit" / "Edit in review"
+ * CTAs live exclusively in the Step 5 previewStep slot
+ * (WizardStep5EditPreview) — they are never rendered on Step 1. Reaching
+ * them requires clicking "Save & continue" through Steps 1-4. Prior to the
+ * BUG-001 fix this was impossible: per-step `saveAndContinue` ran
+ * `saveDraftAction`, a status-preserving UPDATE on the live `bips` row that
+ * RLS rejects for approved/changes_requested rows, trapping the wizard on
+ * Step 1. The fix (`editMode` prop on BipSubmissionWizard) advances on the
+ * Zustand draft alone, so "Save & continue" now works for every step.
+ *
+ * Steps 2-4 are left untouched — supabase/seed.e2e.sql seeds the edit-target
+ * BIP with fully valid data for every field, so the prefilled RHF defaults
+ * pass each step's schema without any input.
+ */
+async function driveEditWizardToStep5(
+  page: Page,
+  bipId: string,
+  newTitle?: string,
+): Promise<void> {
+  await page.goto(`/dashboard/bips/${bipId}/edit`)
+  await expect(page.getByText(/step\s*1\s*of\s*5/i)).toBeVisible({ timeout: 10_000 })
+
+  if (newTitle) {
+    const titleInput = page.getByLabel(/bip title/i)
+    await titleInput.clear()
+    await titleInput.fill(newTitle)
+  }
+  await page.getByRole('button', { name: /save.*continue/i }).click()
+
+  await expect(page.getByText(/step\s*2\s*of\s*5/i)).toBeVisible({ timeout: 10_000 })
+  await page.getByRole('button', { name: /save.*continue/i }).click()
+
+  await expect(page.getByText(/step\s*3\s*of\s*5/i)).toBeVisible({ timeout: 10_000 })
+  await page.getByRole('button', { name: /save.*continue/i }).click()
+
+  await expect(page.getByText(/step\s*4\s*of\s*5/i)).toBeVisible({ timeout: 10_000 })
+  await page.getByRole('button', { name: /save.*continue/i }).click()
+
+  await expect(page.getByText(/step\s*5\s*of\s*5/i)).toBeVisible({ timeout: 10_000 })
+}
+
+// ---------------------------------------------------------------------------
 // Spec
 // ---------------------------------------------------------------------------
 
 test.describe.configure({ mode: 'serial' })
 
-// FIXME (BUG-001, see .planning/KNOWN-BUGS.md): the approved-BIP edit feature is
-// broken — a coordinator cannot advance past Step 1 of the edit wizard. "Save &
-// continue" calls saveDraftAction, whose UPDATE on the live (approved) bips row is
-// RLS-blocked by bips_update_own_editable (allows draft/pending/rejected, not
-// approved), so the wizard treats it as a conflict and never reaches the Step 5
-// "Submit Edit for Review" button. This spec therefore cannot pass until the app
-// is fixed (suppress per-step save for approved edits, mirroring admin mode).
-// Verified 2026-07-17 against the cloud test project. Un-fixme + rewrite EDIT-01 to
-// drive the wizard Step 1→5 once the feature is fixed.
-test.describe.fixme('bip edit flow', () => {
+// BUG-001 (see .planning/KNOWN-BUGS.md, .planning/debug/resolved/bug-001-approved-edit.md):
+// previously the approved-BIP edit feature was broken — a coordinator could not
+// advance past Step 1 of the edit wizard. "Save & continue" called saveDraftAction,
+// whose UPDATE on the live (approved) bips row is RLS-blocked (no owner UPDATE
+// policy permits a status-preserving UPDATE on approved/changes_requested rows),
+// so the wizard treated it as a conflict and never reached the Step 5 "Submit Edit
+// for Review" button. Fixed by suppressing per-step save for edit-states
+// (BipSubmissionWizard `editMode` prop, mirroring the existing admin no-save path)
+// — content is written only by the Step-5 action. driveEditWizardToStep5() above
+// now drives every coordinator-submits-an-edit flow in this file through the real
+// Step 1→5 wizard path instead of assuming a Step-1-only CTA.
+test.describe('bip edit flow', () => {
   /**
    * EDIT-01 — coordinator submits an edit for an already-approved BIP.
    *
@@ -119,10 +171,11 @@ test.describe.fixme('bip edit flow', () => {
         const consoleMessages: string[] = []
         coordPage.on('console', (msg) => consoleMessages.push(msg.text()))
 
-        // Navigate to the approved BIP edit page (State A: no open edit)
-        await coordPage.goto(`/dashboard/bips/${E2E_BIP_ID}/edit`)
+        // Navigate to the approved BIP edit page (State A: no open edit) and
+        // drive the wizard Step 1 → Step 5, changing the title on Step 1.
+        await driveEditWizardToStep5(coordPage, E2E_BIP_ID, E2E_BIP_EDIT_TITLE)
 
-        // State A: "Submit Edit for Review" CTA is visible
+        // State A: "Submit Edit for Review" CTA is visible on Step 5
         await expect(
           coordPage.getByRole('button', { name: /submit edit for review/i }),
         ).toBeVisible({ timeout: 10_000 })
@@ -131,11 +184,6 @@ test.describe.fixme('bip edit flow', () => {
         await expect(
           coordPage.getByRole('button', { name: /edit in review/i }),
         ).not.toBeVisible()
-
-        // Fill a text field to produce a proposed change
-        const titleInput = coordPage.getByLabel(/^title/i)
-        await titleInput.clear()
-        await titleInput.fill(E2E_BIP_EDIT_TITLE)
 
         // Submit edit
         await coordPage.getByRole('button', { name: /submit edit for review/i }).click()
@@ -218,8 +266,11 @@ test.describe.fixme('bip edit flow', () => {
    *
    * Grep key: "approve edit"
    *
-   * Admin context. Opens the edit review page, clicks "Approve Edit", confirms
-   * in the modal, waits for redirect to /admin, then reloads the public page
+   * Admin context. Opens the edit review page and clicks "Approve Edit".
+   * Unlike Reject/Request Changes, Approve Edit has NO confirmation modal —
+   * AdminActionsPanel.handleEditApprove() calls approveEditAction(editId)
+   * directly on click and redirects to /admin on success (see
+   * components/admin/AdminActionsPanel.tsx). Then reloads the public page
    * and asserts the merged title is now live.
    *
    * EDIT-08: bip_status_history row with action_kind='approve_edit' must exist.
@@ -231,20 +282,27 @@ test.describe.fixme('bip edit flow', () => {
     await editCard.getByRole('link', { name: /review/i }).click()
     await expect(page).toHaveURL(/\/admin\/bip-edits\/.+\/review/, { timeout: 10_000 })
 
-    // Open Approve Edit modal
+    // Approve Edit — single click, no modal (see docstring above).
     await page.getByRole('button', { name: /^approve edit$/i }).click()
 
-    // Confirm inside modal (the last matching button is the modal's confirm)
-    await page.getByRole('button', { name: /^approve edit$/i }).last().click()
-
     // Redirect back to /admin after approval
-    await page.waitForURL(/\/admin/, { timeout: 15_000 })
+    // Anchored: unlike /\/admin/, this does not falsely match the CURRENT
+    // review-page URL (/admin/bip-edits/{id}/review also contains "/admin"),
+    // which would resolve waitForURL immediately and race ahead of the
+    // server action's redirect (BUG: caught via the EDIT-06b audit-row flake
+    // below — request_changes hadn't persisted yet when the loose regex let
+    // the test proceed).
+    await page.waitForURL(/\/admin\/?(?:\?.*)?$/, { timeout: 15_000 })
 
-    // EDIT-04 outcome: merged title is live on the public page
+    // EDIT-04 outcome: merged title is live on the public page.
+    // NOTE: E2E_BIP_EDIT_TITLE contains regex metacharacters ([, ]) — pass it
+    // as a plain string (Playwright does a case-insensitive substring match
+    // on accessible name for string args) rather than `new RegExp(...)`,
+    // which would misinterpret "[EDIT]" as a character class.
     await expect(async () => {
       await page.goto(`/bip/${E2E_BIP_SLUG}`)
       await expect(
-        page.getByRole('heading', { name: new RegExp(E2E_BIP_EDIT_TITLE, 'i') }),
+        page.getByRole('heading', { name: E2E_BIP_EDIT_TITLE }),
       ).toBeVisible()
     }).toPass({ timeout: 15_000 })
 
@@ -271,13 +329,14 @@ test.describe.fixme('bip edit flow', () => {
     })
     const coordPage = await coordCtx.newPage()
     try {
-      await coordPage.goto(`/dashboard/bips/${E2E_BIP_ID}/edit`)
+      await driveEditWizardToStep5(
+        coordPage,
+        E2E_BIP_ID,
+        '[REJECT TEST] E2E Edit — to be rejected',
+      )
       await expect(
         coordPage.getByRole('button', { name: /submit edit for review/i }),
       ).toBeVisible({ timeout: 10_000 })
-      const titleInput = coordPage.getByLabel(/^title/i)
-      await titleInput.clear()
-      await titleInput.fill('[REJECT TEST] E2E Edit — to be rejected')
       await coordPage.getByRole('button', { name: /submit edit for review/i }).click()
       await expect(
         coordPage.getByRole('button', { name: /edit in review/i }),
@@ -308,7 +367,9 @@ test.describe.fixme('bip edit flow', () => {
     await expect(rejectConfirm).toBeEnabled()
     await rejectConfirm.click()
 
-    await page.waitForURL(/\/admin/, { timeout: 15_000 })
+    // Anchored — see the EDIT-04 waitForURL comment above for why a loose
+    // /\/admin/ regex races ahead of the redirect.
+    await page.waitForURL(/\/admin\/?(?:\?.*)?$/, { timeout: 15_000 })
 
     // EDIT-05 outcome: live BIP title is unchanged (original or last approved)
     await expect(async () => {
@@ -364,8 +425,9 @@ test.describe.fixme('bip edit flow', () => {
       await requestConfirm.click()
 
       // After request-changes, the status badge on the submission card shows
-      // "Changes Requested" (the item remains in the queue)
-      await page.waitForURL(/\/admin/, { timeout: 15_000 })
+      // "Changes Requested" (the item remains in the queue). Anchored — see
+      // the EDIT-04 waitForURL comment above.
+      await page.waitForURL(/\/admin\/?(?:\?.*)?$/, { timeout: 15_000 })
 
       // Verify the BIP's new status badge is "Changes Requested"
       await expect(
@@ -412,13 +474,14 @@ test.describe.fixme('bip edit flow', () => {
       })
       const coordPage = await coordCtx.newPage()
       try {
-        await coordPage.goto(`/dashboard/bips/${E2E_BIP_ID}/edit`)
+        await driveEditWizardToStep5(
+          coordPage,
+          E2E_BIP_ID,
+          '[CHANGES-REQUESTED TEST] E2E Edit',
+        )
         await expect(
           coordPage.getByRole('button', { name: /submit edit for review/i }),
         ).toBeVisible({ timeout: 10_000 })
-        const titleInput = coordPage.getByLabel(/^title/i)
-        await titleInput.clear()
-        await titleInput.fill('[CHANGES-REQUESTED TEST] E2E Edit')
         await coordPage.getByRole('button', { name: /submit edit for review/i }).click()
         await expect(
           coordPage.getByRole('button', { name: /edit in review/i }),
@@ -447,7 +510,12 @@ test.describe.fixme('bip edit flow', () => {
       await expect(requestConfirm).toBeEnabled()
       await requestConfirm.click()
 
-      await page.waitForURL(/\/admin/, { timeout: 15_000 })
+      // Anchored — see the EDIT-04 waitForURL comment above. This is the
+      // exact race that was previously flaking here: the loose /\/admin/
+      // regex already matches the CURRENT review-page URL, so the test
+      // raced ahead to the audit-row check before requestChangesEditAction
+      // had actually persisted the bip_status_history row.
+      await page.waitForURL(/\/admin\/?(?:\?.*)?$/, { timeout: 15_000 })
 
       // EDIT-08: audit row for request_changes on the edit
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!

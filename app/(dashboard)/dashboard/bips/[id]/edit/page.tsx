@@ -26,6 +26,14 @@
  *   omitSlug={true} is passed to BipSubmissionWizard for all approved-BIP edit
  *   states so no slug input appears in the DOM. Server actions also exclude slug.
  *
+ * Per-step save suppression (BUG-001 fix):
+ *   editMode is passed to BipSubmissionWizard for the entire edit-states
+ *   branch (approved | changes_requested). RLS forbids a status-preserving
+ *   owner UPDATE on these live rows (see BipSubmissionWizard's Props.editMode
+ *   docstring), so per-step saveDraftAction always conflicted and trapped the
+ *   wizard on Step 1. editMode advances "Save & continue" on the Zustand
+ *   draft alone; content is written only by the Step-5 edit action.
+ *
  * Auth + RLS layers are owned by getCoordinatorBipById — see its docstring.
  */
 import { notFound } from 'next/navigation'
@@ -131,6 +139,7 @@ export default async function EditBipPage(props: {
           initialUniversities={initialUniversities}
           previewStep={previewStep}
           omitSlug={record.status === 'approved'}
+          editMode
         />
       </section>
     )

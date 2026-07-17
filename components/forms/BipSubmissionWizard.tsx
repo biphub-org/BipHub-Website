@@ -87,6 +87,29 @@ interface Props {
    * page whenever status === 'approved'.
    */
   omitSlug?: boolean
+  /**
+   * BUG-001 fix: true when editing an already-approved or changes_requested
+   * BIP (edit-states A/C/D-06a in app/(dashboard)/dashboard/bips/[id]/edit).
+   *
+   * RLS has no owner UPDATE policy that permits a status-preserving UPDATE
+   * while the live row's status stays `approved` or `changes_requested`
+   * (see supabase/migrations 00011/00012/00018), so the per-step
+   * `saveDraftAction` this wizard normally runs on "Save & continue" always
+   * matches 0 rows and returns `{ error: 'conflict' }`, trapping the
+   * coordinator on Step 1 forever. Content for these edit-states is written
+   * exclusively by the Step-5 action (submitEditAction / resubmitEditAction
+   * / resubmitPendingBipAction), which reads the Zustand draft directly —
+   * the per-step save is both RLS-forbidden and unnecessary here.
+   *
+   * When true, `saveAndContinue` advances on the merged Zustand draft alone
+   * (reusing the existing `mode === 'admin'` no-save path) and the debounced
+   * auto-save is suppressed. Unlike `mode === 'admin'`, coordinator-only
+   * concerns are preserved: no admin banner, and the SIGNED_OUT ->
+   * localStorage recovery path stays active (there is still an in-progress
+   * coordinator draft worth protecting). The SaveStatusIndicator is hidden
+   * because there is no per-step save to report on or retry.
+   */
+  editMode?: boolean
 }
 
 const STEPS = [
@@ -125,6 +148,7 @@ export function BipSubmissionWizard({
   previewStep,
   mode = 'coordinator',
   omitSlug = false,
+  editMode = false,
 }: Props) {
   // omitSlug is unused at runtime because no wizard step currently renders a
   // slug input. The prop exists as the client-side half of the EDIT-09 / D-10
@@ -238,9 +262,12 @@ export function BipSubmissionWizard({
   // (d) 1.5s debounced auto-save on field blur (SUBM-02 / D-02).
   // Admin mode (Plan 03-07): suppressed — admin saves explicitly via
   // adminUpdateBipAction wired into the Step 5 AdminEditFooter.
+  // editMode (BUG-001): suppressed — per-step saveDraftAction is RLS-forbidden
+  // for approved/changes_requested live rows; content is written only by the
+  // Step-5 edit action.
   const debouncedAutoSave = useDebouncedCallback(
     (payload: Partial<BipDraftData>) => {
-      if (mode === 'admin') return
+      if (mode === 'admin' || editMode) return
       void performSave(payload)
     },
     1500,
@@ -254,9 +281,14 @@ export function BipSubmissionWizard({
   // Admin mode (Plan 03-07): admin uses adminUpdateBipAction explicitly on
   // Step 5 — we merge into the store and advance without hitting the
   // coordinator-only saveDraftAction (which would 403 under admin RLS).
+  // editMode (BUG-001): approved/changes_requested edit-states (A/C/D-06a) —
+  // per-step saveDraftAction always returns { error: 'conflict' } for these
+  // live-row statuses (see Props.editMode docstring), so we advance on the
+  // merged draft alone, same as admin mode. The Step-5 edit action writes
+  // the content.
   const saveAndContinue = async (stepData: Partial<BipDraftData>) => {
     mergeDraft(stepData)
-    if (mode === 'admin') {
+    if (mode === 'admin' || editMode) {
       handleStepChange(Math.min(currentStep + 1, 5))
       return
     }
@@ -347,7 +379,10 @@ export function BipSubmissionWizard({
               )
             })}
           </div>
-          {mode === 'admin' ? (
+          {mode === 'admin' || editMode ? (
+            // No per-step save happens in admin/editMode, so saveStatus never
+            // leaves 'idle' — rendering the indicator would misleadingly show
+            // "Saved" for content that hasn't been persisted yet (BUG-001).
             <div className="w-[140px]" aria-hidden />
           ) : (
             <SaveStatusIndicator onRetry={() => void performSave(draft)} />
