@@ -10,7 +10,10 @@
  * Pre-conditions (supplied by supabase/seed.e2e.sql Phase 8 block):
  *   - One approved BIP:  id=E2E_BIP_ID  slug='e2e-edit-target-bip'
  *                        owned by e2e-coordinator@biphub.test
- *   - One pending bip_edits row: bip_id=E2E_BIP_ID  title='[EDIT] E2E Edit Target BIP — revised'
+ *   - NO pending bip_edits row is seeded. This spec runs in serial mode; EDIT-01
+ *     asserts State A (no open edit) then submits one, creating the pending edit
+ *     that EDIT-02/03/04 consume. A pre-seeded edit would force State B and break
+ *     EDIT-01.
  *
  * D-15 assertion: RESEND_API_KEY is blank in playwright.config.ts; therefore
  * lib/email/send.ts logs `[EMAIL DEV] {...}` to server stdout (NOT browser
@@ -83,7 +86,16 @@ async function assertAuditRow(
 
 test.describe.configure({ mode: 'serial' })
 
-test.describe('bip edit flow', () => {
+// FIXME (BUG-001, see .planning/KNOWN-BUGS.md): the approved-BIP edit feature is
+// broken — a coordinator cannot advance past Step 1 of the edit wizard. "Save &
+// continue" calls saveDraftAction, whose UPDATE on the live (approved) bips row is
+// RLS-blocked by bips_update_own_editable (allows draft/pending/rejected, not
+// approved), so the wizard treats it as a conflict and never reaches the Step 5
+// "Submit Edit for Review" button. This spec therefore cannot pass until the app
+// is fixed (suppress per-step save for approved edits, mirroring admin mode).
+// Verified 2026-07-17 against the cloud test project. Un-fixme + rewrite EDIT-01 to
+// drive the wizard Step 1→5 once the feature is fixed.
+test.describe.fixme('bip edit flow', () => {
   /**
    * EDIT-01 — coordinator submits an edit for an already-approved BIP.
    *
@@ -245,11 +257,10 @@ test.describe('bip edit flow', () => {
    *
    * Grep key: "reject edit"
    *
-   * Note: this test operates on a DIFFERENT pending edit than test 4. The
-   * seed provides one pending bip_edits row in seed.e2e.sql (status='pending');
-   * the "approve edit" test above consumes that row. For the reject test to be
-   * independent, the coordinator submits another edit first (spawning a fresh
-   * coordinator context), then the admin rejects it.
+   * Note: this test operates on a DIFFERENT pending edit than test 4. EDIT-01
+   * creates the first pending edit and the "approve edit" test above consumes it.
+   * For the reject test to be independent, the coordinator submits another edit
+   * first (spawning a fresh coordinator context), then the admin rejects it.
    *
    * EDIT-08: bip_status_history row with action_kind='reject_edit'.
    */

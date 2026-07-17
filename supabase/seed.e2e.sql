@@ -366,10 +366,12 @@ on conflict (id) do update set role = excluded.role;
 --   - Must NOT be one of the admin-review.spec.ts BIPs (Machine Learning / Data Ethics).
 --   - All required NOT-NULL columns populated, mirroring the existing seed BIP shape.
 --
--- Row b) One bip_edits row with status='pending' referencing the approved BIP above.
---   - The proposed title differs from the live BIP title so the diff view shows a change.
---   - partner_institutions = '[]'::jsonb (no partners in this edit).
---   - The bip_edits INSERT requires migration 00017 (applied before test run).
+-- NOTE: no pending bip_edits row is seeded. The bip-edits spec runs in serial
+-- mode and its first test (EDIT-01) asserts State A (no open edit) before
+-- submitting one, so the BIP must start with NO pending edit. EDIT-01 creates
+-- the pending edit that EDIT-02/03/04 then consume (EDIT-04 approves it). A
+-- pre-seeded pending edit would force State B and break EDIT-01. The delete
+-- below guarantees State A on seed re-runs.
 --
 -- Idempotency: delete-then-insert (mirrors existing seed idempotency pattern).
 -- bip_edits rows are cleaned up by cascade: `bips ON DELETE CASCADE` in bip_edits.bip_id.
@@ -416,41 +418,8 @@ select
 from public.universities u
 where u.erasmus_code = 'D MUNCHEN02' limit 1;
 
--- Row b: Pending bip_edits row for the approved BIP above.
--- Requires migration 00017 (applied before test run).
--- The proposed title '[EDIT] E2E Edit Target BIP — revised' differs from the live
--- title 'E2E Edit Target BIP' so the diff view renders a changed field for tests.
-insert into public.bip_edits (
-  id, bip_id, status, created_by,
-  title, isced_f_code, description, learning_outcomes,
-  virtual_component_description, virtual_timing,
-  host_city, physical_start_date, physical_end_date, application_deadline,
-  ects_credits, max_participants,
-  study_levels, language_of_instruction, language_level_min,
-  green_travel, inclusion_support, eligibility_notes,
-  how_to_apply_type, how_to_apply_value,
-  contact_name, contact_email,
-  partner_institutions
-)
-values (
-  'e2e0cccc-cccc-cccc-cccc-000000000001',
-  'e2e0bbbb-bbbb-bbbb-bbbb-000000000010',
-  'pending',
-  '11111111-1111-1111-1111-111111111111',
-  '[EDIT] E2E Edit Target BIP — revised',
-  '0711',
-  'A 10-day BIP on sustainable materials science for engineering students. Covers bio-composites, circular-economy design, and a hands-on lab project fabricating a prototype from recycled feedstock.',
-  E'- Select appropriate bio-composite materials for a given engineering constraint\n- Apply circular-economy principles to product lifecycle analysis\n- Fabricate and test a small prototype from recycled feedstock',
-  'Three online pre-mobility workshops covering materials databases, simulation tools, and a group design brief.',
-  'before',
-  'Munich', '2027-06-09', '2027-06-19', '2027-04-01',
-  4, 18,
-  ARRAY['bachelor','master'], 'en', 'B2',
-  false, false, null,
-  'url', 'https://tum.example/materials/apply',
-  'E2E Coordinator', 'e2e-coordinator@biphub.test',
-  '[]'::jsonb
-);
+-- (No Row b.) The pending bip_edits row is NOT seeded — EDIT-01 creates it by
+-- driving the coordinator "Submit Edit for Review" flow. See the NOTE above.
 
 -- ----------------------------------------------------------------------------
 -- Multi-field support (subject_areas text[]): the inserts above set only the
@@ -466,8 +435,7 @@ update public.bips set subject_area = 'social-sciences', subject_areas = '{socia
 update public.bips set subject_areas = array[subject_area]
   where is_seed = false and cardinality(subject_areas) = 0 and subject_area is not null;
 
--- Edit-flow fixtures: give the approved BIP + its proposed edit multiple fields.
+-- Edit-flow fixture: give the approved edit-target BIP multiple subject areas.
 update public.bips set subject_areas = '{it-engineering,arts-design}'
   where slug = 'e2e-edit-target-bip';
-update public.bip_edits set subject_areas = '{it-engineering,architecture}'
-  where id = 'e2e0cccc-cccc-cccc-cccc-000000000001';
+-- (No bip_edits update — the pending edit is created by EDIT-01, not seeded.)
