@@ -23,17 +23,23 @@ try {
 }
 
 // SAFETY GUARD: the e2e suite resets/seeds the DB and creates throwaway auth
-// users, so it MUST run against LOCAL Supabase (or a dedicated test project) —
-// never the production cloud project. Fails closed. Override with E2E_ALLOW_CLOUD=1
-// only if you have wired a dedicated cloud TEST project (not prod).
-const PROD_SUPABASE_REF = 'zbvcpiwbopmfbjfhzprw'
+// users, so it MUST run against a sanctioned test target — local Supabase or the
+// dedicated cloud TEST project. Any other target (notably a future PRODUCTION
+// project) fails closed. This is an allowlist by design: when a separate prod
+// project is created later, the suite refuses it automatically unless its ref is
+// deliberately added here. Override with E2E_ALLOW_CLOUD=1 for a one-off run.
+const TEST_SUPABASE_REF = 'zbvcpiwbopmfbjfhzprw' // dedicated cloud TEST project
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
-if (supabaseUrl.includes(PROD_SUPABASE_REF) && process.env.E2E_ALLOW_CLOUD !== '1') {
+const isLocalSupabase =
+  supabaseUrl.includes('127.0.0.1') || supabaseUrl.includes('localhost')
+const isTestProject = supabaseUrl.includes(TEST_SUPABASE_REF)
+if (!isLocalSupabase && !isTestProject && process.env.E2E_ALLOW_CLOUD !== '1') {
   throw new Error(
-    `Refusing to run the e2e suite against the PRODUCTION cloud Supabase project (${PROD_SUPABASE_REF}).\n` +
-      'The suite seeds data and creates throwaway users — running it against prod pollutes live data.\n' +
-      'Point NEXT_PUBLIC_SUPABASE_URL at local Supabase (http://127.0.0.1:54321) for tests, ' +
-      'or set E2E_ALLOW_CLOUD=1 if you have a dedicated cloud TEST project.',
+    `Refusing to run the e2e suite against an unsanctioned Supabase target (${supabaseUrl || 'unset'}).\n` +
+      'The suite seeds data and creates throwaway users — it must only run against local Supabase ' +
+      `or the dedicated cloud TEST project (${TEST_SUPABASE_REF}).\n` +
+      'If you created a NEW dedicated test project, add its ref to TEST_SUPABASE_REF, ' +
+      'or set E2E_ALLOW_CLOUD=1 to override for a one-off run.',
   )
 }
 
