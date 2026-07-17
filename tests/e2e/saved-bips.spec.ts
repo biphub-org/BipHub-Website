@@ -140,6 +140,116 @@ async function getFirstApprovedBip(page: Page): Promise<{ bipId: string; bipTitl
 }
 
 /**
+ * Save the first approved BIP by driving the detail-page BipSaveButton, returning
+ * its title for later assertions.
+ *
+ * The listing-card save button was removed in 5d393f6 (UX cleanup — the save
+ * control now lives only on the /bip/[slug] detail page). These specs therefore
+ * drive that control instead of a card heart.
+ *
+ * /bip/[slug] is ISR/cookie-free, so the button's isStudent + saved state hydrate
+ * client-side via <SavedBipsHydrator> (getSavedStateAction reads the session).
+ * It starts as "Sign in to save" and flips to "Save {title}" once the store
+ * adopts the authed session — toBeVisible auto-waits for that. On the Desktop
+ * Chrome viewport the mobile apply bar (lg:hidden) is display:none, so only the
+ * sidebar's button is in the a11y tree (no strict-mode collision).
+ */
+/**
+ * Resolve the e2e-student fixture's real auth user id via a password grant.
+ *
+ * Deliberately NOT hardcoded: on the cloud test project the fixture users were
+ * provisioned outside seed.e2e.sql, so their ids drift from the seed's fixed
+ * UUIDs. Deriving the id from the live session keeps the cleanup correct
+ * regardless of how the fixture was created.
+ */
+async function getStudentUserId(page: Page): Promise<string> {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  const resp = await page.request.post(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
+    headers: { apikey: anonKey, 'Content-Type': 'application/json' },
+    data: { email: STUDENT_EMAIL, password: 'Student!Test1' },
+  })
+  expect(resp.ok()).toBeTruthy()
+  const session = await resp.json()
+  const payload = JSON.parse(
+    Buffer.from(session.access_token.split('.')[1], 'base64').toString(),
+  )
+  expect(payload.sub).toBeTruthy()
+  return payload.sub
+}
+
+async function saveFirstApprovedBipFromDetail(
+  page: Page,
+): Promise<{ title: string; slug: string }> {
+  const { bipId, bipTitle, bipSlug } = await getFirstApprovedBip(page)
+
+  // Start from a known-clean slate: delete any pre-existing saved_bips row for
+  // this (student, bip) via service-role (RLS bypass — test setup only). These
+  // specs run serially and all resolve to the same first approved BIP, and the
+  // in-test unsave cleanups are optimistic (the UI flips before the cloud DELETE
+  // commits). Without this, a leftover row makes the save below hit a unique
+  // violation, revert, and never flip to "Unsave". Awaiting the DELETE makes each
+  // save independent of prior-test/prior-run timing.
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+  const studentUserId = await getStudentUserId(page)
+  const cleanupResp = await page.request.delete(
+    `${supabaseUrl}/rest/v1/saved_bips?user_id=eq.${studentUserId}&bip_id=eq.${bipId}`,
+    { headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` } },
+  )
+  expect(cleanupResp.ok()).toBeTruthy()
+
+  await page.goto(`/bip/${bipSlug}`)
+  await page.waitForURL(/\/bip\//, { timeout: 10_000 })
+
+  const saveButton = page.getByRole('button', { name: `Save ${bipTitle}` })
+  await expect(saveButton).toBeVisible({ timeout: 10_000 })
+  await saveButton.click()
+
+  // Optimistic flip: the button becomes "Unsave {title}" immediately.
+  await expect(
+    page.getByRole('button', { name: `Unsave ${bipTitle}` }),
+  ).toBeVisible({ timeout: 10_000 })
+
+  // Confirm SERVER-side persistence before returning. The flip above is optimistic
+  // (the saveAction INSERT is still in flight), so poll saved_bips via service-role
+  // until the row lands — otherwise a saved-list navigation can race ahead of the
+  // commit and render the empty state.
+  await expect(async () => {
+    const check = await page.request.get(
+      `${supabaseUrl}/rest/v1/saved_bips?user_id=eq.${studentUserId}&bip_id=eq.${bipId}&select=id`,
+      { headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` } },
+    )
+    expect(check.ok()).toBeTruthy()
+    expect(await check.json()).toHaveLength(1)
+  }).toPass({ timeout: 10_000 })
+
+  return { title: bipTitle, slug: bipSlug }
+}
+
+/**
+ * Unsave a BIP by driving the detail-page toggle. Like save, the unsave control
+ * was removed from the listing/saved-list cards in 5d393f6 and now lives only on
+ * /bip/[slug]. Leaves the button in the optimistic "Save {title}" state; callers
+ * that need to assert server-side removal should poll the saved list (the unsave
+ * server round-trip lags the optimistic UI flip).
+ */
+async function unsaveBipFromDetail(
+  page: Page,
+  bipSlug: string,
+  bipTitle: string,
+): Promise<void> {
+  await page.goto(`/bip/${bipSlug}`)
+  await page.waitForURL(/\/bip\//, { timeout: 10_000 })
+  const unsaveButton = page.getByRole('button', { name: `Unsave ${bipTitle}` })
+  await expect(unsaveButton).toBeVisible({ timeout: 10_000 })
+  await unsaveButton.click()
+  await expect(
+    page.getByRole('button', { name: `Save ${bipTitle}` }),
+  ).toBeVisible({ timeout: 10_000 })
+}
+
+/**
  * Count saved_bips rows for a given userId using the service-role key (RLS bypass).
  *
  * The service-role key is the correct tool for post-deletion audit reads (T-06-19
@@ -218,33 +328,20 @@ test.describe('saved bips', () => {
     // Establish student session
     await signInStudent(page)
 
-    // Navigate to /bips to interact with the save toggle
-    await page.goto('/bips')
-    await page.waitForURL(/\/bips/, { timeout: 10_000 })
+    // Save the first approved BIP from its detail page (listing-card save was
+    // removed in 5d393f6 — save now lives only on /bip/[slug]).
+    const { title: savedBipTitle, slug: savedBipSlug } =
+      await saveFirstApprovedBipFromDetail(page)
 
-    // Find the first "Save …" button (an unsaved BIP card heart)
-    // aria-label pattern: "Save {bipTitle}"
-    const saveButton = page.getByRole('button', { name: /^Save / }).first()
-    await expect(saveButton).toBeVisible({ timeout: 10_000 })
+    // The saved-state button carries aria-pressed=true.
+    await expect(
+      page.getByRole('button', { name: `Unsave ${savedBipTitle}` }),
+    ).toHaveAttribute('aria-pressed', 'true')
 
-    // Capture the bip title from the aria-label for later assertions
-    const saveLabel = await saveButton.getAttribute('aria-label')
-    expect(saveLabel).toBeTruthy()
-    const savedBipTitle = saveLabel!.replace(/^Save /, '')
-
-    // Click to save — optimistic update should flip to saved state
-    await saveButton.click()
-
-    // After click, the button should flip to "Unsave {title}" (server confirms)
-    const unsaveButton = page.getByRole('button', { name: `Unsave ${savedBipTitle}` })
-    await expect(unsaveButton).toBeVisible({ timeout: 10_000 })
-    await expect(unsaveButton).toHaveAttribute('aria-pressed', 'true')
-
-    // Full page reload — tests server-side persistence (STUD-04 SC1)
+    // Full page reload — tests server-side persistence (STUD-04 SC1). The detail
+    // page is ISR/cookie-free, so saved state re-hydrates from the DB via
+    // getSavedStateAction (not localStorage); the button returns to "Unsave".
     await page.reload()
-    await page.waitForURL(/\/bips/, { timeout: 10_000 })
-
-    // The heart must still be in the saved state after reload (server-side, not localStorage)
     await expect(
       page.getByRole('button', { name: `Unsave ${savedBipTitle}` }),
     ).toBeVisible({ timeout: 10_000 })
@@ -261,15 +358,8 @@ test.describe('saved bips', () => {
     // The saved BIP title is visible in the list (live metadata from bips table — STUD-07)
     await expect(page.getByText(savedBipTitle, { exact: false })).toBeVisible({ timeout: 10_000 })
 
-    // Clean up: unsave the BIP so the fixture is left intact for subsequent runs
-    const unsaveBtnOnList = page.getByRole('button', { name: `Unsave ${savedBipTitle}` })
-    if (await unsaveBtnOnList.isVisible()) {
-      await unsaveBtnOnList.click()
-      // Wait for the card to disappear from the saved list
-      await expect(page.getByRole('button', { name: `Unsave ${savedBipTitle}` })).not.toBeVisible({
-        timeout: 8_000,
-      })
-    }
+    // Clean up: unsave from the detail page so the fixture is left tidy.
+    await unsaveBipFromDetail(page, savedBipSlug, savedBipTitle)
   })
 
   // -------------------------------------------------------------------------
@@ -282,46 +372,25 @@ test.describe('saved bips', () => {
 
     await signInStudent(page)
 
-    // First, save a BIP via the /bips page so we have something to unsave
-    await page.goto('/bips')
-    await page.waitForURL(/\/bips/, { timeout: 10_000 })
+    // Save a BIP from its detail page (listing-card save removed in 5d393f6 —
+    // save now lives only on /bip/[slug]) so we have something to unsave.
+    const { title: bipTitle, slug: bipSlug } = await saveFirstApprovedBipFromDetail(page)
 
-    const saveBtn = page.getByRole('button', { name: /^Save / }).first()
-    await expect(saveBtn).toBeVisible({ timeout: 10_000 })
-    const saveLabel = await saveBtn.getAttribute('aria-label')
-    expect(saveLabel).toBeTruthy()
-    const bipTitle = saveLabel!.replace(/^Save /, '')
-
-    await saveBtn.click()
-    // Wait for save to register
-    await expect(
-      page.getByRole('button', { name: `Unsave ${bipTitle}` }),
-    ).toBeVisible({ timeout: 10_000 })
-
-    // Navigate to the saved list
+    // Confirm the card is in the saved list
     await page.goto('/student-dashboard/saved')
     await page.waitForURL(/\/student-dashboard\/saved/, { timeout: 10_000 })
-
-    // Confirm the card is in the list
     await expect(page.getByText(bipTitle, { exact: false })).toBeVisible({ timeout: 10_000 })
 
-    // Click the "Unsave …" button on the saved-list card
-    const unsaveBtnInList = page.getByRole('button', { name: `Unsave ${bipTitle}` }).first()
-    await expect(unsaveBtnInList).toBeVisible({ timeout: 5_000 })
-    await unsaveBtnInList.click()
+    // Unsave from the detail page (the saved-list card toggle was removed in 5d393f6).
+    await unsaveBipFromDetail(page, bipSlug, bipTitle)
 
-    // After unsave, the optimistic state flips: the "Unsave" button becomes "Save".
-    // The card stays rendered until a reload; asserting the Unsave label is gone proves
-    // the action was processed (optimistic update succeeded).
-    await expect(
-      page.getByRole('button', { name: `Unsave ${bipTitle}` }),
-    ).not.toBeVisible({ timeout: 10_000 })
-
-    // A full reload confirms the card is gone from the server-side list
-    await page.reload()
-    await page.waitForURL(/\/student-dashboard\/saved/, { timeout: 10_000 })
-    // Either empty state or the card does not appear (the BIP was actually removed)
-    await expect(page.getByText(bipTitle, { exact: false })).not.toBeVisible({ timeout: 5_000 })
+    // STUD-04 outcome: the BIP is removed from the saved list. Poll the list
+    // (re-navigating) so the assertion absorbs the unsave server round-trip that
+    // lags the optimistic UI flip.
+    await expect(async () => {
+      await page.goto('/student-dashboard/saved')
+      await expect(page.getByText(bipTitle, { exact: false })).toHaveCount(0)
+    }).toPass({ timeout: 15_000 })
   })
 
   // -------------------------------------------------------------------------
@@ -334,15 +403,9 @@ test.describe('saved bips', () => {
 
     await signInStudent(page)
 
-    // Save a BIP
-    await page.goto('/bips')
-    await page.waitForURL(/\/bips/, { timeout: 10_000 })
-    const saveBtn = page.getByRole('button', { name: /^Save / }).first()
-    await expect(saveBtn).toBeVisible({ timeout: 10_000 })
-    const label = await saveBtn.getAttribute('aria-label')
-    const bipTitle = label!.replace(/^Save /, '')
-    await saveBtn.click()
-    await expect(page.getByRole('button', { name: `Unsave ${bipTitle}` })).toBeVisible({ timeout: 10_000 })
+    // Save a BIP from its detail page (listing-card save removed in 5d393f6 —
+    // save now lives only on /bip/[slug]).
+    const { title: bipTitle, slug: bipSlug } = await saveFirstApprovedBipFromDetail(page)
 
     // Navigate to the saved list page
     await page.goto('/student-dashboard/saved')
@@ -354,15 +417,8 @@ test.describe('saved bips', () => {
     // The saved BIP title must be visible (live metadata from the bips table)
     await expect(page.getByText(bipTitle, { exact: false })).toBeVisible({ timeout: 10_000 })
 
-    // Clean up: flip back to unsaved so the fixture is clean for re-runs
-    const unsaveBtn = page.getByRole('button', { name: `Unsave ${bipTitle}` }).first()
-    if (await unsaveBtn.isVisible()) {
-      await unsaveBtn.click()
-      // Optimistic state flips: Unsave button becomes Save button
-      await expect(
-        page.getByRole('button', { name: `Unsave ${bipTitle}` }),
-      ).not.toBeVisible({ timeout: 8_000 })
-    }
+    // Clean up: unsave from the detail page so the fixture is clean for re-runs.
+    await unsaveBipFromDetail(page, bipSlug, bipTitle)
   })
 
   // -------------------------------------------------------------------------
