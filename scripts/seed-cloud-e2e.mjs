@@ -52,12 +52,21 @@ const FIXTURE_SLUGS = [
   'e2e-pending-machine-learning',
   'e2e-pending-data-ethics',
   'e2e-rejected-urban-design',
+  // Dedicated pending fixtures so the withdraw + request-changes specs never
+  // scavenge shared cards (BUG-002). Kept in sync with supabase/seed.e2e.sql.
+  'e2e-withdraw-target',
+  'e2e-request-changes-target',
+  // Approved BIP the bip-edits spec drives through the edit wizard.
+  'e2e-edit-target-bip',
 ]
 
 const USERS = {
   coordinator: { email: 'e2e-coordinator@biphub.test', password: 'Coordinator!Test1', app_metadata: {} },
   coordinatorFresh: { email: 'e2e-coordinator-fresh@biphub.test', password: 'Fresh!Test1', app_metadata: {} },
   admin: { email: 'e2e-admin@biphub.test', password: 'Admin!Test1', app_metadata: { role: 'admin' } },
+  // Phase 5 student fixture. student-auth.spec.ts + saved-bips.spec.ts sign in
+  // with this password (grant_type=password); role=student drives the JWT hook.
+  student: { email: 'e2e-student@biphub.test', password: 'Student!Test1', app_metadata: { role: 'student' } },
 }
 
 async function main() {
@@ -117,6 +126,12 @@ async function main() {
         university_id: munichId,
         erasmus_code: 'TEST E2E03',
         role: 'admin',
+      },
+      // Student profile: NO university_id / erasmus_code / full_name (D-08).
+      // handle_new_user may have already created this row; upsert keeps role=student.
+      {
+        id: ids.student,
+        role: 'student',
       },
     ],
     { onConflict: 'id' },
@@ -208,11 +223,87 @@ async function main() {
       study_levels: ['master'],
       how_to_apply_value: 'https://tum.example/apply',
     },
+    {
+      // BUG-002: dedicated pending fixture the submission spec withdraws, so it
+      // never disturbs the admin-review fixtures. Matched by exact title.
+      ...baseBip,
+      id: 'e2e0bbbb-bbbb-bbbb-bbbb-000000000004',
+      slug: 'e2e-withdraw-target',
+      title: 'E2E Withdraw Target',
+      status: 'pending',
+      description:
+        'A 10-day BIP fixture that exists solely so the submission spec can withdraw a pending BIP it owns without disturbing the admin-review fixtures. Covers nothing of substance beyond satisfying the renderable-detail column set.',
+      learning_outcomes:
+        '- Placeholder outcome one for the withdraw-target fixture\n- Placeholder outcome two\n- Placeholder outcome three',
+      virtual_component_description:
+        'Two short online sessions before the mobility week (fixture content only).',
+      physical_start_date: '2027-07-10',
+      physical_end_date: '2027-07-20',
+      application_deadline: '2027-05-01',
+      max_participants: 20,
+      subject_area: 'computer-science',
+      isced_f_code: '0613',
+      subject_areas: ['computer-science'],
+      study_levels: ['bachelor'],
+      how_to_apply_value: 'https://tum.example/withdraw-target/apply',
+    },
+    {
+      // BUG-002: dedicated NEW pending submission for the bip-edits admin
+      // "request changes on new submission" test. Matched by exact title.
+      ...baseBip,
+      id: 'e2e0bbbb-bbbb-bbbb-bbbb-000000000005',
+      slug: 'e2e-request-changes-target',
+      title: 'E2E Request Changes Target',
+      status: 'pending',
+      description:
+        'A 10-day BIP fixture that exists solely as a NEW pending submission for the bip-edits admin "request changes on new submission" test, so it never has to scavenge a leftover admin-review card. Renderable-detail column set only.',
+      learning_outcomes:
+        '- Placeholder outcome one for the request-changes-target fixture\n- Placeholder outcome two\n- Placeholder outcome three',
+      virtual_component_description:
+        'Two short online sessions before the mobility week (fixture content only).',
+      physical_start_date: '2027-08-10',
+      physical_end_date: '2027-08-20',
+      application_deadline: '2027-06-01',
+      max_participants: 20,
+      subject_area: 'computer-science',
+      isced_f_code: '0613',
+      subject_areas: ['computer-science'],
+      study_levels: ['bachelor'],
+      how_to_apply_value: 'https://tum.example/request-changes-target/apply',
+    },
+    {
+      // Approved BIP for the edit-flow tests (BUG-001). The spec drives the edit
+      // wizard against this row; EDIT-01 creates the pending bip_edits row itself,
+      // so it must start with NO open edit (State A). Multi-field subject_areas
+      // exercise cross-disciplinary edit diffs.
+      ...baseBip,
+      id: 'e2e0bbbb-bbbb-bbbb-bbbb-000000000010',
+      slug: 'e2e-edit-target-bip',
+      title: 'E2E Edit Target BIP',
+      status: 'approved',
+      description:
+        'A 10-day BIP on sustainable materials science for engineering students. Covers bio-composites, circular-economy design, and a hands-on lab project fabricating a prototype from recycled feedstock.',
+      learning_outcomes:
+        '- Select appropriate bio-composite materials for a given engineering constraint\n- Apply circular-economy principles to product lifecycle analysis\n- Fabricate and test a small prototype from recycled feedstock',
+      virtual_component_description:
+        'Three online pre-mobility workshops covering materials databases, simulation tools, and a group design brief.',
+      physical_start_date: '2027-06-09',
+      physical_end_date: '2027-06-19',
+      application_deadline: '2027-04-01',
+      max_participants: 18,
+      subject_area: 'it-engineering',
+      isced_f_code: 'it-engineering',
+      subject_areas: ['it-engineering', 'arts-design'],
+      study_levels: ['bachelor', 'master'],
+      how_to_apply_value: 'https://tum.example/materials/apply',
+    },
   ]
 
   const { error: bipErr } = await sb.from('bips').insert(bips)
   if (bipErr) throw new Error(`bips: ${bipErr.message}`)
-  console.log(`Inserted ${bips.length} fixture BIPs (2 pending, 1 rejected)`)
+  const pendingCount = bips.filter((b) => b.status === 'pending').length
+  const rejectedCount = bips.filter((b) => b.status === 'rejected').length
+  console.log(`Inserted ${bips.length} fixture BIPs (${pendingCount} pending, ${rejectedCount} rejected)`)
 
   // --- Step 5: explicit reject audit row for the rejected BIP --------------
   const { error: bshErr } = await sb.from('bip_status_history').insert({
