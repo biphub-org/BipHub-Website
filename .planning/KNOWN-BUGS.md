@@ -168,14 +168,24 @@ inferred. Fixes A/B need a CI push to confirm green.
   (`scripts/seed-cloud-e2e.mjs`) to `supabase/seed.e2e.sql` — the two seed files
   had drifted, so a fresh cloud re-seed was dropping the student, approved-edit,
   and BUG-002 fixtures. CI green: **38 passed / 2 skipped**.
-- **C (the flake itself)** confirmed to be a client-timing race, not a logic
-  bug: the failing CI click *succeeded* but the URL never changed, and an
-  unchanged re-run went green. Manifested at the first navigation (the
-  `/dashboard` → `/dashboard/bips/new` `<Link>` click swallowed during
-  hydration) and, in the original report, at the Step-4 `motion` transition.
-  Fixed in `submission.spec.ts` with a `clickUntil()` / `advance()` helper that
-  retries the click until the post-condition holds (`toPass`) — an in-test
-  resilience pattern, not a global `retries` bump (respects D-16). Verified by a
-  `--repeat-each 5` local run: navigation held every time (the only repeat
-  failure was the non-idempotent final title assertion, since hardened with
-  `.first()`).
+- **C (the flake itself)** had **two** distinct causes, both fixed in
+  `submission.spec.ts` (no app code changed):
+  1. *First-navigation hydration race* — the `/dashboard` → `/dashboard/bips/new`
+     `<Link>` click was swallowed during hydration (the client router
+     intercepts + preventDefaults the anchor before `router.push` is wired), so
+     the click succeeded but the URL never changed. Fixed with `clickUntil()`,
+     which retries the **idempotent** navigation click until the URL changes
+     (`toPass`) — an in-test resilience pattern, not a global `retries` bump
+     (respects D-16).
+  2. *Step-4 conflict-dialog block (root cause found via the CI trace)* — the
+     "Save & continue" button triggers an optimistic-concurrency draft save, and
+     a **1.5s debounced auto-save** (`BipSubmissionWizard`) fires on the same
+     draft. When they overlap, the second save sends a stale `updated_at` and the
+     wizard raises its **"Draft updated in another tab"** dialog, which overlays
+     the step and blocks the next `.fill()` (30s timeout). The `advance()` helper
+     now clicks the save button **exactly once** (retry-clicking it self-trips
+     the guard) and, if the dialog appears, clicks "Overwrite with this version"
+     and re-submits — our in-memory draft is authoritative in a single-user test.
+  Verified against the cloud test project: submission spec 6/6, golden path 9/9
+  across `--repeat-each 6`. The non-idempotent final title assertion was also
+  hardened with `.first()`.
