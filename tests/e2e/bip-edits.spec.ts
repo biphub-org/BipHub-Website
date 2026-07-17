@@ -387,12 +387,12 @@ test.describe('bip edit flow', () => {
    *
    * Grep key: "request changes new submission"
    *
-   * Uses the "Machine Learning Foundations" or "Data Ethics" pending BIPs from
-   * seed.e2e.sql. After the admin-review.spec.ts approve/reject tests those BIPs
-   * leave the queue; this test targets a freshly-seeded pending NEW submission.
-   * In serial mode within this suite, the two admin-review.spec.ts BIPs may
-   * already be consumed. This test therefore navigates to /admin and finds any
-   * remaining pending card WITHOUT an "Edit" badge (a new submission).
+   * Targets the dedicated "E2E Request Changes Target" pending NEW submission
+   * seeded by seed.e2e.sql (BUG-002). Earlier this test scavenged "any leftover"
+   * non-edit pending card, which broke on a clean single-seed CI run: admin-
+   * review.spec.ts runs first in this project and consumes the ML/Data Ethics
+   * pending BIPs, leaving no guaranteed new submission. A dedicated fixture
+   * removes that shared-state coupling.
    *
    * EDIT-08: bip_status_history row with action_kind='request_changes'.
    */
@@ -401,12 +401,14 @@ test.describe('bip edit flow', () => {
     async ({ page }) => {
       await page.goto('/admin')
 
-      // Find a pending submission card that does NOT have the "Edit" badge
-      // (i.e., a new submission, not a bip_edits row)
-      const submissionCard = page
-        .locator('article')
-        .filter({ hasNotText: /\bEdit\b/ })
-        .first()
+      // Target the dedicated "E2E Request Changes Target" new-submission fixture
+      // (seed.e2e.sql). Do NOT scavenge ".first()" non-edit card: admin-review
+      // .spec.ts runs first in this project and consumes the ML/Data Ethics
+      // pending BIPs, so no leftover new submission is guaranteed (BUG-002).
+      // AdminBipCard renders as an <article> with the title + a "Review" link.
+      const submissionCard = page.locator('article', {
+        hasText: /E2E Request Changes Target/i,
+      })
       await submissionCard.getByRole('link', { name: /review/i }).click()
       await expect(page).toHaveURL(/\/admin\/bips\/.+\/review/, { timeout: 10_000 })
 

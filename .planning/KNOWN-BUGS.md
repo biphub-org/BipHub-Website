@@ -68,3 +68,95 @@ coordinator with **no** pre-seeded pending edit (so EDIT-01 starts in State A an
 creates the edit itself). Once the feature is fixed, rewrite EDIT-01 to drive the
 wizard Step 1 → Step 5 ("Save & continue" ×4, then "Submit Edit for Review") and
 un-fixme the describe.
+
+> **Update 2026-07-17:** resolved in `9bcccc7` (added `editMode` prop to
+> `BipSubmissionWizard`; bip-edits describe un-fixme'd). See BUG-002 below — the
+> revival surfaced a pre-existing shared-state fragility in the e2e suite.
+
+---
+
+## BUG-002 — E2E suite: withdraw test eats a seeded admin BIP when the submission wizard flakes (cascade)
+
+**Status:** open · **Severity:** high (blocks green CI; 4 failures from 1 trigger) · **Found:** 2026-07-17
+
+### Symptom
+On the post-merge CI run for `9bcccc7`, `npx playwright test` reports **4
+failures** (32 passed, 2 skipped, 2 did not run):
+
+1. `submission.spec.ts:30` — *coordinator submits a BIP through the 5-step wizard*
+   → 30s timeout at line 109 waiting for the Step-4 **"Save & continue"** button.
+2. `admin-review.spec.ts:78` — *admin rejects a pending BIP* → 30s timeout; the
+   **"Data Ethics in Practice"** card is not on `/admin`.
+3. `admin-review.spec.ts:110` — *coordinator sees rejection reason* → assertion
+   fails; the rejection reason text never appears (depends on #2).
+4. `bip-edits.spec.ts:399` — *admin requests changes on new submission* → 30s
+   timeout; no non-edit pending card remains on `/admin`.
+
+The author's pre-merge run against the **stateful cloud test project** was green,
+because that DB had accumulated favorable state; CI seeds a **fresh** local
+Supabase once, which exposes the fragility.
+
+### Root cause (one trigger + a cascade through shared DB state)
+CI seeds the DB **once** (`.github/workflows/e2e.yml:66-68`, `psql -f
+seed.e2e.sql`), runs serially (`workers: 1`, `retries: 0`), and never reseeds
+between tests. The `coordinator-authed` project runs **before** `admin-authed`.
+
+The seeded pending BIPs that `admin-review.spec.ts` consumes — "E2E Pending:
+Machine Learning Foundations" and "E2E Pending: Data Ethics in Practice" — are
+both `created_by = 11111111-…-111111111111` = **the coordinator**
+(`seed.e2e.sql:221` and `:254`). So they appear on the coordinator's own
+`/dashboard?status=pending`.
+
+Cascade:
+- **Failure #1 (trigger):** `submission.spec.ts` test 1 flakes at Step 4 — the
+  "Save & continue" button (`BipSubmissionWizard.tsx:449-457`, rendered only when
+  `currentStep < 5`, never disabled) isn't found. The wizard never completes, so
+  **no throwaway pending BIP is created.** (Mechanism unconfirmed — needs a CI
+  trace; likely the per-step `saveDraftAction` / `motion` step-transition race.
+  It is a *flake*, not deterministic: the author's run passed it.)
+- `submission.spec.ts` test 3 (`withdraws pending BIP`, line 140-151) then does
+  `getByRole('button', { name: /withdraw/i }).first()` on
+  `/dashboard?status=pending` — it **withdraws whatever pending BIP is first.**
+  The coordinator "my BIPs" list orders `updated_at` descending
+  (`lib/queries/adminBips.ts:187`); "Data Ethics" was seeded after "ML" (higher
+  `updated_at`) so it sorts first. **Test 3 withdraws the seeded "Data Ethics"
+  BIP.** When test 1 succeeds, its just-created throwaway BIP is newest and gets
+  withdrawn instead — a *shield*. Test 1 flaking removes the shield.
+- **Failure #2:** `admin-review.spec.ts` "reject Data Ethics" → that BIP is no
+  longer pending → card missing.
+- **Failure #3:** "coordinator sees rejection reason" depends on #2.
+- **Failure #4:** `bip-edits.spec.ts` "request changes new submission" (revived
+  from `fixme` by `9bcccc7`) scavenges *any leftover* non-edit pending card
+  (`bip-edits.spec.ts:406-410`). With ML approved and Data Ethics withdrawn, none
+  remain.
+
+`9bcccc7`'s `BipSubmissionWizard` change does **not** cause #1 — every new branch
+is guarded by `mode === 'admin' || editMode`, both false on the normal coordinator
+submit path. What the commit *did* add is #4's fragility (un-fixme'ing bip-edits)
+and it exposed the latent withdraw coupling.
+
+### Proposed fix
+- **A (breaks the cascade — highest leverage):** make `submission.spec.ts`'s
+  withdraw test self-contained so it can never touch a seeded admin-owned BIP.
+  Seed a dedicated disposable pending BIP owned by the coordinator (e.g.
+  `e2e-withdraw-target`, title "E2E Withdraw Target") and scope the withdraw to
+  *that card's* article, not `.first()`. This makes admin-review immune to the
+  wizard flake — #2/#3 can no longer be collateral damage.
+- **B (fix #4's fragility):** seed a dedicated pending non-edit BIP for the
+  bip-edits "request changes new submission" test and target it by title, instead
+  of scavenging leftovers. (With A in place, extra coordinator-owned pending BIPs
+  are safe from the withdraw test.)
+- **C (the actual flake, #1):** investigate the Step-4 "Save & continue"
+  stall with a CI trace/screenshot (`playwright-report` artifact). Until fixed,
+  A+B contain the blast radius to a single isolated failure instead of four.
+
+### Affected tests
+`tests/e2e/submission.spec.ts` (#1 trigger, #3 shield-provider),
+`tests/e2e/admin-review.spec.ts` (#2, #3 collateral),
+`tests/e2e/bip-edits.spec.ts` (#4). Seed changes in `supabase/seed.e2e.sql`.
+
+### Cannot verify locally
+Diagnosed statically — this machine has no `docker`/`supabase`/`psql` (can't run
+the `supabase start` + seed CI flow) and no `gh` (can't pull the CI trace). The
+cascade (#2–#4) is well-grounded in code/seed; the Step-4 flake mechanism (#1) is
+inferred. Fixes A/B need a CI push to confirm green.
