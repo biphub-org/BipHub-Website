@@ -77,7 +77,7 @@ un-fixme the describe.
 
 ## BUG-002 — E2E suite: withdraw test eats a seeded admin BIP when the submission wizard flakes (cascade)
 
-**Status:** open · **Severity:** high (blocks green CI; 4 failures from 1 trigger) · **Found:** 2026-07-17
+**Status:** resolved · **Severity:** high (blocks green CI; 4 failures from 1 trigger) · **Found:** 2026-07-17 · **Resolved:** 2026-07-17
 
 ### Symptom
 On the post-merge CI run for `9bcccc7`, `npx playwright test` reports **4
@@ -160,3 +160,22 @@ Diagnosed statically — this machine has no `docker`/`supabase`/`psql` (can't r
 the `supabase start` + seed CI flow) and no `gh` (can't pull the CI trace). The
 cascade (#2–#4) is well-grounded in code/seed; the Step-4 flake mechanism (#1) is
 inferred. Fixes A/B need a CI push to confirm green.
+
+### Resolution (2026-07-17)
+- **A + B** shipped in `cb96157` (dedicated `e2e-withdraw-target` /
+  `e2e-request-changes-target` fixtures) and merged to `main` via PR #1
+  (`4adf687`), together with `e649c1c` which synced the cloud seed
+  (`scripts/seed-cloud-e2e.mjs`) to `supabase/seed.e2e.sql` — the two seed files
+  had drifted, so a fresh cloud re-seed was dropping the student, approved-edit,
+  and BUG-002 fixtures. CI green: **38 passed / 2 skipped**.
+- **C (the flake itself)** confirmed to be a client-timing race, not a logic
+  bug: the failing CI click *succeeded* but the URL never changed, and an
+  unchanged re-run went green. Manifested at the first navigation (the
+  `/dashboard` → `/dashboard/bips/new` `<Link>` click swallowed during
+  hydration) and, in the original report, at the Step-4 `motion` transition.
+  Fixed in `submission.spec.ts` with a `clickUntil()` / `advance()` helper that
+  retries the click until the post-condition holds (`toPass`) — an in-test
+  resilience pattern, not a global `retries` bump (respects D-16). Verified by a
+  `--repeat-each 5` local run: navigation held every time (the only repeat
+  failure was the non-idempotent final title assertion, since hardened with
+  `.first()`).
