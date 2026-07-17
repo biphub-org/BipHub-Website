@@ -7,7 +7,7 @@ evidence) → proposed fix → affected tests.
 
 ## BUG-001 — Coordinator cannot submit an edit for an approved BIP (edit wizard trapped on Step 1)
 
-**Status:** open · **Severity:** high (core Phase 8 feature non-functional) · **Found:** 2026-07-17
+**Status:** resolved · **Severity:** high (core Phase 8 feature non-functional) · **Found:** 2026-07-17 · **Resolved:** 2026-07-17
 
 ### Symptom
 A coordinator opening `/dashboard/bips/[id]/edit` for one of their **approved**
