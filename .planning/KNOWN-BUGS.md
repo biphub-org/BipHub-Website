@@ -77,7 +77,7 @@ un-fixme the describe.
 
 ## BUG-002 — E2E suite: withdraw test eats a seeded admin BIP when the submission wizard flakes (cascade)
 
-**Status:** open · **Severity:** high (blocks green CI; 4 failures from 1 trigger) · **Found:** 2026-07-17
+**Status:** resolved · **Severity:** high (blocks green CI; 4 failures from 1 trigger) · **Found:** 2026-07-17 · **Resolved:** 2026-07-17
 
 ### Symptom
 On the post-merge CI run for `9bcccc7`, `npx playwright test` reports **4
@@ -160,3 +160,32 @@ Diagnosed statically — this machine has no `docker`/`supabase`/`psql` (can't r
 the `supabase start` + seed CI flow) and no `gh` (can't pull the CI trace). The
 cascade (#2–#4) is well-grounded in code/seed; the Step-4 flake mechanism (#1) is
 inferred. Fixes A/B need a CI push to confirm green.
+
+### Resolution (2026-07-17)
+- **A + B** shipped in `cb96157` (dedicated `e2e-withdraw-target` /
+  `e2e-request-changes-target` fixtures) and merged to `main` via PR #1
+  (`4adf687`), together with `e649c1c` which synced the cloud seed
+  (`scripts/seed-cloud-e2e.mjs`) to `supabase/seed.e2e.sql` — the two seed files
+  had drifted, so a fresh cloud re-seed was dropping the student, approved-edit,
+  and BUG-002 fixtures. CI green: **38 passed / 2 skipped**.
+- **C (the flake itself)** had **two** distinct causes, both fixed in
+  `submission.spec.ts` (no app code changed):
+  1. *First-navigation hydration race* — the `/dashboard` → `/dashboard/bips/new`
+     `<Link>` click was swallowed during hydration (the client router
+     intercepts + preventDefaults the anchor before `router.push` is wired), so
+     the click succeeded but the URL never changed. Fixed with `clickUntil()`,
+     which retries the **idempotent** navigation click until the URL changes
+     (`toPass`) — an in-test resilience pattern, not a global `retries` bump
+     (respects D-16).
+  2. *Step-4 conflict-dialog block (root cause found via the CI trace)* — the
+     "Save & continue" button triggers an optimistic-concurrency draft save, and
+     a **1.5s debounced auto-save** (`BipSubmissionWizard`) fires on the same
+     draft. When they overlap, the second save sends a stale `updated_at` and the
+     wizard raises its **"Draft updated in another tab"** dialog, which overlays
+     the step and blocks the next `.fill()` (30s timeout). The `advance()` helper
+     now clicks the save button **exactly once** (retry-clicking it self-trips
+     the guard) and, if the dialog appears, clicks "Overwrite with this version"
+     and re-submits — our in-memory draft is authoritative in a single-user test.
+  Verified against the cloud test project: submission spec 6/6, golden path 9/9
+  across `--repeat-each 6`. The non-idempotent final title assertion was also
+  hardened with `.first()`.

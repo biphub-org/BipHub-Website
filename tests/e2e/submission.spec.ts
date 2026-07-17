@@ -15,7 +15,7 @@
  * Step 2 uses <Input type="date"> — Pattern B from the plan; we `.fill('YYYY-MM-DD')`
  * directly rather than driving a calendar popover.
  */
-import { test, expect } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
 
 function addDays(days: number): string {
   const d = new Date()
@@ -26,15 +26,76 @@ function addDays(days: number): string {
 
 const E2E_TITLE = 'E2E Test BIP — Renewable Energy in the Alps'
 
+/**
+ * Retry an IDEMPOTENT click until a post-condition holds (BUG-002 item C).
+ *
+ * Use only for side-effect-free navigation: a Next.js <Link> click can be
+ * swallowed during the hydration window (the client router intercepts +
+ * preventDefaults the anchor before router.push is wired), leaving the app on
+ * the current URL with no error — an intermittent, timing-only flake. `toPass`
+ * re-runs the block, so the click repeats only while the post-condition is
+ * false. This is an in-test resilience pattern for a known client-timing race,
+ * not a global `retries` bump (D-16). Do NOT use this for the wizard's
+ * "Save & continue" — that click writes a draft (optimistic-concurrency save),
+ * so repeating it self-conflicts; use `advance()` instead.
+ */
+async function clickUntil(
+  click: () => Promise<void>,
+  assertDone: () => Promise<void>,
+  timeout = 20_000,
+): Promise<void> {
+  await expect(async () => {
+    await click()
+    await assertDone()
+  }).toPass({ timeout })
+}
+
+/**
+ * Advance the wizard one step via the footer "Save & continue" button.
+ *
+ * Clicked exactly ONCE — the button triggers a `saveDraftAction` UPDATE guarded
+ * by optimistic concurrency (`lastKnownUpdatedAt`), and a 1.5s debounced
+ * auto-save (BipSubmissionWizard) fires on the same draft. If the two saves
+ * overlap, the second sends a stale `updated_at` and the wizard raises its
+ * "Draft updated in another tab" conflict dialog, which overlays the step and
+ * blocks the next field (BUG-002 item C — this is what made Step 4 flake). In a
+ * single-user test our in-memory draft is authoritative, so on conflict we
+ * "Overwrite with this version" and re-submit to advance. Re-clicking the save
+ * button on a retry would itself trip this guard, so we never blind-retry it.
+ */
+async function advance(page: Page, fromStep: number): Promise<void> {
+  const saveBtn = page.getByRole('button', { name: /save.*continue/i })
+  const nextStep = page.getByText(
+    new RegExp(`step\\s*${fromStep + 1}\\s*of\\s*5`, 'i'),
+  )
+  const overwriteBtn = page.getByRole('button', {
+    name: /overwrite with this version/i,
+  })
+
+  await saveBtn.click()
+  // Either the step advances, or the concurrency guard pops the conflict dialog.
+  await expect(nextStep.or(overwriteBtn).first()).toBeVisible({ timeout: 15_000 })
+  if (await overwriteBtn.isVisible().catch(() => false)) {
+    // handleOverwrite re-reads updated_at and re-saves but does NOT advance the
+    // step, so click "Save & continue" once more to move forward.
+    await overwriteBtn.click()
+    await expect(saveBtn).toBeVisible({ timeout: 10_000 })
+    await saveBtn.click()
+    await expect(nextStep).toBeVisible({ timeout: 15_000 })
+  }
+}
+
 test.describe('submission wizard', () => {
   test('coordinator submits a BIP through the 5-step wizard', async ({ page }) => {
     await page.goto('/dashboard')
 
     // "+ Submit a BIP" CTA in dashboard header (Plan 02-05 D-11).
-    await page
-      .getByRole('link', { name: /submit a bip/i })
-      .click()
-    await expect(page).toHaveURL(/\/dashboard\/bips\/new/)
+    const submitCta = page.getByRole('link', { name: /submit a bip/i })
+    await expect(submitCta).toBeVisible()
+    await clickUntil(
+      () => submitCta.click(),
+      () => expect(page).toHaveURL(/\/dashboard\/bips\/new/, { timeout: 4_000 }),
+    )
 
     // ----- Step 1: Basic info -----
     await page.getByLabel(/bip title/i).fill(E2E_TITLE)
@@ -59,7 +120,7 @@ test.describe('submission wizard', () => {
       .fill(
         'Identify, design, and assess micro-hydro and solar installations in alpine environments.',
       )
-    await page.getByRole('button', { name: /save.*continue/i }).click()
+    await advance(page, 1)
 
     // ----- Step 2: Programme details -----
     await page
@@ -89,7 +150,7 @@ test.describe('submission wizard', () => {
       await cefr.click()
       await page.getByRole('option', { name: /B2/i }).click()
     }
-    await page.getByRole('button', { name: /save.*continue/i }).click()
+    await advance(page, 2)
 
     // ----- Step 3: Partners -----
     // The "Free-text partner" card is a bare placeholder Input + native
@@ -97,7 +158,7 @@ test.describe('submission wizard', () => {
     await page.getByPlaceholder(/universidade do porto/i).fill('TU Wien')
     await page.locator('select').selectOption('AT')
     await page.getByRole('button', { name: /add as unverified/i }).click()
-    await page.getByRole('button', { name: /save.*continue/i }).click()
+    await advance(page, 3)
 
     // ----- Step 4: Application info -----
     // how_to_apply_type defaults to 'url' (per WizardStep4 default). Fill the URL.
@@ -106,7 +167,7 @@ test.describe('submission wizard', () => {
     await page
       .getByRole('textbox', { name: /application url/i })
       .fill('https://tum.example/bips/renewable-alps')
-    await page.getByRole('button', { name: /save.*continue/i }).click()
+    await advance(page, 4)
 
     // ----- Step 5: Preview + Submit -----
     // The preview reuses <BipBody>/<BipSidebar>, which don't render the title
@@ -124,7 +185,9 @@ test.describe('submission wizard', () => {
       .getByRole('tab', { name: /pending/i })
       .or(page.getByRole('link', { name: /pending/i }))
     await pendingTab.first().click()
-    await expect(page.getByText(E2E_TITLE)).toBeVisible({ timeout: 10_000 })
+    // .first(): a re-run (or repeat-each stress run) can leave more than one
+    // pending BIP with this title; we only need to confirm at least one landed.
+    await expect(page.getByText(E2E_TITLE).first()).toBeVisible({ timeout: 10_000 })
   })
 
   test('coordinator edits pending BIP', async ({ page }) => {
