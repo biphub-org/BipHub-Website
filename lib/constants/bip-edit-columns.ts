@@ -10,13 +10,13 @@
  */
 export const BIP_EDIT_CONTENT_COLUMNS = `
   id, bip_id, status, admin_note, created_by,
-  title, subject_areas, isced_f_code, description, learning_outcomes,
-  virtual_component_description, virtual_timing, host_city,
+  title, external_bip_id, target_group, subject_areas, isced_f_code, description, learning_outcomes,
+  virtual_component_description, virtual_timing, virtual_session_date, host_city,
   physical_start_date, physical_end_date, application_deadline,
   ects_credits, max_participants, study_levels,
   language_of_instruction, language_level_min,
-  green_travel, inclusion_support, eligibility_notes,
+  fees, eligibility_notes,
   how_to_apply_type, how_to_apply_value, contact_name, contact_email,
   partner_institutions,
-  virtual_sessions_count, virtual_duration_notes, accommodation_notes, partner_institutions_only
+  accommodation_notes, partner_institutions_only
 ` as const

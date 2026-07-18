@@ -45,7 +45,13 @@ export async function searchUniversitiesAction(
     .select('id, name, country, erasmus_code')
     .order('name', { ascending: true })
     .limit(50)
-  if (trimmed.length >= 2) q = q.ilike('name', `%${trimmed}%`)
+  if (trimmed.length >= 2) {
+    // Match either the university name OR its Erasmus code (item 13c). Escape
+    // PostgREST reserved chars (comma/parenthesis) so codes like "D MUNCHEN02"
+    // and free punctuation cannot break out of the .or() filter grammar.
+    const safe = trimmed.replace(/[(),]/g, ' ')
+    q = q.or(`name.ilike.%${safe}%,erasmus_code.ilike.%${safe}%`)
+  }
   const { data, error } = await q
   if (error) {
     console.error('[searchUniversitiesAction] supabase error:', error.message)

@@ -50,12 +50,15 @@ type RawEditRow = {
   admin_note: string | null
   created_by: string | null
   title: string | null
+  external_bip_id: string | null
+  target_group: string | null
   subject_areas: string[] | null
   isced_f_code: string | null
   description: string | null
   learning_outcomes: string | null
   virtual_component_description: string | null
   virtual_timing: string | null
+  virtual_session_date: string | null
   host_city: string | null
   physical_start_date: string | null
   physical_end_date: string | null
@@ -65,16 +68,13 @@ type RawEditRow = {
   study_levels: string[] | null
   language_of_instruction: string | null
   language_level_min: string | null
-  green_travel: boolean | null
-  inclusion_support: boolean | null
+  fees: string | null
   eligibility_notes: string | null
   how_to_apply_type: string | null
   how_to_apply_value: string | null
   contact_name: string | null
   contact_email: string | null
   partner_institutions: unknown
-  virtual_sessions_count: number | null
-  virtual_duration_notes: string | null
   accommodation_notes: string | null
   partner_institutions_only: boolean | null
 }
@@ -95,6 +95,8 @@ type RawPartnerInstitution = {
 function buildMergePayload(editRow: RawEditRow) {
   return {
     title: editRow.title,
+    external_bip_id: editRow.external_bip_id,
+    target_group: editRow.target_group,
     // Copy the canonical multi-field set into bips; keep the legacy scalars
     // (subject_area, isced_f_code) mirrored to the first field.
     subject_areas: editRow.subject_areas ?? [],
@@ -104,6 +106,7 @@ function buildMergePayload(editRow: RawEditRow) {
     learning_outcomes: editRow.learning_outcomes,
     virtual_component_description: editRow.virtual_component_description,
     virtual_timing: editRow.virtual_timing,
+    virtual_session_date: editRow.virtual_session_date,
     host_city: editRow.host_city,
     physical_start_date: editRow.physical_start_date,
     physical_end_date: editRow.physical_end_date,
@@ -113,15 +116,12 @@ function buildMergePayload(editRow: RawEditRow) {
     study_levels: editRow.study_levels,
     language_of_instruction: editRow.language_of_instruction,
     language_level_min: editRow.language_level_min,
-    green_travel: editRow.green_travel,
-    inclusion_support: editRow.inclusion_support,
+    fees: editRow.fees,
     eligibility_notes: editRow.eligibility_notes,
     how_to_apply_type: editRow.how_to_apply_type,
     how_to_apply_value: editRow.how_to_apply_value,
     contact_name: editRow.contact_name,
     contact_email: editRow.contact_email,
-    virtual_sessions_count: editRow.virtual_sessions_count,
-    virtual_duration_notes: editRow.virtual_duration_notes,
     accommodation_notes: editRow.accommodation_notes,
     partner_institutions_only: editRow.partner_institutions_only ?? false,
     updated_at: new Date().toISOString(),

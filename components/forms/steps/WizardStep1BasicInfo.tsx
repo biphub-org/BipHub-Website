@@ -44,6 +44,8 @@ export function WizardStep1BasicInfo({ onContinue, onAutoSave }: Props) {
     resolver: zodResolver(step1Schema),
     defaultValues: {
       title: draft.title ?? '',
+      external_bip_id: draft.external_bip_id ?? '',
+      target_group: (draft.target_group ?? undefined) as Step1Values['target_group'],
       subject_areas: (draft.subject_areas ?? []) as Step1Values['subject_areas'],
       description: draft.description ?? '',
       learning_outcomes: draft.learning_outcomes ?? '',
@@ -78,12 +80,59 @@ export function WizardStep1BasicInfo({ onContinue, onAutoSave }: Props) {
               <FormControl>
                 <Input
                   placeholder="Sustainable Cities in Practice — KU Leuven Summer BIP 2026"
-                  maxLength={120}
+                  maxLength={500}
                   autoFocus
                   {...field}
                 />
               </FormControl>
-              <FormDescription>{titleValue.length}/120 characters</FormDescription>
+              <FormDescription>{titleValue.length}/500 characters</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          name="external_bip_id"
+          control={form.control}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>BIP ID</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="Official Erasmus+ BIP code"
+                  maxLength={500}
+                  {...field}
+                />
+              </FormControl>
+              <FormDescription>
+                The official Erasmus+ BIP code for this programme.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          name="target_group"
+          control={form.control}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Target group</FormLabel>
+              <FormControl>
+                <select
+                  className="block w-full rounded-md border border-border bg-white px-3 py-2 text-sm"
+                  value={field.value ?? ''}
+                  onChange={(e) => field.onChange(e.target.value)}
+                  onBlur={field.onBlur}
+                >
+                  <option value="" disabled>
+                    Select who this BIP is open to…
+                  </option>
+                  <option value="students">Students</option>
+                  <option value="staff">Staff</option>
+                  <option value="students_staff">Students/Staff</option>
+                </select>
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -136,11 +185,11 @@ export function WizardStep1BasicInfo({ onContinue, onAutoSave }: Props) {
           control={form.control}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description</FormLabel>
+              <FormLabel>Program Description</FormLabel>
               <FormControl>
                 <Textarea
                   rows={4}
-                  placeholder="Describe the BIP: what students will study, the academic context, and what makes this programme unique."
+                  placeholder="Describe the BIP: what students/staff will study, the academic context, and what makes this programme unique."
                   {...field}
                 />
               </FormControl>
@@ -159,7 +208,7 @@ export function WizardStep1BasicInfo({ onContinue, onAutoSave }: Props) {
                 <Textarea rows={3} {...field} />
               </FormControl>
               <FormDescription>
-                What will students be able to do or know after completing this BIP?
+                What will students/staff be able to do or know after completing this BIP?
               </FormDescription>
               <FormMessage />
             </FormItem>

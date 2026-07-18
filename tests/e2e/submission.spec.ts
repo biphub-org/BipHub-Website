@@ -99,6 +99,10 @@ test.describe('submission wizard', () => {
 
     // ----- Step 1: Basic info -----
     await page.getByLabel(/bip title/i).fill(E2E_TITLE)
+    // external_bip_id — required Official Erasmus+ BIP code.
+    await page.getByLabel(/^bip id$/i).fill('BIP-E2E-0001')
+    // target_group — required single choice.
+    await page.getByLabel(/target group/i).selectOption('students_staff')
     // Fields of study — a multi-select checkbox group (min 1). Each field label
     // from lib/isced.ts wraps a Checkbox, so the checkbox's accessible name is
     // the field label. Check two to exercise the multi-field capability.
@@ -136,22 +140,16 @@ test.describe('submission wizard', () => {
     await page
       .getByLabel(/when does the virtual component run/i)
       .selectOption('mixed')
-    // virtual_sessions_count / virtual_duration_notes — new Step 2 fields (SUBM-09/10).
-    await page.getByLabel(/virtual sessions count/i).fill('4')
-    await page
-      .getByLabel(/session duration.*schedule notes/i)
-      .fill(
-        'Four 90-minute sessions, one per week, spread across the month before physical mobility.',
-      )
+    // virtual_session_date — optional single date (replaces sessions count + duration).
+    await page.getByLabel(/virtual session date/i).fill(addDays(80))
     await page.getByLabel(/host city/i).fill('Munich')
-    // Future-relative dates. application_deadline strictly before physical_start;
-    // physical_end after physical_start.
-    await page.getByLabel(/physical start date/i).fill(addDays(90))
-    await page.getByLabel(/physical end date/i).fill(addDays(100))
+    // Future-relative dates. physical_end after physical_start.
+    await page.getByLabel(/physical mobility start date/i).fill(addDays(90))
+    await page.getByLabel(/physical mobility end date/i).fill(addDays(100))
     await page.getByLabel(/application deadline/i).fill(addDays(60))
     await page.getByLabel(/ects credits/i).fill('4')
-    // max_participants: exercise the new floor of 10 (SUBM-13 — DB/domain minimum).
-    await page.getByLabel(/max participants/i).fill('10')
+    // max_participants — ceiling is now 100 (item 9).
+    await page.getByLabel(/maximum number of participants/i).fill('20')
     // study_levels: at least one checkbox. getByRole('checkbox') — getByLabel
     // also matches the hidden native <input> Base UI renders alongside.
     await page.getByRole('checkbox', { name: /bachelor/i }).check()
@@ -167,11 +165,20 @@ test.describe('submission wizard', () => {
     await advance(page, 2)
 
     // ----- Step 3: Partners -----
-    // The "Free-text partner" card is a bare placeholder Input + native
-    // <select> + an "Add as unverified" button (no FormLabels).
-    await page.getByPlaceholder(/universidade do porto/i).fill('TU Wien')
-    await page.locator('select').selectOption('AT')
-    await page.getByRole('button', { name: /add as unverified/i }).click()
+    // Free-text partners were removed — partners are added from the registry via
+    // the UniversityCombobox. Search then pick the first result (seed data has
+    // registered universities). Partners are optional, so a miss is non-fatal.
+    await page.getByRole('combobox').click()
+    await page
+      .getByPlaceholder(/search by name or erasmus code/i)
+      .fill('Uni')
+    const firstResult = page.getByRole('option').first()
+    try {
+      await firstResult.click({ timeout: 3_000 })
+    } catch {
+      // No registry match in this environment — partners are optional; continue.
+      await page.keyboard.press('Escape')
+    }
     // partner_institutions_only: tick the create-path checkbox (SUBM-11).
     const partnerOnlyCheckbox = page.getByRole('checkbox', {
       name: /open only to partner-institution students/i,

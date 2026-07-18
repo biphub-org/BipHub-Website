@@ -26,12 +26,15 @@ import { BIP_EDIT_CONTENT_COLUMNS } from '@/lib/constants/bip-edit-columns'
 
 type RawBipEditContentRow = {
   title: string | null
+  external_bip_id: string | null
+  target_group: string | null
   subject_areas: string[] | null
   isced_f_code: string | null
   description: string | null
   learning_outcomes: string | null
   virtual_component_description: string | null
   virtual_timing: string | null
+  virtual_session_date: string | null
   host_city: string | null
   physical_start_date: string | null
   physical_end_date: string | null
@@ -41,16 +44,13 @@ type RawBipEditContentRow = {
   study_levels: string[] | null
   language_of_instruction: string | null
   language_level_min: string | null
-  green_travel: boolean | null
-  inclusion_support: boolean | null
+  fees: string | null
   eligibility_notes: string | null
   how_to_apply_type: string | null
   how_to_apply_value: string | null
   contact_name: string | null
   contact_email: string | null
   partner_institutions: unknown
-  virtual_sessions_count: number | null
-  virtual_duration_notes: string | null
   accommodation_notes: string | null
   partner_institutions_only: boolean | null
 }
@@ -90,6 +90,7 @@ type RawPartnerInstitution = {
   university_id?: string | null
   name?: string
   country?: string
+  erasmus_code?: string | null
   isVerified?: boolean
 }
 
@@ -103,6 +104,7 @@ function mapPartnerInstitutions(raw: unknown): BipDraftData['partner_universitie
     university_id: p.university_id ?? null,
     name: p.name ?? '',
     country: p.country ?? '',
+    erasmus_code: p.erasmus_code ?? null,
     isVerified: p.isVerified ?? false,
   }))
 }
@@ -116,12 +118,16 @@ function mapEditRowToBipDraftData(row: RawBipEditContentRow): BipDraftData {
   const isUrl = row.how_to_apply_type === 'url'
   return {
     title: row.title ?? undefined,
+    external_bip_id: row.external_bip_id ?? undefined,
+    target_group:
+      (row.target_group as BipDraftData['target_group']) ?? undefined,
     subject_areas: row.subject_areas ?? undefined,
     description: row.description ?? undefined,
     learning_outcomes: row.learning_outcomes ?? undefined,
     virtual_component_description: row.virtual_component_description ?? undefined,
     virtual_timing:
       (row.virtual_timing as BipDraftData['virtual_timing']) ?? undefined,
+    virtual_session_date: row.virtual_session_date ?? undefined,
     host_city: row.host_city ?? undefined,
     physical_start_date: row.physical_start_date ?? undefined,
     physical_end_date: row.physical_end_date ?? undefined,
@@ -133,8 +139,7 @@ function mapEditRowToBipDraftData(row: RawBipEditContentRow): BipDraftData {
     language_of_instruction: row.language_of_instruction ?? undefined,
     language_level_min:
       (row.language_level_min as BipDraftData['language_level_min']) ?? undefined,
-    green_travel: row.green_travel ?? false,
-    inclusion_support: row.inclusion_support ?? false,
+    fees: row.fees ?? undefined,
     eligibility_notes: row.eligibility_notes ?? undefined,
     how_to_apply_type:
       (row.how_to_apply_type as BipDraftData['how_to_apply_type']) ?? undefined,
@@ -142,8 +147,6 @@ function mapEditRowToBipDraftData(row: RawBipEditContentRow): BipDraftData {
     contact_name: row.contact_name ?? undefined,
     contact_email: !isUrl ? (row.contact_email ?? undefined) : undefined,
     partner_universities: mapPartnerInstitutions(row.partner_institutions),
-    virtual_sessions_count: row.virtual_sessions_count ?? undefined,
-    virtual_duration_notes: row.virtual_duration_notes ?? undefined,
     accommodation_notes: row.accommodation_notes ?? undefined,
     partner_institutions_only: row.partner_institutions_only ?? false,
   }

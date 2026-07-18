@@ -31,11 +31,14 @@ export type EditActionResult = { success: true; editId?: string } | { error: str
  */
 function buildContentPayload(data: {
   title: string
+  external_bip_id: string
+  target_group: string
   subject_areas: string[]
   description: string
   learning_outcomes: string
   virtual_component_description: string
   virtual_timing: string
+  virtual_session_date?: string
   host_city: string
   physical_start_date: string
   physical_end_date: string
@@ -45,20 +48,19 @@ function buildContentPayload(data: {
   study_levels: string[]
   language_of_instruction: string
   language_level_min: string
-  green_travel: boolean
-  inclusion_support: boolean
+  fees?: string
   eligibility_notes?: string
   how_to_apply_type: string
   how_to_apply_url?: string
   contact_name?: string
   contact_email?: string
-  virtual_sessions_count?: number
-  virtual_duration_notes?: string
   accommodation_notes?: string
   partner_institutions_only?: boolean
 }) {
   return {
     title: data.title,
+    external_bip_id: data.external_bip_id,
+    target_group: data.target_group,
     // subject_areas is the canonical multi-field set. isced_f_code is kept
     // mirrored to the first field (shared column present on both bip_edits and
     // bips); subject_area (bips-only) is not set here to keep the payload valid
@@ -69,6 +71,7 @@ function buildContentPayload(data: {
     learning_outcomes: data.learning_outcomes,
     virtual_component_description: data.virtual_component_description,
     virtual_timing: data.virtual_timing,
+    virtual_session_date: data.virtual_session_date || null,
     host_city: data.host_city,
     physical_start_date: data.physical_start_date,
     physical_end_date: data.physical_end_date,
@@ -78,8 +81,7 @@ function buildContentPayload(data: {
     study_levels: data.study_levels,
     language_of_instruction: data.language_of_instruction,
     language_level_min: data.language_level_min,
-    green_travel: data.green_travel,
-    inclusion_support: data.inclusion_support,
+    fees: data.fees || null,
     eligibility_notes: data.eligibility_notes ?? '',
     how_to_apply_type: data.how_to_apply_type,
     how_to_apply_value:
@@ -88,8 +90,6 @@ function buildContentPayload(data: {
         : (data.contact_email ?? null),
     contact_name: data.contact_name || null,
     contact_email: data.contact_email || null,
-    virtual_sessions_count: data.virtual_sessions_count ?? null,
-    virtual_duration_notes: data.virtual_duration_notes || null,
     accommodation_notes: data.accommodation_notes || null,
     partner_institutions_only: data.partner_institutions_only ?? false,
     // NOTE: slug intentionally omitted (D-10 / EDIT-09)

@@ -22,27 +22,29 @@ export type Step3PartnerDraft = {
   university_id: string | null
   name: string
   country: string
+  erasmus_code?: string | null
   isVerified: boolean
 }
 
 export type BipDraftData = {
   // Step 1
   title?: string
+  external_bip_id?: string
+  target_group?: 'students' | 'staff' | 'students_staff'
   subject_areas?: string[]
   description?: string
   learning_outcomes?: string
   // Step 2
   virtual_component_description?: string
   virtual_timing?: 'before' | 'during' | 'after' | 'before_and_after' | 'mixed'
-  virtual_sessions_count?: number
-  virtual_duration_notes?: string
+  virtual_session_date?: string
   host_city?: string
   physical_start_date?: string
   physical_end_date?: string
   application_deadline?: string
   ects_credits?: number
   max_participants?: number
-  study_levels?: Array<'bachelor' | 'master' | 'phd'>
+  study_levels?: Array<'bachelor' | 'master' | 'phd' | 'vocational'>
   language_of_instruction?: string
   language_level_min?: 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2' | 'none'
   // Step 3 — partner_universities is preserved in Zustand/localStorage only
@@ -50,13 +52,12 @@ export type BipDraftData = {
   partner_universities?: Step3PartnerDraft[]
   partner_institutions_only?: boolean
   // Step 4
-  green_travel?: boolean
-  inclusion_support?: boolean
-  eligibility_notes?: string
   how_to_apply_type?: 'url' | 'contact'
   how_to_apply_url?: string
   contact_name?: string
   contact_email?: string
+  fees?: string
+  eligibility_notes?: string
   accommodation_notes?: string
 }
 

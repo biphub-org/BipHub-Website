@@ -61,19 +61,18 @@ export async function getCoordinatorBipById(
     .from('bips')
     .select(`
       id, slug, status, updated_at,
-      title, subject_areas, description, learning_outcomes,
-      virtual_component_description, virtual_timing, host_city,
-      virtual_sessions_count, virtual_duration_notes,
+      title, external_bip_id, target_group, subject_areas, description, learning_outcomes,
+      virtual_component_description, virtual_timing, virtual_session_date, host_city,
       physical_start_date, physical_end_date, application_deadline,
       ects_credits, max_participants, study_levels,
       language_of_instruction, language_level_min,
-      green_travel, inclusion_support, eligibility_notes,
+      fees, eligibility_notes,
       how_to_apply_type, how_to_apply_value, contact_name, contact_email,
       accommodation_notes, partner_institutions_only,
       host_university:host_university_id ( id, name, country ),
       partners:bip_partner_universities (
         id, university_id, partner_name_raw, partner_country_raw, partner_erasmus_code_raw,
-        university:university_id ( id, name, country )
+        university:university_id ( id, name, country, erasmus_code )
       )
     `)
     .eq('id', id)
@@ -104,14 +103,17 @@ export async function getCoordinatorBipById(
     partner_country_raw: string | null
     partner_erasmus_code_raw: string | null
     university:
-      | { id: string; name: string; country: string }
-      | { id: string; name: string; country: string }[]
+      | { id: string; name: string; country: string; erasmus_code: string | null }
+      | { id: string; name: string; country: string; erasmus_code: string | null }[]
       | null
   }
   const partnerRows = (data.partners ?? []) as EmbeddedPartner[]
 
   const draft: BipDraftData = {
     title: data.title ?? undefined,
+    external_bip_id: data.external_bip_id ?? undefined,
+    target_group:
+      (data.target_group as BipDraftData['target_group']) ?? undefined,
     subject_areas: data.subject_areas ?? undefined,
     description: data.description ?? undefined,
     learning_outcomes: data.learning_outcomes ?? undefined,
@@ -119,8 +121,7 @@ export async function getCoordinatorBipById(
       data.virtual_component_description ?? undefined,
     virtual_timing:
       (data.virtual_timing as BipDraftData['virtual_timing']) ?? undefined,
-    virtual_sessions_count: data.virtual_sessions_count ?? undefined,
-    virtual_duration_notes: data.virtual_duration_notes ?? undefined,
+    virtual_session_date: data.virtual_session_date ?? undefined,
     host_city: data.host_city ?? undefined,
     physical_start_date: data.physical_start_date ?? undefined,
     physical_end_date: data.physical_end_date ?? undefined,
@@ -133,8 +134,7 @@ export async function getCoordinatorBipById(
     language_level_min:
       (data.language_level_min as BipDraftData['language_level_min']) ??
       undefined,
-    green_travel: data.green_travel ?? false,
-    inclusion_support: data.inclusion_support ?? false,
+    fees: data.fees ?? undefined,
     eligibility_notes: data.eligibility_notes ?? undefined,
     how_to_apply_type:
       (data.how_to_apply_type as BipDraftData['how_to_apply_type']) ?? undefined,
@@ -156,17 +156,19 @@ export async function getCoordinatorBipById(
           university_id: p.university_id,
           name: uniRel.name,
           country: uniRel.country,
+          erasmus_code: uniRel.erasmus_code ?? null,
           isVerified: true,
         }
       }
-      // Free-text partner — strip the `(unverified)` suffix on round-trip so
-      // the wizard's chip list shows the bare name.
+      // Legacy free-text partner (pre-revision data) — strip the `(unverified)`
+      // suffix on round-trip so the wizard's chip list shows the bare name.
       const rawName = p.partner_name_raw ?? ''
       const cleanName = rawName.replace(/\s*\(unverified\)\s*$/, '').trim()
       return {
         university_id: null,
         name: cleanName,
         country: p.partner_country_raw ?? '',
+        erasmus_code: p.partner_erasmus_code_raw ?? null,
         isVerified: false,
       }
     }),

@@ -91,6 +91,11 @@ export function BipBody({ bip }: { bip: BipDetail }) {
               Timing: {bip.virtual_timing}
             </p>
           )}
+          {bip.virtual_session_date && (
+            <p className="text-sm text-muted">
+              Session date: {bip.virtual_session_date}
+            </p>
+          )}
         </Section>
       )}
 
@@ -120,6 +125,11 @@ export function BipBody({ bip }: { bip: BipDetail }) {
                     {code && <CountryFlag code={code} width={16} />}
                     {partner.university.name}
                     {partnerCountry && ` (${partnerCountry})`}
+                    {partner.university.erasmus_code && (
+                      <span className="text-xs font-normal text-muted ml-0.5">
+                        · {partner.university.erasmus_code}
+                      </span>
+                    )}
                   </span>
                 )
               }
@@ -167,6 +177,15 @@ export function BipBody({ bip }: { bip: BipDetail }) {
               ))}
             </div>
           )}
+        </Section>
+      )}
+
+      {/* Fees */}
+      {bip.fees && (
+        <Section title="Fees">
+          <p className="text-base text-ink-2 leading-relaxed whitespace-pre-line">
+            {bip.fees}
+          </p>
         </Section>
       )}
 

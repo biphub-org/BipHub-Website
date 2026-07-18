@@ -18,14 +18,11 @@
  */
 
 import { useState } from 'react'
-import { Plus, Trash2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { Trash2 } from 'lucide-react'
 import { Checkbox } from '@/components/ui/checkbox'
 import { UniversityCombobox } from '@/components/dashboard/UniversityCombobox'
 import { useBipDraft, type Step3PartnerDraft } from '@/lib/store/bip-draft'
 import { step3Schema, type Step3Values } from '@/lib/schemas/bip-wizard'
-import { ERASMUS_COUNTRIES } from '@/lib/countries'
 import type { UniversitySearchResult } from '@/lib/actions/universities'
 
 interface Props {
@@ -49,8 +46,6 @@ export function WizardStep3Partners({
     draft.partner_institutions_only ?? false,
   )
   const [pickerKey, setPickerKey] = useState(0) // remount UniversityCombobox after add
-  const [freeName, setFreeName] = useState('')
-  const [freeCountry, setFreeCountry] = useState('')
   const [error, setError] = useState<string | null>(null)
 
   function commit(next: Step3PartnerDraft[]) {
@@ -74,34 +69,11 @@ export function WizardStep3Partners({
         university_id: u.id,
         name: u.name,
         country: u.country,
+        erasmus_code: u.erasmus_code,
         isVerified: true,
       },
     ])
     setPickerKey((k) => k + 1)
-  }
-
-  function addFreeText() {
-    setError(null)
-    const trimmedName = freeName.trim()
-    if (trimmedName.length < 2) {
-      setError('Partner name is too short.')
-      return
-    }
-    if (!freeCountry) {
-      setError('Please pick a country for the free-text partner.')
-      return
-    }
-    commit([
-      ...partners,
-      {
-        university_id: null,
-        name: trimmedName,
-        country: freeCountry,
-        isVerified: false,
-      },
-    ])
-    setFreeName('')
-    setFreeCountry('')
   }
 
   function remove(index: number) {
@@ -143,13 +115,7 @@ export function WizardStep3Partners({
       </div>
 
       <div className="space-y-3">
-        <div>
-          <div className="mb-1 text-sm font-semibold text-ink">Add partner universities</div>
-          <p className="text-xs text-muted">
-            Search the registry first; if your partner isn&apos;t listed, use the free-text fallback below.
-            Free-text partners are shown to students as &ldquo;(unverified)&rdquo;.
-          </p>
-        </div>
+        <div className="mb-1 text-sm font-semibold text-ink">Add partner universities</div>
 
         <UniversityCombobox
           key={pickerKey}
@@ -157,38 +123,6 @@ export function WizardStep3Partners({
           onChange={addRegistered}
           initialUniversities={initialUniversities}
         />
-
-        <div className="rounded-md border border-dashed border-border bg-bg-soft p-3 space-y-2">
-          <div className="text-xs font-semibold text-ink">Free-text partner</div>
-          <Input
-            placeholder="Universidade do Porto"
-            value={freeName}
-            onChange={(e) => setFreeName(e.target.value)}
-          />
-          <select
-            value={freeCountry}
-            onChange={(e) => setFreeCountry(e.target.value)}
-            className="block w-full rounded-md border border-border bg-white px-3 py-2 text-sm"
-          >
-            <option value="">Country…</option>
-            {ERASMUS_COUNTRIES.map((c) => (
-              <option key={c.code} value={c.code}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-          <div className="flex justify-end">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={addFreeText}
-            >
-              <Plus className="mr-1 h-4 w-4" />
-              Add as unverified
-            </Button>
-          </div>
-        </div>
 
         {error && (
           <div className="text-sm text-status-rejected" role="alert">
@@ -210,9 +144,9 @@ export function WizardStep3Partners({
               >
                 <span className="flex flex-col">
                   <span className="font-medium text-ink">
-                    {p.name}{' '}
-                    {!p.isVerified && (
-                      <span className="text-xs text-muted">(unverified)</span>
+                    {p.name}
+                    {p.erasmus_code && (
+                      <span className="ml-2 text-xs text-muted">{p.erasmus_code}</span>
                     )}
                   </span>
                   <span className="text-xs text-muted">{p.country}</span>

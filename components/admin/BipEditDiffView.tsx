@@ -101,6 +101,16 @@ const FIELDS: FieldDef[] = [
     getProposed: (d) => d.title ?? null,
   },
   {
+    label: 'BIP ID',
+    getLive: (b) => b.external_bip_id,
+    getProposed: (d) => d.external_bip_id ?? null,
+  },
+  {
+    label: 'Target group',
+    getLive: (b) => b.target_group,
+    getProposed: (d) => d.target_group ?? null,
+  },
+  {
     label: 'Short description',
     getLive: (b) => b.description,
     getProposed: (d) => d.description ?? null,
@@ -171,16 +181,9 @@ const FIELDS: FieldDef[] = [
     getProposed: (d) => d.virtual_timing ?? null,
   },
   {
-    label: 'Virtual sessions',
-    getLive: (b) =>
-      b.virtual_sessions_count != null ? String(b.virtual_sessions_count) : null,
-    getProposed: (d) =>
-      d.virtual_sessions_count != null ? String(d.virtual_sessions_count) : null,
-  },
-  {
-    label: 'Virtual duration',
-    getLive: (b) => b.virtual_duration_notes,
-    getProposed: (d) => d.virtual_duration_notes ?? null,
+    label: 'Virtual session date',
+    getLive: (b) => b.virtual_session_date,
+    getProposed: (d) => d.virtual_session_date ?? null,
   },
   {
     label: 'Accommodation',
@@ -193,14 +196,9 @@ const FIELDS: FieldDef[] = [
     getProposed: (d) => fmtBool(d.partner_institutions_only),
   },
   {
-    label: 'Green travel',
-    getLive: (b) => fmtBool(b.green_travel),
-    getProposed: (d) => fmtBool(d.green_travel),
-  },
-  {
-    label: 'Inclusion support',
-    getLive: (b) => fmtBool(b.inclusion_support),
-    getProposed: (d) => fmtBool(d.inclusion_support),
+    label: 'Fees',
+    getLive: (b) => b.fees,
+    getProposed: (d) => d.fees ?? null,
   },
   {
     label: 'Eligibility notes',

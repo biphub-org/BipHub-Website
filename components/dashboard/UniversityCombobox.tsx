@@ -118,8 +118,8 @@ export function UniversityCombobox({
           }
         >
           {selected
-            ? `${selected.name} (${selected.country})`
-            : 'Search by university name…'}
+            ? `${selected.name} (${selected.country})${selected.erasmus_code ? ` · ${selected.erasmus_code}` : ''}`
+            : 'Search by name or Erasmus code…'}
           <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
         </PopoverTrigger>
         <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
@@ -130,7 +130,7 @@ export function UniversityCombobox({
                 setQuery(v)
                 setShowAdd(false)
               }}
-              placeholder="Search by university name…"
+              placeholder="Search by name or Erasmus code…"
             />
             <CommandList>
               <CommandEmpty>
@@ -162,7 +162,12 @@ export function UniversityCombobox({
                         value === u.id ? 'opacity-100' : 'opacity-0',
                       )}
                     />
-                    <span className="flex-1">{u.name}</span>
+                    <span className="flex-1">
+                      {u.name}
+                      {u.erasmus_code && (
+                        <span className="ml-2 text-xs text-muted">{u.erasmus_code}</span>
+                      )}
+                    </span>
                     <span className="text-xs text-muted">{u.country}</span>
                   </CommandItem>
                 ))}

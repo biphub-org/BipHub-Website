@@ -316,8 +316,8 @@ test.describe('bip edit flow', () => {
    *
    * Grep key: "field round trip"
    *
-   * Drives the edit wizard changing ALL FOUR builder-completion fields —
-   * virtual_sessions_count, virtual_duration_notes, accommodation_notes,
+   * Drives the edit wizard changing the builder round-trip fields —
+   * virtual_session_date, accommodation_notes,
    * partner_institutions_only — to NEW values distinct from the seeded
    * e2e-edit-target-bip fixture (supabase/seed.e2e.sql, Plan 09-08), submits
    * the edit, has the admin approve it, then reads the LIVE `bips` row back
@@ -333,9 +333,7 @@ test.describe('bip edit flow', () => {
   test(
     'per-field edit round-trip persists on the live bips row — field round trip',
     async ({ browser, page }) => {
-      const NEW_VIRTUAL_SESSIONS_COUNT = 8
-      const NEW_VIRTUAL_DURATION_NOTES =
-        'Eight 45-minute micro-sessions, twice weekly, spread across the month before mobility.'
+      const NEW_VIRTUAL_SESSION_DATE = '2026-08-15'
       const NEW_ACCOMMODATION_NOTES =
         'Partner hostel block-booked at a discounted group rate; confirmation emailed after acceptance.'
       // Seeded fixture value is `true` — flip to `false` to prove the merge
@@ -354,16 +352,13 @@ test.describe('bip edit flow', () => {
         })
         await coordPage.getByRole('button', { name: /save.*continue/i }).click()
 
-        // ----- Step 2: virtual_sessions_count, virtual_duration_notes -----
+        // ----- Step 2: virtual_session_date -----
         await expect(coordPage.getByText(/step\s*2\s*of\s*5/i)).toBeVisible({
           timeout: 10_000,
         })
         await coordPage
-          .getByLabel(/virtual sessions count/i)
-          .fill(String(NEW_VIRTUAL_SESSIONS_COUNT))
-        await coordPage
-          .getByLabel(/session duration.*schedule notes/i)
-          .fill(NEW_VIRTUAL_DURATION_NOTES)
+          .getByLabel(/virtual session date/i)
+          .fill(NEW_VIRTUAL_SESSION_DATE)
         await coordPage.getByRole('button', { name: /save.*continue/i }).click()
 
         // ----- Step 3: partner_institutions_only -----
@@ -434,7 +429,7 @@ test.describe('bip edit flow', () => {
       const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
       const resp = await page.request.get(
         `${supabaseUrl}/rest/v1/bips?id=eq.${E2E_BIP_ID}` +
-          '&select=virtual_sessions_count,virtual_duration_notes,accommodation_notes,partner_institutions_only',
+          '&select=virtual_session_date,accommodation_notes,partner_institutions_only',
         {
           headers: {
             apikey: serviceRoleKey,
@@ -449,13 +444,9 @@ test.describe('bip edit flow', () => {
 
       // One assertion per field — the binding SUBM-14 proof.
       expect(
-        liveRow.virtual_sessions_count,
-        'virtual_sessions_count did not persist on the live bips row',
-      ).toBe(NEW_VIRTUAL_SESSIONS_COUNT)
-      expect(
-        liveRow.virtual_duration_notes,
-        'virtual_duration_notes did not persist on the live bips row',
-      ).toBe(NEW_VIRTUAL_DURATION_NOTES)
+        liveRow.virtual_session_date,
+        'virtual_session_date did not persist on the live bips row',
+      ).toBe(NEW_VIRTUAL_SESSION_DATE)
       expect(
         liveRow.accommodation_notes,
         'accommodation_notes did not persist on the live bips row',

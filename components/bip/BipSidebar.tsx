@@ -51,6 +51,12 @@ export function BipSidebar({
       ? `${bip.physical_start_date} → ${bip.physical_end_date}`
       : (bip.physical_start_date ?? 'TBC')
 
+  const targetGroupLabel: Record<string, string> = {
+    students: 'Students',
+    staff: 'Staff',
+    students_staff: 'Students/Staff',
+  }
+
   return (
     <aside
       aria-label="Key facts"
@@ -89,9 +95,19 @@ export function BipSidebar({
             <div className="flex justify-between gap-4">
               <dt className="text-muted">Language</dt>
               <dd className="text-ink font-semibold">
-                {bip.language_of_instruction ?? '–'}
+                {bip.language_of_instruction
+                  ? bip.language_of_instruction.toUpperCase()
+                  : '–'}
               </dd>
             </div>
+            {bip.target_group && (
+              <div className="flex justify-between gap-4">
+                <dt className="text-muted">Open to</dt>
+                <dd className="text-ink font-semibold text-right">
+                  {targetGroupLabel[bip.target_group] ?? bip.target_group}
+                </dd>
+              </div>
+            )}
             {/* DETL-05 CEFR language level */}
             <div className="flex justify-between gap-4">
               <dt className="text-muted">Min level</dt>

@@ -16,10 +16,13 @@ export type BipDetail = {
   id: string
   slug: string
   title: string
+  external_bip_id: string | null
+  target_group: string | null
   description: string | null
   learning_outcomes: string | null
   virtual_component_description: string | null
   virtual_timing: string | null
+  virtual_session_date: string | null
   virtual_sessions_count: number | null
   virtual_duration_notes: string | null
   physical_start_date: string | null
@@ -29,6 +32,7 @@ export type BipDetail = {
   language_of_instruction: string | null
   language_level_min: string | null
   study_levels: string[]
+  fees: string | null
   eligibility_notes: string | null
   how_to_apply_type: string | null
   how_to_apply_value: string | null
@@ -59,6 +63,7 @@ export type BipDetail = {
     university: {
       name: string
       country: string | null
+      erasmus_code: string | null
     } | null
   }>
 }
@@ -76,12 +81,12 @@ export async function getBipBySlug(slug: string): Promise<BipDetail | null> {
   const { data, error } = await supabase
     .from('bips')
     .select(`
-      id, slug, title, description, learning_outcomes,
-      virtual_component_description, virtual_timing,
+      id, slug, title, external_bip_id, target_group, description, learning_outcomes,
+      virtual_component_description, virtual_timing, virtual_session_date,
       virtual_sessions_count, virtual_duration_notes,
       physical_start_date, physical_end_date, host_city,
       ects_credits, language_of_instruction, language_level_min,
-      study_levels, eligibility_notes,
+      study_levels, fees, eligibility_notes,
       how_to_apply_type, how_to_apply_value,
       contact_name, contact_email, application_deadline,
       green_travel, inclusion_support, is_seed, status, created_at, subject_areas,
@@ -89,7 +94,7 @@ export async function getBipBySlug(slug: string): Promise<BipDetail | null> {
       host_university:universities!host_university_id(id, name, country, city, erasmus_code),
       partners:bip_partner_universities(
         id, partner_name_raw, partner_country_raw, partner_erasmus_code_raw, university_id,
-        university:universities(name, country)
+        university:universities(name, country, erasmus_code)
       )
     `)
     .eq('slug', slug)
@@ -129,12 +134,12 @@ export async function getBipById(id: string): Promise<BipDetail | null> {
   const { data, error } = await supabase
     .from('bips')
     .select(`
-      id, slug, title, description, learning_outcomes,
-      virtual_component_description, virtual_timing,
+      id, slug, title, external_bip_id, target_group, description, learning_outcomes,
+      virtual_component_description, virtual_timing, virtual_session_date,
       virtual_sessions_count, virtual_duration_notes,
       physical_start_date, physical_end_date, host_city,
       ects_credits, language_of_instruction, language_level_min,
-      study_levels, eligibility_notes,
+      study_levels, fees, eligibility_notes,
       how_to_apply_type, how_to_apply_value,
       contact_name, contact_email, application_deadline,
       green_travel, inclusion_support, is_seed, status, created_at, subject_areas,
@@ -142,7 +147,7 @@ export async function getBipById(id: string): Promise<BipDetail | null> {
       host_university:universities!host_university_id(id, name, country, city, erasmus_code),
       partners:bip_partner_universities(
         id, partner_name_raw, partner_country_raw, partner_erasmus_code_raw, university_id,
-        university:universities(name, country)
+        university:universities(name, country, erasmus_code)
       )
     `)
     .eq('id', id)

@@ -31,10 +31,14 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { useBipDraft } from '@/lib/store/bip-draft'
 import { step2Schema, type Step2Values } from '@/lib/schemas/bip-wizard'
 
-const STUDY_LEVEL_OPTIONS: Array<{ value: 'bachelor' | 'master' | 'phd'; label: string }> = [
-  { value: 'bachelor', label: 'Bachelor' },
-  { value: 'master', label: 'Master' },
-  { value: 'phd', label: 'PhD' },
+const STUDY_LEVEL_OPTIONS: Array<{
+  value: 'bachelor' | 'master' | 'phd' | 'vocational'
+  label: string
+}> = [
+  { value: 'bachelor', label: 'Bachelor · EQF 6' },
+  { value: 'master', label: 'Master · EQF 7' },
+  { value: 'phd', label: 'Doctorate · EQF 8' },
+  { value: 'vocational', label: 'Vocational Training · EQF 5' },
 ]
 
 const LANGUAGE_LEVEL_OPTIONS: Array<{
@@ -73,8 +77,7 @@ export function WizardStep2ProgramDetails({ onContinue, onAutoSave }: Props) {
       study_levels: (draft.study_levels ?? []) as Step2Values['study_levels'],
       language_of_instruction: draft.language_of_instruction ?? 'en',
       language_level_min: (draft.language_level_min ?? 'B1') as Step2Values['language_level_min'],
-      virtual_sessions_count: draft.virtual_sessions_count ?? undefined,
-      virtual_duration_notes: draft.virtual_duration_notes ?? '',
+      virtual_session_date: draft.virtual_session_date ?? '',
     },
     mode: 'onBlur',
   })
@@ -99,7 +102,7 @@ export function WizardStep2ProgramDetails({ onContinue, onAutoSave }: Props) {
           control={form.control}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Virtual component</FormLabel>
+              <FormLabel>Virtual Component Description</FormLabel>
               <FormControl>
                 <Textarea
                   rows={3}
@@ -140,38 +143,20 @@ export function WizardStep2ProgramDetails({ onContinue, onAutoSave }: Props) {
           )}
         />
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <FormField
-            name="virtual_sessions_count"
-            control={form.control}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Virtual sessions count</FormLabel>
-                <FormControl>
-                  <Input type="number" min={0} placeholder="e.g. 4" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            name="virtual_duration_notes"
-            control={form.control}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Session duration / schedule notes</FormLabel>
-                <FormControl>
-                  <Textarea
-                    rows={2}
-                    placeholder="e.g. 4 weekly 90-min sessions before mobility"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        <FormField
+          name="virtual_session_date"
+          control={form.control}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Virtual Session Date</FormLabel>
+              <FormControl>
+                <Input type="date" {...field} />
+              </FormControl>
+              <FormDescription>Optional — the date the virtual session runs.</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <FormField
           name="host_city"
@@ -193,7 +178,7 @@ export function WizardStep2ProgramDetails({ onContinue, onAutoSave }: Props) {
             control={form.control}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Physical start date</FormLabel>
+                <FormLabel>Physical Mobility Start Date</FormLabel>
                 <FormControl>
                   <Input type="date" {...field} />
                 </FormControl>
@@ -206,7 +191,7 @@ export function WizardStep2ProgramDetails({ onContinue, onAutoSave }: Props) {
             control={form.control}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Physical end date</FormLabel>
+                <FormLabel>Physical Mobility End Date</FormLabel>
                 <FormControl>
                   <Input type="date" {...field} />
                 </FormControl>
@@ -225,7 +210,6 @@ export function WizardStep2ProgramDetails({ onContinue, onAutoSave }: Props) {
               <FormControl>
                 <Input type="date" {...field} />
               </FormControl>
-              <FormDescription>Must be before the physical start date.</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -250,11 +234,10 @@ export function WizardStep2ProgramDetails({ onContinue, onAutoSave }: Props) {
             control={form.control}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Max participants</FormLabel>
+                <FormLabel>Maximum Number of Participants</FormLabel>
                 <FormControl>
-                  <Input type="number" min={10} max={20} {...field} />
+                  <Input type="number" min={1} max={100} {...field} />
                 </FormControl>
-                <FormDescription>Erasmus+ KA131 BIPs allow 10–20 participants.</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -308,10 +291,16 @@ export function WizardStep2ProgramDetails({ onContinue, onAutoSave }: Props) {
               <FormItem>
                 <FormLabel>Language of instruction</FormLabel>
                 <FormControl>
-                  <Input placeholder="en" maxLength={10} {...field} />
+                  <Input
+                    placeholder="EN"
+                    maxLength={10}
+                    className="uppercase placeholder:normal-case"
+                    {...field}
+                    onChange={(e) => field.onChange(e.target.value.toLowerCase())}
+                  />
                 </FormControl>
                 <FormDescription>
-                  ISO 639-1 code, e.g. <code>en</code>, <code>fr</code>, <code>de</code>.
+                  ISO 639-1 code, e.g. <code>EN</code>, <code>FR</code>, <code>DE</code>.
                 </FormDescription>
                 <FormMessage />
               </FormItem>

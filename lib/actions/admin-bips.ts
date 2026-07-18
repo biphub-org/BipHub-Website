@@ -356,6 +356,8 @@ export async function adminUpdateBipAction(
   //    payload EXCEPT we do NOT touch `status` (D-18) or `slug` (T-03-16).
   const updatePayload = {
     title: parsed.data.title,
+    external_bip_id: parsed.data.external_bip_id,
+    target_group: parsed.data.target_group,
     subject_areas: parsed.data.subject_areas,
     subject_area: parsed.data.subject_areas[0],
     isced_f_code: parsed.data.subject_areas[0],
@@ -363,6 +365,7 @@ export async function adminUpdateBipAction(
     learning_outcomes: parsed.data.learning_outcomes,
     virtual_component_description: parsed.data.virtual_component_description,
     virtual_timing: parsed.data.virtual_timing,
+    virtual_session_date: parsed.data.virtual_session_date || null,
     host_city: parsed.data.host_city,
     physical_start_date: parsed.data.physical_start_date,
     physical_end_date: parsed.data.physical_end_date,
@@ -372,8 +375,7 @@ export async function adminUpdateBipAction(
     study_levels: parsed.data.study_levels,
     language_of_instruction: parsed.data.language_of_instruction,
     language_level_min: parsed.data.language_level_min,
-    green_travel: parsed.data.green_travel,
-    inclusion_support: parsed.data.inclusion_support,
+    fees: parsed.data.fees || null,
     eligibility_notes: parsed.data.eligibility_notes,
     how_to_apply_type: parsed.data.how_to_apply_type,
     how_to_apply_value:
@@ -382,8 +384,6 @@ export async function adminUpdateBipAction(
         : (parsed.data.contact_email ?? null),
     contact_name: parsed.data.contact_name || null,
     contact_email: parsed.data.contact_email || null,
-    virtual_sessions_count: parsed.data.virtual_sessions_count ?? null,
-    virtual_duration_notes: parsed.data.virtual_duration_notes || null,
     accommodation_notes: parsed.data.accommodation_notes || null,
     partner_institutions_only: parsed.data.partner_institutions_only ?? false,
     updated_at: new Date().toISOString(),
