@@ -49,6 +49,10 @@ type RawBipEditContentRow = {
   contact_name: string | null
   contact_email: string | null
   partner_institutions: unknown
+  virtual_sessions_count: number | null
+  virtual_duration_notes: string | null
+  accommodation_notes: string | null
+  partner_institutions_only: boolean | null
 }
 
 type RawHostUniversity =
@@ -138,6 +142,10 @@ function mapEditRowToBipDraftData(row: RawBipEditContentRow): BipDraftData {
     contact_name: row.contact_name ?? undefined,
     contact_email: !isUrl ? (row.contact_email ?? undefined) : undefined,
     partner_universities: mapPartnerInstitutions(row.partner_institutions),
+    virtual_sessions_count: row.virtual_sessions_count ?? undefined,
+    virtual_duration_notes: row.virtual_duration_notes ?? undefined,
+    accommodation_notes: row.accommodation_notes ?? undefined,
+    partner_institutions_only: row.partner_institutions_only ?? false,
   }
 }
 

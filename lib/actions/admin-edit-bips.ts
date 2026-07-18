@@ -73,6 +73,10 @@ type RawEditRow = {
   contact_name: string | null
   contact_email: string | null
   partner_institutions: unknown
+  virtual_sessions_count: number | null
+  virtual_duration_notes: string | null
+  accommodation_notes: string | null
+  partner_institutions_only: boolean | null
 }
 
 type RawPartnerInstitution = {
@@ -86,7 +90,7 @@ type RawPartnerInstitution = {
 
 /**
  * Build the merge payload to copy from bip_edits → bips on approve.
- * 22 content columns; slug OMITTED (D-10/EDIT-09); status OMITTED (bips stays 'approved').
+ * 26 content columns; slug OMITTED (D-10/EDIT-09); status OMITTED (bips stays 'approved').
  */
 function buildMergePayload(editRow: RawEditRow) {
   return {
@@ -116,6 +120,10 @@ function buildMergePayload(editRow: RawEditRow) {
     how_to_apply_value: editRow.how_to_apply_value,
     contact_name: editRow.contact_name,
     contact_email: editRow.contact_email,
+    virtual_sessions_count: editRow.virtual_sessions_count,
+    virtual_duration_notes: editRow.virtual_duration_notes,
+    accommodation_notes: editRow.accommodation_notes,
+    partner_institutions_only: editRow.partner_institutions_only,
     updated_at: new Date().toISOString(),
     // NOTE: slug intentionally omitted (D-10 / EDIT-09)
     // NOTE: status intentionally omitted — bips.status stays 'approved'
@@ -140,7 +148,7 @@ function extractProfiles(
 /**
  * Approve a bip_edits row — merge content into parent bips, bust ISR, email coordinator.
  *
- * Merge payload copies the 22 edit content columns into bips; slug is EXCLUDED
+ * Merge payload copies the 26 edit content columns into bips; slug is EXCLUDED
  * (D-10/EDIT-09 dual guard); bips.status stays 'approved' throughout.
  *
  * On success calls redirect('/admin') — NEVER returns normally.
