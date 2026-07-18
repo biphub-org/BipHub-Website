@@ -73,6 +73,8 @@ export function WizardStep2ProgramDetails({ onContinue, onAutoSave }: Props) {
       study_levels: (draft.study_levels ?? []) as Step2Values['study_levels'],
       language_of_instruction: draft.language_of_instruction ?? 'en',
       language_level_min: (draft.language_level_min ?? 'B1') as Step2Values['language_level_min'],
+      virtual_sessions_count: draft.virtual_sessions_count ?? undefined,
+      virtual_duration_notes: draft.virtual_duration_notes ?? '',
     },
     mode: 'onBlur',
   })
@@ -127,14 +129,49 @@ export function WizardStep2ProgramDetails({ onContinue, onAutoSave }: Props) {
                   onBlur={field.onBlur}
                 >
                   <option value="before">Before physical mobility</option>
+                  <option value="during">During physical mobility</option>
                   <option value="after">After physical mobility</option>
-                  <option value="concurrent">Concurrent with physical mobility</option>
+                  <option value="before_and_after">Before and after physical mobility</option>
+                  <option value="mixed">Mixed / throughout</option>
                 </select>
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <FormField
+            name="virtual_sessions_count"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Virtual sessions count</FormLabel>
+                <FormControl>
+                  <Input type="number" min={0} placeholder="e.g. 4" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            name="virtual_duration_notes"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Session duration / schedule notes</FormLabel>
+                <FormControl>
+                  <Textarea
+                    rows={2}
+                    placeholder="e.g. 4 weekly 90-min sessions before mobility"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         <FormField
           name="host_city"
@@ -215,9 +252,9 @@ export function WizardStep2ProgramDetails({ onContinue, onAutoSave }: Props) {
               <FormItem>
                 <FormLabel>Max participants</FormLabel>
                 <FormControl>
-                  <Input type="number" min={5} max={20} {...field} />
+                  <Input type="number" min={10} max={20} {...field} />
                 </FormControl>
-                <FormDescription>Erasmus+ KA131 BIPs allow 5–20 participants.</FormDescription>
+                <FormDescription>Erasmus+ KA131 BIPs allow 10–20 participants.</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
