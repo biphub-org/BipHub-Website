@@ -37,23 +37,11 @@ import {
 import { validateTransition } from '@/lib/utils/status-transitions'
 import { sendEmail } from '@/lib/email/send'
 import type { BipStatus } from '@/lib/utils/status'
+import { BIP_EDIT_CONTENT_COLUMNS } from '@/lib/constants/bip-edit-columns'
 
 // ── Internal types ────────────────────────────────────────────────────────────
 
 type AdminActionResult = { error: string }
-
-/** Select string for bip_edits content read (mirrors BIP_EDIT_CONTENT_SELECT in bipEdits.ts) */
-const EDIT_CONTENT_SELECT = `
-  id, bip_id, status, admin_note, created_by,
-  title, subject_areas, isced_f_code, description, learning_outcomes,
-  virtual_component_description, virtual_timing, host_city,
-  physical_start_date, physical_end_date, application_deadline,
-  ects_credits, max_participants, study_levels,
-  language_of_instruction, language_level_min,
-  green_travel, inclusion_support, eligibility_notes,
-  how_to_apply_type, how_to_apply_value, contact_name, contact_email,
-  partner_institutions
-`
 
 type RawEditRow = {
   id: string
@@ -178,7 +166,7 @@ export async function approveEditAction(editId: string): Promise<AdminActionResu
   // 3. Read bip_edits row + parent bips row
   const { data: editRow, error: editReadError } = await supabase
     .from('bip_edits')
-    .select(EDIT_CONTENT_SELECT)
+    .select(BIP_EDIT_CONTENT_COLUMNS)
     .eq('id', parsed.data.editId)
     .maybeSingle()
   if (editReadError || !editRow) return { error: 'Edit not found.' }

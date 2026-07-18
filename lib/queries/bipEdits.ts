@@ -20,6 +20,7 @@ import { createClient } from '@/lib/supabase/server'
 import { ADMIN_BIP_SELECT, type AdminBip } from '@/lib/queries/adminBips'
 import type { BipDraftData } from '@/lib/store/bip-draft'
 import type { BipStatus } from '@/lib/utils/status'
+import { BIP_EDIT_CONTENT_COLUMNS } from '@/lib/constants/bip-edit-columns'
 
 // ── Internal types ────────────────────────────────────────────────────────
 
@@ -175,18 +176,6 @@ function normalizeAdminBipRow(row: RawAdminBipRow): AdminBip {
   }
 }
 
-const BIP_EDIT_CONTENT_SELECT = `
-  id, bip_id, status, admin_note, created_by,
-  title, subject_areas, isced_f_code, description, learning_outcomes,
-  virtual_component_description, virtual_timing, host_city,
-  physical_start_date, physical_end_date, application_deadline,
-  ects_credits, max_participants, study_levels,
-  language_of_instruction, language_level_min,
-  green_travel, inclusion_support, eligibility_notes,
-  how_to_apply_type, how_to_apply_value, contact_name, contact_email,
-  partner_institutions
-`
-
 // ── Public types ───────────────────────────────────────────────────────────
 
 /**
@@ -234,7 +223,7 @@ export async function getOpenEditForBip(bipId: string): Promise<BipEditDetail | 
 
   const { data, error } = await supabase
     .from('bip_edits')
-    .select(BIP_EDIT_CONTENT_SELECT)
+    .select(BIP_EDIT_CONTENT_COLUMNS)
     .eq('bip_id', bipId)
     .in('status', ['pending', 'changes_requested'])
     .maybeSingle()
@@ -270,7 +259,7 @@ export async function getBipEditById(editId: string): Promise<BipEditDetail | nu
 
   const { data, error } = await supabase
     .from('bip_edits')
-    .select(BIP_EDIT_CONTENT_SELECT)
+    .select(BIP_EDIT_CONTENT_COLUMNS)
     .eq('id', editId)
     .maybeSingle()
 
