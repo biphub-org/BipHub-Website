@@ -54,7 +54,7 @@ Full phase details, success criteria, and per-plan breakdown: [milestones/v1.1-R
   5. All three seed sources (`seed.sql`, `seed.e2e.sql`, `seed-cloud-e2e.mjs`) are updated for every new field, with the previously-duplicated `bip_edits` column-list literal consolidated into one shared constant (FOUN-14)
 **Plans**: 9 plans
   - [x] 09-01-PLAN.md — Add the four builder-completion columns to `bip_edits` (migration) + [BLOCKING] cloud push + type regen
-  - [ ] 09-02-PLAN.md — Fix virtual_timing/participant bugs + consolidate create path onto fullBipSchema + extend schema/draft store (unit tests)
+  - [x] 09-02-PLAN.md — Fix virtual_timing/participant bugs + consolidate create path onto fullBipSchema + extend schema/draft store (unit tests)
   - [ ] 09-03-PLAN.md — BROW-14 partner-only amber badge on `/bips` cards + listing query column
   - [ ] 09-04-PLAN.md — Wizard UI: virtual detail (Step 2), partner-only checkbox (Step 3), accommodation notes (Step 4)
   - [ ] 09-05-PLAN.md — BipDetail type/query plumbing + coordinator edit pre-fill + wizard preview adapter
@@ -102,6 +102,6 @@ Full phase details, success criteria, and per-plan breakdown: [milestones/v1.1-R
 | 6. Saved BIPs Sync | v1.1 | 4/4 | Complete | 2026-06-15 |
 | 7. Alert Subscriptions + Email Pipeline | v1.1→v1.2 | 0/TBD | Deferred to v1.2 | - |
 | 8. Edit-Approved + Request-Changes | v1.1 | 9/9 | Complete | 2026-06-26 |
-| 9. Coordinator BIP Builder Completion | v1.2 | 0/9 | Planned | - |
+| 9. Coordinator BIP Builder Completion | v1.2 | 2/9 | In Progress|  |
 | 10. BIP Detail Page | v1.2 | 0/TBD | Not started | - |
 | 11. Alert Subscriptions + Email Pipeline | v1.2 | 0/TBD | Not started | - |

@@ -16,9 +16,9 @@ Each maps to a roadmap phase. REQ-IDs continue existing category numbering.
 - [x] **SUBM-09**: A coordinator can record the BIP's virtual-component detail — number of online sessions and free-text duration/schedule notes — in the builder *(wires `virtual_sessions_count`, `virtual_duration_notes`)*
 - [x] **SUBM-10**: A coordinator can mark a BIP as open only to students from its listed partner institutions *(wires `partner_institutions_only`)*
 - [x] **SUBM-11**: A coordinator can add accommodation / practical-information notes for prospective students *(wires `accommodation_notes`)*
-- [ ] **SUBM-12**: Every virtual-timing option the builder offers saves successfully — no selectable option violates the database CHECK constraint *(fixes the live `virtual_timing` enum mismatch)*
-- [ ] **SUBM-13**: The builder enforces the Erasmus+ minimum group size of 10 on the participant-count field, consistent with the database *(fixes the `max_participants` wizard floor of 5; planning must check existing/seeded BIPs for values below 10 before tightening)*
-- [ ] **SUBM-14**: Any field a coordinator enters in the builder round-trips through the edit-and-re-review flow — an approved edit to that field appears on the live BIP, with no field silently dropped at merge *(anti-Pitfall-1: seven-layer propagation, enforced by per-field E2E)*
+- [x] **SUBM-12**: Every virtual-timing option the builder offers saves successfully — no selectable option violates the database CHECK constraint *(fixes the live `virtual_timing` enum mismatch)*
+- [x] **SUBM-13**: The builder enforces the Erasmus+ minimum group size of 10 on the participant-count field, consistent with the database *(fixes the `max_participants` wizard floor of 5; planning must check existing/seeded BIPs for values below 10 before tightening)*
+- [x] **SUBM-14**: Any field a coordinator enters in the builder round-trips through the edit-and-re-review flow — an approved edit to that field appears on the live BIP, with no field silently dropped at merge *(anti-Pitfall-1: seven-layer propagation, enforced by per-field E2E)*
 
 ### BIP Detail Page (DETL)
 
@@ -99,9 +99,9 @@ Finalized by the roadmapper against `.planning/ROADMAP.md`. Phase numbering cont
 | SUBM-09 | Phase 9 — Coordinator BIP Builder Completion | Complete |
 | SUBM-10 | Phase 9 | Complete |
 | SUBM-11 | Phase 9 | Complete |
-| SUBM-12 | Phase 9 | Pending |
-| SUBM-13 | Phase 9 | Pending |
-| SUBM-14 | Phase 9 | Pending |
+| SUBM-12 | Phase 9 | Complete |
+| SUBM-13 | Phase 9 | Complete |
+| SUBM-14 | Phase 9 | Complete |
 | BROW-14 | Phase 9 | Pending |
 | FOUN-14 | Phase 9 | Pending |
 | DETL-11 | Phase 10 — BIP Detail Page | Pending |
