@@ -123,7 +123,7 @@ function buildMergePayload(editRow: RawEditRow) {
     virtual_sessions_count: editRow.virtual_sessions_count,
     virtual_duration_notes: editRow.virtual_duration_notes,
     accommodation_notes: editRow.accommodation_notes,
-    partner_institutions_only: editRow.partner_institutions_only,
+    partner_institutions_only: editRow.partner_institutions_only ?? false,
     updated_at: new Date().toISOString(),
     // NOTE: slug intentionally omitted (D-10 / EDIT-09)
     // NOTE: status intentionally omitted — bips.status stays 'approved'
