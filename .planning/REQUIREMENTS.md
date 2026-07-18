@@ -52,7 +52,7 @@ Each maps to a roadmap phase. REQ-IDs continue existing category numbering.
 - [ ] **FOUN-11**: `bip_subscriptions` has RLS with owner USING + WITH CHECK policies (no cross-user access, no reassigning `user_id`); `bip_alert_deliveries` has RLS enabled with no public policies (service-role-only, written by the Edge Function)
 - [ ] **FOUN-12**: Account erasure cascades all new alert PII (subscriptions and alert-delivery records)
 - [ ] **FOUN-13**: The `/privacy` page enumerates the subscription and alert-delivery data surfaces
-- [ ] **FOUN-14**: Adding any BIP-model field updates all three seed sources (`seed.sql`, `seed.e2e.sql`, `seed-cloud-e2e.mjs`) and the duplicated `bip_edits` column-list literals are consolidated into one shared constant *(anti-drift; prevents the BUG-002-class regression — bip_edits column-list consolidation done in Plan 09-07; seed-source sync is Plan 09-08)*
+- [x] **FOUN-14**: Adding any BIP-model field updates all three seed sources (`seed.sql`, `seed.e2e.sql`, `seed-cloud-e2e.mjs`) and the duplicated `bip_edits` column-list literals are consolidated into one shared constant *(anti-drift; prevents the BUG-002-class regression — bip_edits column-list consolidation done in Plan 09-07; seed-source sync done in Plan 09-08)*
 
 ## Open Decisions (confirm during scoping / planning)
 
@@ -103,7 +103,7 @@ Finalized by the roadmapper against `.planning/ROADMAP.md`. Phase numbering cont
 | SUBM-13 | Phase 9 | Complete |
 | SUBM-14 | Phase 9 | Complete |
 | BROW-14 | Phase 9 | Complete |
-| FOUN-14 | Phase 9 | Pending |
+| FOUN-14 | Phase 9 | Complete |
 | DETL-11 | Phase 10 — BIP Detail Page | Pending |
 | DETL-12 | Phase 10 | Pending |
 | DETL-13 | Phase 10 | Pending |
