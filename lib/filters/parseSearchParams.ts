@@ -32,9 +32,6 @@ export const BipFilterSchema = z.object({
   // BROW-05: physical mobility date range (YYYY-MM-DD ISO)
   dateFrom: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   dateTo: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  // BROW-06: ECTS credits range (integers 0..30)
-  ectsMin: z.coerce.number().int().min(0).max(30).optional(),
-  ectsMax: z.coerce.number().int().min(0).max(30).optional(),
   // BROW-07: open/closed/any
   status: z.enum(STATUS_FILTER_OPTIONS).optional(),
   // BROW-08: study level (multi)

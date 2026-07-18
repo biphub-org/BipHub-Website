@@ -46,10 +46,6 @@ export function applyFilters(
   if (filters.dateFrom) q = q.gte('physical_start_date', filters.dateFrom)
   if (filters.dateTo) q = q.lte('physical_start_date', filters.dateTo)
 
-  // BROW-06 ECTS range
-  if (filters.ectsMin !== undefined) q = q.gte('ects_credits', filters.ectsMin)
-  if (filters.ectsMax !== undefined) q = q.lte('ects_credits', filters.ectsMax)
-
   // BROW-07 Status (open = future deadline; closed = past)
   if (filters.status === 'open') {
     q = q.gte('application_deadline', new Date().toISOString().split('T')[0])

@@ -30,8 +30,6 @@ export function BipFiltersDrawer({
     (filters.lang?.length ?? 0) +
     (filters.dateFrom ? 1 : 0) +
     (filters.dateTo ? 1 : 0) +
-    (filters.ectsMin !== undefined ? 1 : 0) +
-    (filters.ectsMax !== undefined ? 1 : 0) +
     (filters.status && filters.status !== 'any' ? 1 : 0) +
     (filters.level?.length ?? 0)
 

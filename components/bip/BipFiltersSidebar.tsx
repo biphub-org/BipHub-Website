@@ -1,9 +1,8 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState, useTransition } from 'react'
+import { useTransition } from 'react'
 import {
-  Award,
   Calendar,
   Clock,
   Globe,
@@ -18,7 +17,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion'
-import { Slider } from '@/components/ui/slider'
 import { ISCED_FIELDS } from '@/lib/isced'
 import { ERASMUS_COUNTRIES } from '@/lib/countries'
 import {
@@ -91,36 +89,11 @@ export function BipFiltersSidebar({ filters }: { filters: BipFilterState }) {
     update(key, set.size === 0 ? undefined : Array.from(set).join(','))
   }
 
-  // ECTS slider: drag updates local state only (smooth), and we commit both
-  // bounds to the URL in a SINGLE navigation on release. Driving router.push on
-  // every drag tick (via a URL-controlled value) made the thumb snap back —
-  // that was the "slider doesn't drag" bug.
-  const [ectsLocal, setEctsLocal] = useState<[number, number]>([
-    filters.ectsMin ?? 0,
-    filters.ectsMax ?? 30,
-  ])
-  useEffect(() => {
-    setEctsLocal([filters.ectsMin ?? 0, filters.ectsMax ?? 30])
-  }, [filters.ectsMin, filters.ectsMax])
-
-  const commitEcts = (min: number, max: number) => {
-    const next = new URLSearchParams(params)
-    if (min <= 0) next.delete('ectsMin')
-    else next.set('ectsMin', String(min))
-    if (max >= 30) next.delete('ectsMax')
-    else next.set('ectsMax', String(max))
-    next.delete('page')
-    startTransition(() => {
-      router.push(next.toString() ? `/bips?${next}` : '/bips')
-    })
-  }
-
   const sectionActive = {
     country: (filters.country?.length ?? 0) > 0,
     field: (filters.field?.length ?? 0) > 0,
     lang: (filters.lang?.length ?? 0) > 0,
     dates: Boolean(filters.dateFrom || filters.dateTo),
-    ects: filters.ectsMin !== undefined || filters.ectsMax !== undefined,
     status: Boolean(filters.status && filters.status !== 'any'),
     level: (filters.level?.length ?? 0) > 0,
   } as const
@@ -131,8 +104,6 @@ export function BipFiltersSidebar({ filters }: { filters: BipFilterState }) {
     (filters.lang?.length ?? 0) +
     (filters.dateFrom ? 1 : 0) +
     (filters.dateTo ? 1 : 0) +
-    (filters.ectsMin !== undefined ? 1 : 0) +
-    (filters.ectsMax !== undefined ? 1 : 0) +
     (filters.status && filters.status !== 'any' ? 1 : 0) +
     (filters.level?.length ?? 0)
 
@@ -281,31 +252,6 @@ export function BipFiltersSidebar({ filters }: { filters: BipFilterState }) {
                 />
               </div>
             </div>
-          </AccordionContent>
-        </AccordionItem>
-
-        <AccordionItem value="ects">
-          <AccordionTrigger>
-            <SectionLabel icon={Award} label="ECTS credits" active={sectionActive.ects} />
-          </AccordionTrigger>
-          <AccordionContent>
-            <Slider
-              min={0}
-              max={30}
-              step={1}
-              value={ectsLocal}
-              onValueChange={(v) => {
-                const arr = Array.isArray(v) ? (v as number[]) : [v as number]
-                setEctsLocal([arr[0], arr[1] ?? 30])
-              }}
-              onValueCommitted={(v) => {
-                const arr = Array.isArray(v) ? (v as number[]) : [v as number]
-                commitEcts(arr[0], arr[1] ?? 30)
-              }}
-            />
-            <p className="text-xs text-muted mt-2">
-              {ectsLocal[0]}–{ectsLocal[1]} ECTS
-            </p>
           </AccordionContent>
         </AccordionItem>
 

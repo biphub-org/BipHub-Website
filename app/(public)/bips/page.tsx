@@ -30,12 +30,12 @@ export async function generateMetadata(): Promise<Metadata> {
     metadataBase: new URL(SITE_URL),
     title: 'Browse all BIPs · BipHub',
     description:
-      'Browse Erasmus+ Blended Intensive Programs across Europe. Filter by country, field of study, language, dates, ECTS credits, and study level.',
+      'Browse Erasmus+ Blended Intensive Programs across Europe. Filter by country, field of study, language, dates, and study level.',
     alternates: { canonical: 'https://biphub.eu/bips' },
     openGraph: {
       title: 'Browse all BIPs · BipHub',
       description:
-        'Browse Erasmus+ Blended Intensive Programmes across Europe. Filter by country, field of study, language, dates, ECTS credits, and study level.',
+        'Browse Erasmus+ Blended Intensive Programmes across Europe. Filter by country, field of study, language, dates, and study level.',
       url: '/bips',
       siteName: 'BipHub',
       images: [
@@ -76,8 +76,6 @@ export default async function BipsPage(props: {
       filters.lang?.length ||
       filters.dateFrom ||
       filters.dateTo ||
-      filters.ectsMin !== undefined ||
-      filters.ectsMax !== undefined ||
       (filters.status && filters.status !== 'any') ||
       filters.level?.length ||
       filters.q,
