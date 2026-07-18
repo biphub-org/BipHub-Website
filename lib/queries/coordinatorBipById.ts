@@ -63,11 +63,13 @@ export async function getCoordinatorBipById(
       id, slug, status, updated_at,
       title, subject_areas, description, learning_outcomes,
       virtual_component_description, virtual_timing, host_city,
+      virtual_sessions_count, virtual_duration_notes,
       physical_start_date, physical_end_date, application_deadline,
       ects_credits, max_participants, study_levels,
       language_of_instruction, language_level_min,
       green_travel, inclusion_support, eligibility_notes,
       how_to_apply_type, how_to_apply_value, contact_name, contact_email,
+      accommodation_notes, partner_institutions_only,
       host_university:host_university_id ( id, name, country ),
       partners:bip_partner_universities (
         id, university_id, partner_name_raw, partner_country_raw, partner_erasmus_code_raw,
@@ -117,6 +119,8 @@ export async function getCoordinatorBipById(
       data.virtual_component_description ?? undefined,
     virtual_timing:
       (data.virtual_timing as BipDraftData['virtual_timing']) ?? undefined,
+    virtual_sessions_count: data.virtual_sessions_count ?? undefined,
+    virtual_duration_notes: data.virtual_duration_notes ?? undefined,
     host_city: data.host_city ?? undefined,
     physical_start_date: data.physical_start_date ?? undefined,
     physical_end_date: data.physical_end_date ?? undefined,
@@ -141,6 +145,8 @@ export async function getCoordinatorBipById(
     contact_email: !isUrl
       ? (data.contact_email ?? undefined)
       : undefined,
+    accommodation_notes: data.accommodation_notes ?? undefined,
+    partner_institutions_only: data.partner_institutions_only ?? false,
     partner_universities: partnerRows.map((p) => {
       const uniRel = Array.isArray(p.university)
         ? (p.university[0] ?? null)
