@@ -116,5 +116,8 @@ export function draftToBipDetail(
         university: null,
       }
     }),
+    // Uploads are persisted server-side against the BIP, not carried on the
+    // draft — the preview does not re-fetch them.
+    attachments: [],
   }
 }

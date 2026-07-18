@@ -66,6 +66,13 @@ export type BipDetail = {
       erasmus_code: string | null
     } | null
   }>
+  attachments: Array<{
+    id: string
+    storage_path: string
+    file_name: string
+    mime_type: string
+    kind: string
+  }>
 }
 
 /**
@@ -95,7 +102,8 @@ export async function getBipBySlug(slug: string): Promise<BipDetail | null> {
       partners:bip_partner_universities(
         id, partner_name_raw, partner_country_raw, partner_erasmus_code_raw, university_id,
         university:universities(name, country, erasmus_code)
-      )
+      ),
+      attachments:bip_attachments(id, storage_path, file_name, mime_type, kind)
     `)
     .eq('slug', slug)
     .maybeSingle()
@@ -148,7 +156,8 @@ export async function getBipById(id: string): Promise<BipDetail | null> {
       partners:bip_partner_universities(
         id, partner_name_raw, partner_country_raw, partner_erasmus_code_raw, university_id,
         university:universities(name, country, erasmus_code)
-      )
+      ),
+      attachments:bip_attachments(id, storage_path, file_name, mime_type, kind)
     `)
     .eq('id', id)
     .maybeSingle()

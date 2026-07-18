@@ -3,6 +3,7 @@ import { getCountryName } from '@/lib/countries'
 import type { BipDetail } from '@/lib/queries/bipDetail'
 import { CountryFlag } from '@/components/ui/country-flag'
 import { cn } from '@/lib/utils/cn'
+import { attachmentPublicUrl } from '@/lib/utils/attachments'
 
 /**
  * BipBody — RSC. Stacked content sections for the BIP detail page.
@@ -56,6 +57,9 @@ export function BipBody({ bip }: { bip: BipDetail }) {
     bip.physical_start_date && bip.physical_end_date
       ? `${bip.physical_start_date}–${bip.physical_end_date}`
       : bip.physical_start_date ?? null
+
+  // Optional uploaded media/documents (item #18)
+  const attachments = bip.attachments ?? []
 
   return (
     <div className="divide-y divide-border break-words">
@@ -177,6 +181,59 @@ export function BipBody({ bip }: { bip: BipDetail }) {
               ))}
             </div>
           )}
+        </Section>
+      )}
+
+      {/* Materials — uploaded visuals/documents (item #18) */}
+      {attachments.length > 0 && (
+        <Section title="Materials">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {attachments.map((a) => {
+              const url = attachmentPublicUrl(a.storage_path)
+              if (a.kind === 'image') {
+                return (
+                  <a
+                    key={a.id}
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block overflow-hidden rounded-md border border-border"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={url}
+                      alt={a.file_name}
+                      className="h-32 w-full object-cover"
+                    />
+                  </a>
+                )
+              }
+              if (a.kind === 'video') {
+                return (
+                  <video
+                    key={a.id}
+                    src={url}
+                    controls
+                    className="h-32 w-full rounded-md border border-border bg-black object-contain"
+                  />
+                )
+              }
+              return (
+                <a
+                  key={a.id}
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex h-32 flex-col items-center justify-center gap-2 rounded-md border border-border bg-bg-soft p-2 text-center text-sm text-eu-blue hover:bg-eu-blue-50"
+                >
+                  <span className="truncate w-full" title={a.file_name}>
+                    {a.file_name}
+                  </span>
+                  <span className="text-xs text-muted">Open document →</span>
+                </a>
+              )
+            })}
+          </div>
         </Section>
       )}
 

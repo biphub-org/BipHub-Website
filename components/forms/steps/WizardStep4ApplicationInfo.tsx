@@ -29,6 +29,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { useBipDraft } from '@/lib/store/bip-draft'
 import { step4Schema, type Step4Values } from '@/lib/schemas/bip-wizard'
+import { BipAttachmentsField } from '@/components/forms/BipAttachmentsField'
 
 interface Props {
   onContinue: (values: Step4Values) => void
@@ -222,6 +223,9 @@ export function WizardStep4ApplicationInfo({ onContinue, onAutoSave }: Props) {
             </FormItem>
           )}
         />
+
+        {/* Optional program media/documents (item 18). */}
+        <BipAttachmentsField />
       </form>
     </Form>
   )
