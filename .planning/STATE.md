@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Coordinator BIP Builder
 status: executing
-stopped_at: "Phase 09 Plan 05 complete: BipDetail type + both detail select strings extended, coordinator edit pre-fill and wizard preview adapter propagate the four builder-completion fields."
-last_updated: "2026-07-18T07:03:40.558Z"
+stopped_at: "Phase 09 Plan 06 complete: adminUpdateBipAction updatePayload and buildContentPayload (feeding all three coordinator edit actions) now persist the four builder-completion fields to bips and bip_edits."
+last_updated: "2026-07-18T07:10:00.000Z"
 last_activity: 2026-07-18
 progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 9
-  completed_plans: 5
-  percent: 56
+  completed_plans: 6
+  percent: 67
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-07-18 after v1.1 milestone)
 ## Current Position
 
 Phase: 09 (coordinator-bip-builder-completion) — EXECUTING
-Plan: 6 of 9
+Plan: 7 of 9
 Status: Ready to execute
 Last activity: 2026-07-18
 
@@ -66,6 +66,7 @@ Last activity: 2026-07-18
 | Phase 09 P03 | 180 | 2 tasks | 2 files |
 | Phase 09 P04 | 3min | 3 tasks | 3 files |
 | Phase 09-coordinator-bip-builder-completion P05 | 6min | 3 tasks | 3 files |
+| Phase 09-coordinator-bip-builder-completion P06 | 4min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -185,6 +186,7 @@ Recent decisions affecting current work:
 - [Phase ?]: Plan 09-03: Partner-only badge reuses the status-pending amber token (#b45309/#fffbeb) at top of card body; w-fit added as a static class for correct pill sizing
 - [Phase 09-04]: Step 3's step3Schema.safeParse in handleSubmit now includes partner_institutions_only alongside partner_universities so the on-continue payload and the mergeDraft-mirrored draft store stay consistent with each other
 - [Phase 09-05]: BipDetail fields added as required (nullable) keys, not optional, so tsc enforces every producer (both detail selects + wizardAdapter literal) supplies them — Prevents a silently-partial shape; anti-Pitfall-1 design
+- [Phase 09-06]: adminUpdateBipAction updatePayload and bip-edits.ts buildContentPayload both extended with the four builder-completion fields (virtual_sessions_count, virtual_duration_notes, accommodation_notes, partner_institutions_only); buildContentPayload is the single helper feeding submitEditAction/resubmitEditAction/resubmitPendingBipAction, so one change propagates through all three coordinator edit write paths — both write halves of the propagation map now complete, sourced strictly from parsed.data (post fullBipSchema.safeParse)
 
 ### Pending Todos
 
@@ -224,12 +226,12 @@ Items acknowledged and deferred at v1.1 milestone close on 2026-07-18:
 
 ## Session Continuity
 
-Last session: 2026-07-18T07:03:40.552Z
-Stopped at: Phase 09 Plan 05 complete: BipDetail type + both detail select strings extended, coordinator edit pre-fill and wizard preview adapter propagate the four builder-completion fields.
+Last session: 2026-07-18T07:10:00.000Z
+Stopped at: Phase 09 Plan 06 complete: adminUpdateBipAction updatePayload and buildContentPayload (feeding all three coordinator edit actions) now persist the four builder-completion fields to bips and bip_edits.
 Resume file: None
-Resume instructions: Continue Phase 9 execution with Plan 09-05 (BipDetail type/query plumbing + coordinator edit pre-fill + wizard preview adapter).
+Resume instructions: Continue Phase 9 execution with Plan 09-07 (bip_edits merge-on-approve + diff view + FOUN-14 shared column constant).
 
 ## Operator Next Steps
 
-- Execute Plan 09-05 (BipDetail type/query plumbing + coordinator edit pre-fill + wizard preview adapter).
+- Execute Plan 09-07 (bip_edits merge-on-approve + diff view + FOUN-14 shared column constant).
 - Phase 10 (Alert Subscriptions + Email Pipeline) can be planned before, after, or in parallel with Phase 9 — fully independent per research.
