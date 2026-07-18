@@ -467,14 +467,20 @@ on conflict (id) do update set role = excluded.role;
 delete from public.bip_edits where bip_id = 'e2e0bbbb-bbbb-bbbb-bbbb-000000000010';
 
 -- Row a: Approved BIP for edit flow tests
+--
+-- NOTE (Plan 09-08 / FOUN-14): all four builder-completion fields carry
+-- NON-DEFAULT values here on purpose — Plan 09-09's per-field edit->approve
+-- ->persist round-trip specs need a starting value to change for each field.
 insert into public.bips (
   id, slug, title, status, is_seed,
   description, learning_outcomes, virtual_component_description, virtual_timing,
+  virtual_sessions_count, virtual_duration_notes,
   physical_start_date, physical_end_date, application_deadline,
   host_city, ects_credits, max_participants,
   language_of_instruction, language_level_min,
   subject_area, isced_f_code,
   study_levels, green_travel, inclusion_support,
+  accommodation_notes, partner_institutions_only,
   contact_name, contact_email,
   how_to_apply_type, how_to_apply_value,
   host_university_id, created_by
@@ -488,11 +494,13 @@ select
   E'- Select appropriate bio-composite materials for a given engineering constraint\n- Apply circular-economy principles to product lifecycle analysis\n- Fabricate and test a small prototype from recycled feedstock',
   'Three online pre-mobility workshops covering materials databases, simulation tools, and a group design brief.',
   'before',
+  4, 'Weekly online seminars covering materials databases and simulation tools ahead of the mobility week.',
   '2027-06-09', '2027-06-19', '2027-04-01',
   'Munich', 4, 18,
   'en', 'B2',
   'it-engineering', 'it-engineering',
   ARRAY['bachelor','master'], false, false,
+  'Dorm rooms reserved at the TUM student residence; confirm dietary needs in advance.', true,
   'E2E Coordinator', 'e2e-coordinator@biphub.test',
   'url', 'https://tum.example/materials/apply',
   u.id,

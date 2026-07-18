@@ -276,6 +276,11 @@ async function main() {
       // wizard against this row; EDIT-01 creates the pending bip_edits row itself,
       // so it must start with NO open edit (State A). Multi-field subject_areas
       // exercise cross-disciplinary edit diffs.
+      //
+      // Plan 09-08 / FOUN-14: all four builder-completion fields carry
+      // NON-DEFAULT values here on purpose — kept IDENTICAL to supabase/seed.e2e.sql
+      // so Plan 09-09's per-field edit->approve->persist round-trip specs have a
+      // starting value to change for each field, in both local and cloud e2e runs.
       ...baseBip,
       id: 'e2e0bbbb-bbbb-bbbb-bbbb-000000000010',
       slug: 'e2e-edit-target-bip',
@@ -287,6 +292,9 @@ async function main() {
         '- Select appropriate bio-composite materials for a given engineering constraint\n- Apply circular-economy principles to product lifecycle analysis\n- Fabricate and test a small prototype from recycled feedstock',
       virtual_component_description:
         'Three online pre-mobility workshops covering materials databases, simulation tools, and a group design brief.',
+      virtual_sessions_count: 4,
+      virtual_duration_notes:
+        'Weekly online seminars covering materials databases and simulation tools ahead of the mobility week.',
       physical_start_date: '2027-06-09',
       physical_end_date: '2027-06-19',
       application_deadline: '2027-04-01',
@@ -295,6 +303,9 @@ async function main() {
       isced_f_code: 'it-engineering',
       subject_areas: ['it-engineering', 'arts-design'],
       study_levels: ['bachelor', 'master'],
+      accommodation_notes:
+        'Dorm rooms reserved at the TUM student residence; confirm dietary needs in advance.',
+      partner_institutions_only: true,
       how_to_apply_value: 'https://tum.example/materials/apply',
     },
   ]
