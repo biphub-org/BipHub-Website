@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Coordinator BIP Builder
 status: executing
-stopped_at: "Phase 09 Plan 02 complete: wizard schema bugs fixed (virtual_timing enum, participant floor), builder-completion fields added, create path consolidated onto fullBipSchema."
-last_updated: "2026-07-18T06:48:08.083Z"
+stopped_at: "Phase 09 Plan 03 complete: partner_institutions_only badge added to /bips query + BipCard (BROW-14)."
+last_updated: "2026-07-18T06:52:24.850Z"
 last_activity: 2026-07-18
 progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 9
-  completed_plans: 2
-  percent: 22
+  completed_plans: 3
+  percent: 33
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-07-18 after v1.1 milestone)
 ## Current Position
 
 Phase: 09 (coordinator-bip-builder-completion) — EXECUTING
-Plan: 3 of 9
+Plan: 4 of 9
 Status: Ready to execute
 Last activity: 2026-07-18
 
@@ -63,6 +63,7 @@ Last activity: 2026-07-18
 | Phase 08-edit-approved-request-changes P08 | 496 | 2 tasks | 4 files |
 | Phase 09-coordinator-bip-builder-completion P01 | 9min | 2 tasks | 2 files |
 | Phase 09-coordinator-bip-builder-completion P02 | 3min | 3 tasks | 4 files |
+| Phase 09 P03 | 180 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -179,6 +180,7 @@ Recent decisions affecting current work:
 - [Phase 09-02]: Consolidated lib/actions/bip-submit.ts onto exported fullBipSchema, deleting the hand-copied submitSchema twin (Pitfall 0) — create and edit paths now share one validator
 - [Phase 09-02]: VIRTUAL_TIMINGS corrected to 5-value union (before/during/after/before_and_after/mixed) matching the bips.virtual_timing DB CHECK exactly; legacy 'concurrent' value removed everywhere
 - [Phase 09-02]: max_participants floor raised from 5 to 10 on step2Schema and fullBipSchema (Erasmus+ minimum); DB CHECK deliberately left untouched per RESEARCH OQ1, Zod floor is the binding proof
+- [Phase ?]: Plan 09-03: Partner-only badge reuses the status-pending amber token (#b45309/#fffbeb) at top of card body; w-fit added as a static class for correct pill sizing
 
 ### Pending Todos
 
@@ -218,8 +220,8 @@ Items acknowledged and deferred at v1.1 milestone close on 2026-07-18:
 
 ## Session Continuity
 
-Last session: 2026-07-18T06:48:08.076Z
-Stopped at: Phase 09 Plan 02 complete: wizard schema bugs fixed (virtual_timing enum, participant floor), builder-completion fields added, create path consolidated onto fullBipSchema.
+Last session: 2026-07-18T06:52:24.842Z
+Stopped at: Phase 09 Plan 03 complete: partner_institutions_only badge added to /bips query + BipCard (BROW-14).
 Resume file: None
 Resume instructions: Roadmap approved and files written. Next: `/gsd-plan-phase 9` to plan Coordinator BIP Builder Completion + BIP Detail Page.
 

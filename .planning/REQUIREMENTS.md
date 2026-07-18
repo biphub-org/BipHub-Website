@@ -33,7 +33,7 @@ Each maps to a roadmap phase. REQ-IDs continue existing category numbering.
 
 ### Discovery (BROW)
 
-- [ ] **BROW-14**: A student browsing `/bips` sees a badge on BIPs that are open only to partner institutions
+- [x] **BROW-14**: A student browsing `/bips` sees a badge on BIPs that are open only to partner institutions
 
 ### BIP Alerts — Email Digest Pipeline (ALRT, carried from v1.1 Phase 7)
 
@@ -102,7 +102,7 @@ Finalized by the roadmapper against `.planning/ROADMAP.md`. Phase numbering cont
 | SUBM-12 | Phase 9 | Complete |
 | SUBM-13 | Phase 9 | Complete |
 | SUBM-14 | Phase 9 | Complete |
-| BROW-14 | Phase 9 | Pending |
+| BROW-14 | Phase 9 | Complete |
 | FOUN-14 | Phase 9 | Pending |
 | DETL-11 | Phase 10 — BIP Detail Page | Pending |
 | DETL-12 | Phase 10 | Pending |
