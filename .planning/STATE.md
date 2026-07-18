@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Coordinator BIP Builder
 status: executing
-stopped_at: "Phase 09 Plan 06 complete: adminUpdateBipAction updatePayload and buildContentPayload (feeding all three coordinator edit actions) now persist the four builder-completion fields to bips and bip_edits."
-last_updated: "2026-07-18T07:10:00.000Z"
+stopped_at: "Phase 09 Plan 07 complete: bip_edits content-column list consolidated into one shared constant (FOUN-14 partial); buildMergePayload merges the four builder-completion fields onto bips on approve (anti-Pitfall-1/SUBM-14); admin diff view shows live-vs-proposed for all four fields."
+last_updated: "2026-07-18T07:20:00.000Z"
 last_activity: 2026-07-18
 progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 9
-  completed_plans: 6
-  percent: 67
+  completed_plans: 7
+  percent: 78
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-07-18 after v1.1 milestone)
 ## Current Position
 
 Phase: 09 (coordinator-bip-builder-completion) — EXECUTING
-Plan: 7 of 9
+Plan: 8 of 9
 Status: Ready to execute
 Last activity: 2026-07-18
 
@@ -67,6 +67,7 @@ Last activity: 2026-07-18
 | Phase 09 P04 | 3min | 3 tasks | 3 files |
 | Phase 09-coordinator-bip-builder-completion P05 | 6min | 3 tasks | 3 files |
 | Phase 09-coordinator-bip-builder-completion P06 | 4min | 2 tasks | 2 files |
+| Phase 09-coordinator-bip-builder-completion P07 | 10min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -187,6 +188,7 @@ Recent decisions affecting current work:
 - [Phase 09-04]: Step 3's step3Schema.safeParse in handleSubmit now includes partner_institutions_only alongside partner_universities so the on-continue payload and the mergeDraft-mirrored draft store stay consistent with each other
 - [Phase 09-05]: BipDetail fields added as required (nullable) keys, not optional, so tsc enforces every producer (both detail selects + wizardAdapter literal) supplies them — Prevents a silently-partial shape; anti-Pitfall-1 design
 - [Phase 09-06]: adminUpdateBipAction updatePayload and bip-edits.ts buildContentPayload both extended with the four builder-completion fields (virtual_sessions_count, virtual_duration_notes, accommodation_notes, partner_institutions_only); buildContentPayload is the single helper feeding submitEditAction/resubmitEditAction/resubmitPendingBipAction, so one change propagates through all three coordinator edit write paths — both write halves of the propagation map now complete, sourced strictly from parsed.data (post fullBipSchema.safeParse)
+- [Phase 09-07]: lib/constants/bip-edit-columns.ts created exporting BIP_EDIT_CONTENT_COLUMNS; both admin-edit-bips.ts and bipEdits.ts import it directly at the .select() call site with old local const names removed entirely (not aliased) — satisfies FOUN-14's bip_edits column-consolidation half (seed-source-sync half remains open for Plan 09-08); buildMergePayload now copies all four builder-completion fields from bip_edits onto bips on approve, closing the anti-Pitfall-1 merge-drop gap for SUBM-14; BipEditDiffView FIELDS array extended with the four fields (Partner institutions only reuses fmtBool)
 
 ### Pending Todos
 
@@ -226,12 +228,12 @@ Items acknowledged and deferred at v1.1 milestone close on 2026-07-18:
 
 ## Session Continuity
 
-Last session: 2026-07-18T07:10:00.000Z
-Stopped at: Phase 09 Plan 06 complete: adminUpdateBipAction updatePayload and buildContentPayload (feeding all three coordinator edit actions) now persist the four builder-completion fields to bips and bip_edits.
+Last session: 2026-07-18T07:20:00.000Z
+Stopped at: Phase 09 Plan 07 complete: bip_edits content-column list consolidated into one shared constant (FOUN-14 partial); buildMergePayload merges the four builder-completion fields onto bips on approve (anti-Pitfall-1/SUBM-14); admin diff view shows live-vs-proposed for all four fields.
 Resume file: None
-Resume instructions: Continue Phase 9 execution with Plan 09-07 (bip_edits merge-on-approve + diff view + FOUN-14 shared column constant).
+Resume instructions: Continue Phase 9 execution with Plan 09-08 (update all three seed sources + verify-seed for the four fields — completes FOUN-14's seed-source-sync half).
 
 ## Operator Next Steps
 
-- Execute Plan 09-07 (bip_edits merge-on-approve + diff view + FOUN-14 shared column constant).
+- Execute Plan 09-08 (update all three seed sources + verify-seed for the four fields; completes FOUN-14).
 - Phase 10 (Alert Subscriptions + Email Pipeline) can be planned before, after, or in parallel with Phase 9 — fully independent per research.

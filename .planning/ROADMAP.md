@@ -59,7 +59,7 @@ Full phase details, success criteria, and per-plan breakdown: [milestones/v1.1-R
   - [x] 09-04-PLAN.md — Wizard UI: virtual detail (Step 2), partner-only checkbox (Step 3), accommodation notes (Step 4)
   - [x] 09-05-PLAN.md — BipDetail type/query plumbing + coordinator edit pre-fill + wizard preview adapter
   - [x] 09-06-PLAN.md — Write paths: admin edit payload + coordinator edit-content builder carry the four fields
-  - [ ] 09-07-PLAN.md — bip_edits merge-on-approve + diff view + FOUN-14 shared column constant
+  - [x] 09-07-PLAN.md — bip_edits merge-on-approve + diff view + FOUN-14 shared column constant
   - [ ] 09-08-PLAN.md — Update all three seed sources + verify-seed for the four fields (edit-target fixture)
   - [ ] 09-09-PLAN.md — E2E: create-path fields, per-field edit→approve→persist read-back (D-08), `/bips` badge
 **UI hint**: yes
@@ -102,6 +102,6 @@ Full phase details, success criteria, and per-plan breakdown: [milestones/v1.1-R
 | 6. Saved BIPs Sync | v1.1 | 4/4 | Complete | 2026-06-15 |
 | 7. Alert Subscriptions + Email Pipeline | v1.1→v1.2 | 0/TBD | Deferred to v1.2 | - |
 | 8. Edit-Approved + Request-Changes | v1.1 | 9/9 | Complete | 2026-06-26 |
-| 9. Coordinator BIP Builder Completion | v1.2 | 6/9 | In Progress|  |
+| 9. Coordinator BIP Builder Completion | v1.2 | 7/9 | In Progress|  |
 | 10. BIP Detail Page | v1.2 | 0/TBD | Not started | - |
 | 11. Alert Subscriptions + Email Pipeline | v1.2 | 0/TBD | Not started | - |
