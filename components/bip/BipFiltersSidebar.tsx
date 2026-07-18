@@ -96,16 +96,16 @@ export function BipFiltersSidebar({ filters }: { filters: BipFilterState }) {
   // every drag tick (via a URL-controlled value) made the thumb snap back —
   // that was the "slider doesn't drag" bug.
   const [ectsLocal, setEctsLocal] = useState<[number, number]>([
-    filters.ectsMin ?? 1,
+    filters.ectsMin ?? 0,
     filters.ectsMax ?? 30,
   ])
   useEffect(() => {
-    setEctsLocal([filters.ectsMin ?? 1, filters.ectsMax ?? 30])
+    setEctsLocal([filters.ectsMin ?? 0, filters.ectsMax ?? 30])
   }, [filters.ectsMin, filters.ectsMax])
 
   const commitEcts = (min: number, max: number) => {
     const next = new URLSearchParams(params)
-    if (min <= 1) next.delete('ectsMin')
+    if (min <= 0) next.delete('ectsMin')
     else next.set('ectsMin', String(min))
     if (max >= 30) next.delete('ectsMax')
     else next.set('ectsMax', String(max))
@@ -290,7 +290,7 @@ export function BipFiltersSidebar({ filters }: { filters: BipFilterState }) {
           </AccordionTrigger>
           <AccordionContent>
             <Slider
-              min={1}
+              min={0}
               max={30}
               step={1}
               value={ectsLocal}
