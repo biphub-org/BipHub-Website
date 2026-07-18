@@ -391,54 +391,49 @@ export function BipSubmissionWizard({
 
         {/* Wizard body */}
         <div className="px-8 py-6 max-h-[calc(100vh-180px)] overflow-y-auto">
+          <header className="mb-6">
+            <h2 className="text-[22px] font-semibold text-ink">{step.title}</h2>
+            <p className="mt-1 text-sm text-muted">{step.subtitle}</p>
+          </header>
+          {/* The animated container MUST receive a SINGLE element child. motion
+              re-renders its child and re-validates any multi-child array held
+              inside it, which is what surfaced React's key warning for the
+              `previewStep` element (owned by the edit page). A ternary yields
+              exactly one element per step, so no array is ever validated. */}
           <m.div
             key={currentStep}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.2 }}
           >
-            {/* Single wrapper child: motion components forward multiple children
-                as one array, which trips React's key warning (the flagged child
-                is `previewStep`, owned by the edit page). Wrapping keeps m.div's
-                children a single element. */}
-            <div>
-            <header className="mb-6">
-              <h2 className="text-[22px] font-semibold text-ink">{step.title}</h2>
-              <p className="mt-1 text-sm text-muted">{step.subtitle}</p>
-            </header>
-
-            {currentStep === 1 && (
+            {currentStep === 1 ? (
               <WizardStep1BasicInfo
                 onContinue={(values) => void saveAndContinue(values)}
                 onAutoSave={(payload) => debouncedAutoSave(payload)}
               />
-            )}
-            {currentStep === 2 && (
+            ) : currentStep === 2 ? (
               <WizardStep2ProgramDetails
                 onContinue={(values) => void saveAndContinue(values)}
                 onAutoSave={(payload) => debouncedAutoSave(payload)}
               />
-            )}
-            {currentStep === 3 && (
+            ) : currentStep === 3 ? (
               <WizardStep3Partners
                 hostUniversity={hostUniversity}
                 initialUniversities={initialUniversities}
                 onContinue={(values) => void saveAndContinue(values)}
               />
-            )}
-            {currentStep === 4 && (
+            ) : currentStep === 4 ? (
               <WizardStep4ApplicationInfo
                 onContinue={(values) => void saveAndContinue(values)}
                 onAutoSave={(payload) => debouncedAutoSave(payload)}
               />
-            )}
-            {currentStep === 5 &&
-              (previewStep ?? (
+            ) : (
+              previewStep ?? (
                 <div className="rounded border border-border bg-bg-soft p-8 text-center text-sm text-muted">
                   Preview step requires Plan 02-07 integration.
                 </div>
-              ))}
-            </div>
+              )
+            )}
           </m.div>
         </div>
 
