@@ -94,7 +94,7 @@ export default defineConfig({
     },
     {
       name: 'public',
-      testMatch: /(map-filter|no-horizontal-overflow)\.spec\.ts$/,
+      testMatch: /(map-filter|no-horizontal-overflow|bips-card)\.spec\.ts$/,
       use: { ...devices['Desktop Chrome'] },
       // no storageState — public routes
     },
