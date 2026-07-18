@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Coordinator BIP Builder
-status: executing
-stopped_at: "Phase 09 Plan 08 complete: seed.sql/seed.e2e.sql/seed-cloud-e2e.mjs populated with the four builder-completion fields, edit-target fixture pre-loaded with non-default values for Plan 09-09's round-trip specs, verify-seed.ts partner_only_ge_1 check added. FOUN-14 fully satisfied."
-last_updated: "2026-07-18T07:21:46.374Z"
+status: verifying
+stopped_at: "Phase 09 Plan 09 complete: full phase-gate E2E proof shipped -- create-path fields+timing enum, per-field edit->approve->persist live-row round trip (SUBM-14/anti-Pitfall-1), BROW-14 badge spec. Phase 9 (coordinator-bip-builder-completion) is now fully executed: 9/9 plans complete, all 30 requirements satisfied, full Playwright suite green (41 passed, 1 pre-existing local-only skip)."
+last_updated: "2026-07-18T07:43:28.839Z"
 last_activity: 2026-07-18
 progress:
   total_phases: 3
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 9
-  completed_plans: 8
-  percent: 89
+  completed_plans: 9
+  percent: 100
 ---
 
 # Project State
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-07-18 after v1.1 milestone)
 
 Phase: 09 (coordinator-bip-builder-completion) — EXECUTING
 Plan: 9 of 9
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-07-18
 
 ## Performance Metrics
@@ -69,6 +69,7 @@ Last activity: 2026-07-18
 | Phase 09-coordinator-bip-builder-completion P06 | 4min | 2 tasks | 2 files |
 | Phase 09-coordinator-bip-builder-completion P07 | 10min | 3 tasks | 4 files |
 | Phase 09-coordinator-bip-builder-completion P08 P08 | 12min | 3 tasks | 4 files |
+| Phase 09-coordinator-bip-builder-completion P09 P09 | 45min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -191,6 +192,8 @@ Recent decisions affecting current work:
 - [Phase 09-06]: adminUpdateBipAction updatePayload and bip-edits.ts buildContentPayload both extended with the four builder-completion fields (virtual_sessions_count, virtual_duration_notes, accommodation_notes, partner_institutions_only); buildContentPayload is the single helper feeding submitEditAction/resubmitEditAction/resubmitPendingBipAction, so one change propagates through all three coordinator edit write paths — both write halves of the propagation map now complete, sourced strictly from parsed.data (post fullBipSchema.safeParse)
 - [Phase 09-07]: lib/constants/bip-edit-columns.ts created exporting BIP_EDIT_CONTENT_COLUMNS; both admin-edit-bips.ts and bipEdits.ts import it directly at the .select() call site with old local const names removed entirely (not aliased) — satisfies FOUN-14's bip_edits column-consolidation half (seed-source-sync half remains open for Plan 09-08); buildMergePayload now copies all four builder-completion fields from bip_edits onto bips on approve, closing the anti-Pitfall-1 merge-drop gap for SUBM-14; BipEditDiffView FIELDS array extended with the four fields (Partner institutions only reuses fmtBool)
 - [Phase ?]: Plan 09-08: seed.sql populates virtual_sessions_count/virtual_duration_notes on 6 of 20 rows; e2e-edit-target-bip carries non-default values for all four builder-completion fields in lockstep across seed.e2e.sql and seed-cloud-e2e.mjs; verify-seed.ts gained partner_only_ge_1 distribution check. FOUN-14 fully satisfied (both halves: bip_edits column consolidation from 09-07 + seed sync from 09-08). Pre-existing verify-seed.ts date-drift failures (open/closed deadline distribution) logged to deferred-items.md, not fixed — unrelated to this plan's scope.
+- [Phase 09-09]: bips-card.spec.ts anchors on demo-seed partner-only BIPs, not e2e-edit-target-bip, to avoid a race with the edit round-trip test's true->false mutation
+- [Phase 09-09]: scripts/seed-cloud-e2e.mjs: baseBip now sets partner_institutions_only:false explicitly (NOT NULL column, PostgREST bulk insert treats an absent key as NULL not column default) -- fixes cloud fixture reseed for all non-edit-target BIPs
 
 ### Pending Todos
 
@@ -230,12 +233,13 @@ Items acknowledged and deferred at v1.1 milestone close on 2026-07-18:
 
 ## Session Continuity
 
-Last session: 2026-07-18T07:21:46.366Z
-Stopped at: Phase 09 Plan 08 complete: seed.sql/seed.e2e.sql/seed-cloud-e2e.mjs populated with the four builder-completion fields, edit-target fixture pre-loaded with non-default values for Plan 09-09's round-trip specs, verify-seed.ts partner_only_ge_1 check added. FOUN-14 fully satisfied.
+Last session: 2026-07-18T07:43:28.832Z
+Stopped at: Phase 09 Plan 09 complete: full phase-gate E2E proof shipped -- create-path fields+timing enum, per-field edit->approve->persist live-row round trip (SUBM-14/anti-Pitfall-1), BROW-14 badge spec. Phase 9 (coordinator-bip-builder-completion) is now fully executed: 9/9 plans complete, all 30 requirements satisfied, full Playwright suite green (41 passed, 1 pre-existing local-only skip).
 Resume file: None
-Resume instructions: Continue Phase 9 execution with Plan 09-08 (update all three seed sources + verify-seed for the four fields — completes FOUN-14's seed-source-sync half).
+Resume instructions: Phase 9 (coordinator-bip-builder-completion) is fully executed (9/9 plans). Run phase verification/close-out, then plan Phase 10 (BIP Detail Page).
 
 ## Operator Next Steps
 
-- Execute Plan 09-08 (update all three seed sources + verify-seed for the four fields; completes FOUN-14).
-- Phase 10 (Alert Subscriptions + Email Pipeline) can be planned before, after, or in parallel with Phase 9 — fully independent per research.
+- Run Phase 9 verification/close-out (all 9 plans complete, full Playwright suite green: 41 passed, 1 pre-existing local-only skip).
+- Plan Phase 10 (BIP Detail Page) — depends on Phase 9's finalized BipDetail type, now fully proven end-to-end.
+- Phase 11 (Alert Subscriptions + Email Pipeline) remains fully independent per research and can be planned in parallel.

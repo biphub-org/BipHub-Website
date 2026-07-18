@@ -61,7 +61,7 @@ Full phase details, success criteria, and per-plan breakdown: [milestones/v1.1-R
   - [x] 09-06-PLAN.md — Write paths: admin edit payload + coordinator edit-content builder carry the four fields
   - [x] 09-07-PLAN.md — bip_edits merge-on-approve + diff view + FOUN-14 shared column constant
   - [x] 09-08-PLAN.md — Update all three seed sources + verify-seed for the four fields (edit-target fixture)
-  - [ ] 09-09-PLAN.md — E2E: create-path fields, per-field edit→approve→persist read-back (D-08), `/bips` badge
+  - [x] 09-09-PLAN.md — E2E: create-path fields, per-field edit→approve→persist read-back (D-08), `/bips` badge
 **UI hint**: yes
 
 ### Phase 10: BIP Detail Page
