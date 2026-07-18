@@ -41,6 +41,7 @@ export type Database = {
     Tables: {
       bip_edits: {
         Row: {
+          accommodation_notes: string | null
           admin_note: string | null
           application_deadline: string | null
           bip_id: string
@@ -63,6 +64,7 @@ export type Database = {
           learning_outcomes: string | null
           max_participants: number | null
           partner_institutions: Json
+          partner_institutions_only: boolean | null
           physical_end_date: string | null
           physical_start_date: string | null
           status: string
@@ -71,9 +73,12 @@ export type Database = {
           title: string | null
           updated_at: string
           virtual_component_description: string | null
+          virtual_duration_notes: string | null
+          virtual_sessions_count: number | null
           virtual_timing: string | null
         }
         Insert: {
+          accommodation_notes?: string | null
           admin_note?: string | null
           application_deadline?: string | null
           bip_id: string
@@ -96,6 +101,7 @@ export type Database = {
           learning_outcomes?: string | null
           max_participants?: number | null
           partner_institutions?: Json
+          partner_institutions_only?: boolean | null
           physical_end_date?: string | null
           physical_start_date?: string | null
           status?: string
@@ -104,9 +110,12 @@ export type Database = {
           title?: string | null
           updated_at?: string
           virtual_component_description?: string | null
+          virtual_duration_notes?: string | null
+          virtual_sessions_count?: number | null
           virtual_timing?: string | null
         }
         Update: {
+          accommodation_notes?: string | null
           admin_note?: string | null
           application_deadline?: string | null
           bip_id?: string
@@ -129,6 +138,7 @@ export type Database = {
           learning_outcomes?: string | null
           max_participants?: number | null
           partner_institutions?: Json
+          partner_institutions_only?: boolean | null
           physical_end_date?: string | null
           physical_start_date?: string | null
           status?: string
@@ -137,6 +147,8 @@ export type Database = {
           title?: string | null
           updated_at?: string
           virtual_component_description?: string | null
+          virtual_duration_notes?: string | null
+          virtual_sessions_count?: number | null
           virtual_timing?: string | null
         }
         Relationships: [
