@@ -130,6 +130,19 @@ test.describe('submission wizard', () => {
       .fill(
         'Four online lectures (90 min each) across the 4 weeks before physical mobility plus a group project handover.',
       )
+    // virtual_timing: exercise a non-'before' option to prove the corrected
+    // 5-value DB CHECK enum accepts a value other than the wizard default
+    // (SUBM-12 — the removed 'concurrent' value used to silently fail here).
+    await page
+      .getByLabel(/when does the virtual component run/i)
+      .selectOption('mixed')
+    // virtual_sessions_count / virtual_duration_notes — new Step 2 fields (SUBM-09/10).
+    await page.getByLabel(/virtual sessions count/i).fill('4')
+    await page
+      .getByLabel(/session duration.*schedule notes/i)
+      .fill(
+        'Four 90-minute sessions, one per week, spread across the month before physical mobility.',
+      )
     await page.getByLabel(/host city/i).fill('Munich')
     // Future-relative dates. application_deadline strictly before physical_start;
     // physical_end after physical_start.
@@ -137,7 +150,8 @@ test.describe('submission wizard', () => {
     await page.getByLabel(/physical end date/i).fill(addDays(100))
     await page.getByLabel(/application deadline/i).fill(addDays(60))
     await page.getByLabel(/ects credits/i).fill('4')
-    await page.getByLabel(/max participants/i).fill('20')
+    // max_participants: exercise the new floor of 10 (SUBM-13 — DB/domain minimum).
+    await page.getByLabel(/max participants/i).fill('10')
     // study_levels: at least one checkbox. getByRole('checkbox') — getByLabel
     // also matches the hidden native <input> Base UI renders alongside.
     await page.getByRole('checkbox', { name: /bachelor/i }).check()
@@ -158,6 +172,17 @@ test.describe('submission wizard', () => {
     await page.getByPlaceholder(/universidade do porto/i).fill('TU Wien')
     await page.locator('select').selectOption('AT')
     await page.getByRole('button', { name: /add as unverified/i }).click()
+    // partner_institutions_only: tick the create-path checkbox (SUBM-11).
+    const partnerOnlyCheckbox = page.getByRole('checkbox', {
+      name: /open only to partner-institution students/i,
+    })
+    try {
+      await partnerOnlyCheckbox.check()
+    } catch {
+      await page
+        .getByText(/open only to partner-institution students/i)
+        .click()
+    }
     await advance(page, 3)
 
     // ----- Step 4: Application info -----
@@ -167,6 +192,12 @@ test.describe('submission wizard', () => {
     await page
       .getByRole('textbox', { name: /application url/i })
       .fill('https://tum.example/bips/renewable-alps')
+    // accommodation_notes: optional Step 4 field exercised for create-path coverage (SUBM-10).
+    await page
+      .getByLabel(/accommodation notes/i)
+      .fill(
+        'Shared university dormitory rooms available at approx. 25 EUR/night; booking link sent after acceptance.',
+      )
     await advance(page, 4)
 
     // ----- Step 5: Preview + Submit -----
