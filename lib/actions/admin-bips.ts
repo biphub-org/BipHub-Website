@@ -382,6 +382,10 @@ export async function adminUpdateBipAction(
         : (parsed.data.contact_email ?? null),
     contact_name: parsed.data.contact_name || null,
     contact_email: parsed.data.contact_email || null,
+    virtual_sessions_count: parsed.data.virtual_sessions_count ?? null,
+    virtual_duration_notes: parsed.data.virtual_duration_notes || null,
+    accommodation_notes: parsed.data.accommodation_notes || null,
+    partner_institutions_only: parsed.data.partner_institutions_only ?? false,
     updated_at: new Date().toISOString(),
     // NOTE: status and slug are intentionally omitted (D-18, T-03-16).
   }
