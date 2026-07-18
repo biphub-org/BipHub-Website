@@ -52,6 +52,10 @@ function buildContentPayload(data: {
   how_to_apply_url?: string
   contact_name?: string
   contact_email?: string
+  virtual_sessions_count?: number
+  virtual_duration_notes?: string
+  accommodation_notes?: string
+  partner_institutions_only?: boolean
 }) {
   return {
     title: data.title,
@@ -84,6 +88,10 @@ function buildContentPayload(data: {
         : (data.contact_email ?? null),
     contact_name: data.contact_name || null,
     contact_email: data.contact_email || null,
+    virtual_sessions_count: data.virtual_sessions_count ?? null,
+    virtual_duration_notes: data.virtual_duration_notes || null,
+    accommodation_notes: data.accommodation_notes || null,
+    partner_institutions_only: data.partner_institutions_only ?? false,
     // NOTE: slug intentionally omitted (D-10 / EDIT-09)
   }
 }
