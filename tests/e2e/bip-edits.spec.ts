@@ -116,6 +116,11 @@ async function driveEditWizardToStep5(
     await titleInput.clear()
     await titleInput.fill(newTitle)
   }
+  // external_bip_id + target_group are required on Step 1 (v1.2 field revision).
+  // The seeded edit-target BIP predates these columns (null), so fill them to
+  // satisfy step1Schema before advancing.
+  await page.getByLabel(/^bip id$/i).fill('BIP-E2E-EDIT-0001')
+  await page.getByLabel(/target group/i).selectOption('students_staff')
   await page.getByRole('button', { name: /save.*continue/i }).click()
 
   await expect(page.getByText(/step\s*2\s*of\s*5/i)).toBeVisible({ timeout: 10_000 })
@@ -350,6 +355,10 @@ test.describe('bip edit flow', () => {
         await expect(coordPage.getByText(/step\s*1\s*of\s*5/i)).toBeVisible({
           timeout: 10_000,
         })
+        // Step 1 requires external_bip_id + target_group (v1.2 field revision);
+        // the seeded BIP predates these columns, so fill them before advancing.
+        await coordPage.getByLabel(/^bip id$/i).fill('BIP-E2E-EDIT-0001')
+        await coordPage.getByLabel(/target group/i).selectOption('students_staff')
         await coordPage.getByRole('button', { name: /save.*continue/i }).click()
 
         // ----- Step 2: virtual_session_date -----
