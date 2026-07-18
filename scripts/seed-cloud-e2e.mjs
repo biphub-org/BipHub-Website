@@ -148,6 +148,13 @@ async function main() {
     language_level_min: 'B2',
     green_travel: false,
     inclusion_support: false,
+    // NOT NULL DEFAULT false (migration 00003) — PostgREST's bulk JSON->row
+    // insert treats a key ABSENT from one object in a heterogeneous batch as
+    // an explicit NULL for that row, not "use the column default". Every
+    // fixture must therefore set this explicitly; the edit-target-bip entry
+    // below overrides it to `true`. (Rule 3 fix — this NOT NULL violation
+    // blocked the entire cloud fixture seed, discovered running Plan 09-09.)
+    partner_institutions_only: false,
     contact_name: 'E2E Coordinator',
     contact_email: 'e2e-coordinator@biphub.test',
     how_to_apply_type: 'url',

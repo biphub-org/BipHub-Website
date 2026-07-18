@@ -311,6 +311,163 @@ test.describe('bip edit flow', () => {
   })
 
   /**
+   * SUBM-14 (anti-Pitfall-1, D-08) — per-field edit->approve->persist round
+   * trip for the four builder-completion fields (Plan 09-09).
+   *
+   * Grep key: "field round trip"
+   *
+   * Drives the edit wizard changing ALL FOUR builder-completion fields —
+   * virtual_sessions_count, virtual_duration_notes, accommodation_notes,
+   * partner_institutions_only — to NEW values distinct from the seeded
+   * e2e-edit-target-bip fixture (supabase/seed.e2e.sql, Plan 09-08), submits
+   * the edit, has the admin approve it, then reads the LIVE `bips` row back
+   * via the service-role REST pattern and asserts each field's post-approve
+   * value individually. This is the binding SUBM-14 proof — NOT a wizard
+   * preview or diff-view render check, per the plan's <critical> block.
+   *
+   * Runs immediately after "admin approves edit" above (State A: no open
+   * edit) and ends by approving its own edit (State A again), so the
+   * "admin rejects edit" test below still finds the BIP in the expected
+   * clean state.
+   */
+  test(
+    'per-field edit round-trip persists on the live bips row — field round trip',
+    async ({ browser, page }) => {
+      const NEW_VIRTUAL_SESSIONS_COUNT = 8
+      const NEW_VIRTUAL_DURATION_NOTES =
+        'Eight 45-minute micro-sessions, twice weekly, spread across the month before mobility.'
+      const NEW_ACCOMMODATION_NOTES =
+        'Partner hostel block-booked at a discounted group rate; confirmation emailed after acceptance.'
+      // Seeded fixture value is `true` — flip to `false` to prove the merge
+      // actually applied the NEW value, not just left the seed value in place.
+      const NEW_PARTNER_INSTITUTIONS_ONLY = false
+
+      // Step 1: coordinator drives the edit wizard, changing all four fields.
+      const coordCtx = await browser.newContext({
+        storageState: 'tests/e2e/fixtures/storageState.coordinator.json',
+      })
+      const coordPage = await coordCtx.newPage()
+      try {
+        await coordPage.goto(`/dashboard/bips/${E2E_BIP_ID}/edit`)
+        await expect(coordPage.getByText(/step\s*1\s*of\s*5/i)).toBeVisible({
+          timeout: 10_000,
+        })
+        await coordPage.getByRole('button', { name: /save.*continue/i }).click()
+
+        // ----- Step 2: virtual_sessions_count, virtual_duration_notes -----
+        await expect(coordPage.getByText(/step\s*2\s*of\s*5/i)).toBeVisible({
+          timeout: 10_000,
+        })
+        await coordPage
+          .getByLabel(/virtual sessions count/i)
+          .fill(String(NEW_VIRTUAL_SESSIONS_COUNT))
+        await coordPage
+          .getByLabel(/session duration.*schedule notes/i)
+          .fill(NEW_VIRTUAL_DURATION_NOTES)
+        await coordPage.getByRole('button', { name: /save.*continue/i }).click()
+
+        // ----- Step 3: partner_institutions_only -----
+        await expect(coordPage.getByText(/step\s*3\s*of\s*5/i)).toBeVisible({
+          timeout: 10_000,
+        })
+        const partnerOnlyCheckbox = coordPage.getByRole('checkbox', {
+          name: /open only to partner-institution students/i,
+        })
+        // Seed value is true — assert the prefilled state, then uncheck it.
+        await expect(partnerOnlyCheckbox).toBeChecked()
+        try {
+          await partnerOnlyCheckbox.uncheck()
+        } catch {
+          await coordPage
+            .getByText(/open only to partner-institution students/i)
+            .click()
+        }
+        await expect(partnerOnlyCheckbox).not.toBeChecked()
+        await coordPage.getByRole('button', { name: /save.*continue/i }).click()
+
+        // ----- Step 4: accommodation_notes -----
+        await expect(coordPage.getByText(/step\s*4\s*of\s*5/i)).toBeVisible({
+          timeout: 10_000,
+        })
+        await coordPage
+          .getByLabel(/accommodation notes/i)
+          .fill(NEW_ACCOMMODATION_NOTES)
+        await coordPage.getByRole('button', { name: /save.*continue/i }).click()
+
+        // ----- Step 5: submit the edit -----
+        await expect(coordPage.getByText(/step\s*5\s*of\s*5/i)).toBeVisible({
+          timeout: 10_000,
+        })
+        await expect(
+          coordPage.getByRole('button', { name: /submit edit for review/i }),
+        ).toBeVisible({ timeout: 10_000 })
+        await coordPage
+          .getByRole('button', { name: /submit edit for review/i })
+          .click()
+        await expect(
+          coordPage.getByRole('button', { name: /edit in review/i }),
+        ).toBeVisible({ timeout: 10_000 })
+
+        // EDIT-08: audit row for submit_edit
+        await assertAuditRow(coordPage, 'submit_edit')
+      } finally {
+        await coordCtx.close()
+      }
+
+      // Step 2: admin approves the edit.
+      await page.goto('/admin')
+      const editCard = page.locator('article').filter({ hasText: /\bEdit\b/i })
+      await editCard.getByRole('link', { name: /review/i }).click()
+      await expect(page).toHaveURL(/\/admin\/bip-edits\/.+\/review/, {
+        timeout: 10_000,
+      })
+      await page.getByRole('button', { name: /^approve edit$/i }).click()
+      await page.waitForURL(/\/admin\/?(?:\?.*)?$/, { timeout: 15_000 })
+
+      // EDIT-08: audit row for approve_edit
+      await assertAuditRow(page, 'approve_edit')
+
+      // Step 3 (D-08 / anti-Pitfall-1): read the LIVE `bips` row back via the
+      // service-role REST pattern and assert each field's post-approve value
+      // individually — NOT a wizard/diff render check.
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+      const resp = await page.request.get(
+        `${supabaseUrl}/rest/v1/bips?id=eq.${E2E_BIP_ID}` +
+          '&select=virtual_sessions_count,virtual_duration_notes,accommodation_notes,partner_institutions_only',
+        {
+          headers: {
+            apikey: serviceRoleKey,
+            Authorization: `Bearer ${serviceRoleKey}`,
+          },
+        },
+      )
+      expect(resp.ok()).toBeTruthy()
+      const rows = await resp.json()
+      expect(rows.length, 'Expected the live bips row to exist').toBe(1)
+      const liveRow = rows[0]
+
+      // One assertion per field — the binding SUBM-14 proof.
+      expect(
+        liveRow.virtual_sessions_count,
+        'virtual_sessions_count did not persist on the live bips row',
+      ).toBe(NEW_VIRTUAL_SESSIONS_COUNT)
+      expect(
+        liveRow.virtual_duration_notes,
+        'virtual_duration_notes did not persist on the live bips row',
+      ).toBe(NEW_VIRTUAL_DURATION_NOTES)
+      expect(
+        liveRow.accommodation_notes,
+        'accommodation_notes did not persist on the live bips row',
+      ).toBe(NEW_ACCOMMODATION_NOTES)
+      expect(
+        liveRow.partner_institutions_only,
+        'partner_institutions_only did not persist on the live bips row',
+      ).toBe(NEW_PARTNER_INSTITUTIONS_ONLY)
+    },
+  )
+
+  /**
    * EDIT-05 — admin rejects the edit; the live BIP content remains unchanged.
    *
    * Grep key: "reject edit"
