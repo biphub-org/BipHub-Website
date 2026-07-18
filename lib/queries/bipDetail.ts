@@ -20,6 +20,8 @@ export type BipDetail = {
   learning_outcomes: string | null
   virtual_component_description: string | null
   virtual_timing: string | null
+  virtual_sessions_count: number | null
+  virtual_duration_notes: string | null
   physical_start_date: string | null
   physical_end_date: string | null
   host_city: string | null
@@ -39,6 +41,8 @@ export type BipDetail = {
   status: string
   created_at: string
   subject_areas: string[]
+  accommodation_notes: string | null
+  partner_institutions_only: boolean | null
   host_university: {
     id: string
     name: string
@@ -74,12 +78,14 @@ export async function getBipBySlug(slug: string): Promise<BipDetail | null> {
     .select(`
       id, slug, title, description, learning_outcomes,
       virtual_component_description, virtual_timing,
+      virtual_sessions_count, virtual_duration_notes,
       physical_start_date, physical_end_date, host_city,
       ects_credits, language_of_instruction, language_level_min,
       study_levels, eligibility_notes,
       how_to_apply_type, how_to_apply_value,
       contact_name, contact_email, application_deadline,
       green_travel, inclusion_support, is_seed, status, created_at, subject_areas,
+      accommodation_notes, partner_institutions_only,
       host_university:universities!host_university_id(id, name, country, city, erasmus_code),
       partners:bip_partner_universities(
         id, partner_name_raw, partner_country_raw, partner_erasmus_code_raw, university_id,
@@ -125,12 +131,14 @@ export async function getBipById(id: string): Promise<BipDetail | null> {
     .select(`
       id, slug, title, description, learning_outcomes,
       virtual_component_description, virtual_timing,
+      virtual_sessions_count, virtual_duration_notes,
       physical_start_date, physical_end_date, host_city,
       ects_credits, language_of_instruction, language_level_min,
       study_levels, eligibility_notes,
       how_to_apply_type, how_to_apply_value,
       contact_name, contact_email, application_deadline,
       green_travel, inclusion_support, is_seed, status, created_at, subject_areas,
+      accommodation_notes, partner_institutions_only,
       host_university:universities!host_university_id(id, name, country, city, erasmus_code),
       partners:bip_partner_universities(
         id, partner_name_raw, partner_country_raw, partner_erasmus_code_raw, university_id,
