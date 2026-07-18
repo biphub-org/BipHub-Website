@@ -92,7 +92,7 @@ export function WizardStep5Preview({ hostUniversity }: Props) {
 
       {/* Two-column layout matching public detail page (Phase 1 Plan 01-07). */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6">
-        <div>
+        <div className="min-w-0">
           <BipBody bip={previewBip} />
         </div>
         <BipSidebar bip={previewBip} />

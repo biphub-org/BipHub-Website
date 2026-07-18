@@ -58,7 +58,7 @@ export function BipBody({ bip }: { bip: BipDetail }) {
       : bip.physical_start_date ?? null
 
   return (
-    <div className="divide-y divide-border">
+    <div className="divide-y divide-border break-words">
 
       {/* 1. About this programme */}
       {bip.description && (
