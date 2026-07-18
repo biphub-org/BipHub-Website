@@ -21,6 +21,7 @@ import { useState } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Checkbox } from '@/components/ui/checkbox'
 import { UniversityCombobox } from '@/components/dashboard/UniversityCombobox'
 import { useBipDraft, type Step3PartnerDraft } from '@/lib/store/bip-draft'
 import { step3Schema, type Step3Values } from '@/lib/schemas/bip-wizard'
@@ -43,6 +44,9 @@ export function WizardStep3Partners({
 
   const [partners, setPartners] = useState<Step3PartnerDraft[]>(
     draft.partner_universities ?? [],
+  )
+  const [partnerOnly, setPartnerOnly] = useState<boolean>(
+    draft.partner_institutions_only ?? false,
   )
   const [pickerKey, setPickerKey] = useState(0) // remount UniversityCombobox after add
   const [freeName, setFreeName] = useState('')
@@ -106,7 +110,10 @@ export function WizardStep3Partners({
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    const result = step3Schema.safeParse({ partner_universities: partners })
+    const result = step3Schema.safeParse({
+      partner_universities: partners,
+      partner_institutions_only: partnerOnly,
+    })
     if (!result.success) {
       setError(result.error.issues[0]?.message ?? 'Invalid partner list.')
       return
@@ -223,6 +230,24 @@ export function WizardStep3Partners({
           </ul>
         </div>
       )}
+
+      <label className="flex items-start gap-3 rounded-md border border-border bg-white px-4 py-3 text-sm text-ink">
+        <Checkbox
+          checked={partnerOnly}
+          onCheckedChange={(next) => {
+            const boolNext = Boolean(next)
+            setPartnerOnly(boolNext)
+            mergeDraft({ partner_institutions_only: boolNext })
+          }}
+        />
+        <span>
+          <span className="font-medium">Open only to partner-institution students</span>
+          <span className="mt-1 block text-xs text-muted">
+            Restrict this BIP to students from the host and partner universities listed above,
+            rather than any Erasmus-eligible student.
+          </span>
+        </span>
+      </label>
     </form>
   )
 }
