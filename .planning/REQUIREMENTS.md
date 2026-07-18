@@ -61,7 +61,7 @@ These are research-flagged choices baked into the draft as recommended defaults 
 1. **Digest cadence default** — draft locks **weekly default, daily opt-in** (ALRT-02), matching the low-frequency student audience.
 2. **Subscription cap** — draft locks **5** (ALRT-09), enforced in the Server Action (not a CHECK constraint).
 3. **`bip_alert_deliveries.user_id` post-erasure** — `ON DELETE CASCADE` (simple, loses delivery audit) vs `SET NULL` (retains anonymized idempotency history). Draft assumes **CASCADE** via FOUN-12; flip if audit retention matters.
-4. **Delivery idempotency write** — reserve-then-send vs write-after-confirmed-send (STACK.md and ARCHITECTURE.md differ). A Phase-B planning detail; the unique `(bip_id, user_id)` constraint holds either way.
+4. **Delivery idempotency write** — reserve-then-send vs write-after-confirmed-send (STACK.md and ARCHITECTURE.md differ). A Phase 10 planning detail; the unique `(bip_id, user_id)` constraint holds either way.
 5. **`partner_institutions_only` as a browse *filter*** (not just a badge) — deferred to Future (differentiator) unless you want it in scope now.
 
 ## Future Requirements
@@ -92,18 +92,39 @@ Locked anti-features — do not re-litigate during planning (all confirmed by re
 
 ## Traceability
 
-Provisional mapping — the roadmapper finalizes. Phase numbering continues from v1.1 (last phase 8).
+Finalized by the roadmapper against `.planning/ROADMAP.md`. Phase numbering continues from v1.1 (last phase 8) — v1.2 starts at Phase 9.
 
-| Requirement | Phase (provisional) | Status |
-|-------------|--------------------|--------|
-| SUBM-09..14 | Phase 9 — Builder Completion + Detail Page | Pending |
-| DETL-11..16 | Phase 9 | Pending |
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| SUBM-09 | Phase 9 — Coordinator BIP Builder Completion + BIP Detail Page | Pending |
+| SUBM-10 | Phase 9 | Pending |
+| SUBM-11 | Phase 9 | Pending |
+| SUBM-12 | Phase 9 | Pending |
+| SUBM-13 | Phase 9 | Pending |
+| SUBM-14 | Phase 9 | Pending |
+| DETL-11 | Phase 9 | Pending |
+| DETL-12 | Phase 9 | Pending |
+| DETL-13 | Phase 9 | Pending |
+| DETL-14 | Phase 9 | Pending |
+| DETL-15 | Phase 9 | Pending |
+| DETL-16 | Phase 9 | Pending |
 | BROW-14 | Phase 9 | Pending |
-| ALRT-01..09 | Phase 10 — Alert Subscriptions + Email Pipeline | Pending |
-| FOUN-11..13 | Phase 10 | Pending |
 | FOUN-14 | Phase 9 | Pending |
+| ALRT-01 | Phase 10 — Alert Subscriptions + Email Pipeline | Pending |
+| ALRT-02 | Phase 10 | Pending |
+| ALRT-03 | Phase 10 | Pending |
+| ALRT-04 | Phase 10 | Pending |
+| ALRT-05 | Phase 10 | Pending |
+| ALRT-06 | Phase 10 | Pending |
+| ALRT-07 | Phase 10 | Pending |
+| ALRT-08 | Phase 10 | Pending |
+| ALRT-09 | Phase 10 | Pending |
+| FOUN-11 | Phase 10 | Pending |
+| FOUN-12 | Phase 10 | Pending |
+| FOUN-13 | Phase 10 | Pending |
 
-**Coverage (draft):** 30 v1.2 requirements — SUBM ×6, DETL ×6, BROW ×1, ALRT ×9, FOUN ×4. Provisionally 2 phases (9: builder+detail, 10: alerts). Builder+detail are a hard-ordered pair (detail depends on the finalized field set); alerts are independent.
+**Coverage:** 30/30 v1.2 requirements mapped, no orphans, no duplicates. **Phase 9** (14 requirements): SUBM-09..14, DETL-11..16, BROW-14, FOUN-14 — a hard-ordered pair (detail page depends on the finalized field set, confirmed mechanical by research, not a preference). **Phase 10** (16 requirements): ALRT-01..09, FOUN-11..13 — fully independent of Phase 9. Totals by category: SUBM ×6, DETL ×6, BROW ×1, ALRT ×9, FOUN ×4 (FOUN-14 in Phase 9; FOUN-11/12/13 in Phase 10).
 
 ---
 *Requirements defined: 2026-07-18 — scope confirmed (both phases); quality-revised (FOUN-11 RLS split, SUBM-13 group-size wording + backfill note, DETL-16 observable sections)*
+*Traceability finalized: 2026-07-18 — roadmap created, Phase 9 / Phase 10 mapping locked, 30/30 coverage validated*

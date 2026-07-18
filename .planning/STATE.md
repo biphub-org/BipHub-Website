@@ -6,7 +6,7 @@ status: planning
 last_updated: "2026-07-18T03:46:08.983Z"
 last_activity: 2026-07-18
 progress:
-  total_phases: 0
+  total_phases: 2
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-18 after v1.1 milestone)
 
 **Core value:** Students can reliably discover Erasmus+ BIPs by country, field of study, and dates, and universities can self-service list their BIPs through a fast, professional submission flow with admin review.
-**Current focus:** v1.2 — Coordinator BIP Builder (defining requirements)
+**Current focus:** v1.2 — Coordinator BIP Builder (roadmap created, ready for `/gsd-plan-phase 9`)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 9 of 10 (Coordinator BIP Builder Completion + BIP Detail Page) — not started
 Plan: —
-Status: Defining requirements
-Last activity: 2026-07-18 — Milestone v1.2 started
+Status: Roadmap created; awaiting phase planning
+Last activity: 2026-07-18 — v1.2 ROADMAP.md created (Phase 9 + Phase 10), REQUIREMENTS.md traceability finalized (30/30 coverage)
 
 ## Performance Metrics
 
@@ -37,15 +37,16 @@ Last activity: 2026-07-18 — Milestone v1.2 started
 - Average tasks per plan (v1.0): ~2.7
 - Total phases (v1.0): 4
 
-**By Phase (v1.1 — not started):**
+**By Phase (v1.2 — not started):**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 5 | TBD | - | - |
-| 6 | TBD | - | - |
-| 7 | TBD | - | - |
-| 8 | TBD | - | - |
-| 06 | 4 | - | - |
+| 5 | 4 | - | - |
+| 6 | 4 | - | - |
+| 7 | 0 (deferred to Phase 10) | - | - |
+| 8 | 9 | - | - |
+| 9 | TBD | - | - |
+| 10 | TBD | - | - |
 
 *Updated after each plan completion*
 | Phase 06-saved-bips-sync P02 | 593s | 3 tasks | 8 files |
@@ -167,6 +168,9 @@ Recent decisions affecting current work:
 - [Phase ?]: Plan 08-04: Two-query merge for getAdminPendingEdits (bip_edits + bips joined in-process); ADMIN_BIP_SELECT exported; openEdit on CoordinatorBipForEdit for approved/changes_requested BIPs
 - [Phase ?]: FieldDef accessor pattern for heterogeneous BipDetail vs BipDraftData comparison in BipEditDiffView
 - [Phase ?]: Literal EDIT_BADGE_CLASSES const for Tailwind v4 static scanner compliance per T-08-18
+- v1.2 Research/Roadmap: Phase 9 (builder completion + detail page) and Phase 10 (alerts, carried from v1.1 Phase 7) are the full v1.2 scope — 30/30 requirements mapped, no orphans. Phase 9 is a hard-ordered internal pair (builder before detail page — mechanical dependency on the finalized `BipDetail` type, not a preference); Phase 10 is fully independent and can be planned/executed in parallel with Phase 9.
+- v1.2 Roadmap: Phase 9 success criteria anchor on anti-Pitfall-1 (per-field E2E proving an approved edit round-trips to the live page, not just wizard/detail-page render) and the `virtual_timing` enum fix (no CHECK-constraint violation on any offered option).
+- v1.2 Roadmap: Phase 10 success criteria anchor on infrastructure-first verification (`pg_net` enabled + real `cron.job_run_details` firing confirmed BEFORE other work is considered done), idempotency via a dedicated `bips.approved_at` marker (never `updated_at`, which edit-merges bump), and no-login one-click unsubscribe.
 
 ### Pending Todos
 
@@ -178,8 +182,9 @@ None yet.
 - erasmusbip.org ToS: review before any seed scraping script is written; fallback is coordinator-outreach seed strategy
 - `@supabase/ssr` is `^0.x` beta — pin exact minor version; monitor changelog before upgrading
 - Zod v4 / `@hookform/resolvers` compatibility — recheck before Phase 2 starts
-- **v1.1 Phase 7 prerequisite:** confirm `pg_net` is enabled in `supabase/config.toml` before Phase 7 planning begins; local pg_cron cannot call a public URL — Edge Function must be invoked manually via `supabase functions serve` for end-to-end local testing
-- **v1.1 Phase 7:** Resend free tier ceiling is 100 emails/day — Phase 7 plan should document the upgrade trigger (Resend Starter $20/mo for 5K/day)
+- **Phase 10 prerequisite:** confirm `pg_net` is enabled in `supabase/config.toml` before Phase 10 planning locks scope — not currently present in the repo's config; local `pg_cron` cannot call a public URL — Edge Function must be invoked manually via `supabase functions serve` for end-to-end local testing
+- **Phase 10:** Resend free tier ceiling is 100 emails/day — Phase 10 plan should document the upgrade trigger (Resend Starter $20/mo for 5K/day)
+- **Phase 9:** two live data-integrity bugs must be fixed in the same pass as new Step 2 fields — `virtual_timing` wizard/DB enum mismatch (silent save failure on "concurrent") and `max_participants` wizard floor of 5 vs DB/domain minimum of 10 (check existing/seeded BIPs for sub-10 values before tightening)
 
 ## Deferred Items
 
@@ -201,15 +206,16 @@ Items acknowledged and deferred at v1.1 milestone close on 2026-07-18:
 | UAT | Phase 08 manual UAT (08-UAT.md): same Resend+ISR runtime sign-off | Carried to v1.2 | 2026-07-18 |
 | UAT | Phase 05 human-UAT (05-HUMAN-UAT.md): 1 pending scenario | Carried to v1.2 | 2026-07-18 |
 | Debug | bug-001-approved-edit debug session marked `awaiting_human_verify` — bug is RESOLVED (`9bcccc7`, KNOWN-BUGS.md); session file was never flipped to verified | Resolved; bookkeeping only | 2026-07-18 |
-| Feature | Phase 7 (Alert Subscriptions + Email Pipeline) not built — full scope moved to v1.2 roadmap | Moved to v1.2 | 2026-07-18 |
+| Feature | Phase 7 (Alert Subscriptions + Email Pipeline) not built — full scope moved to v1.2 roadmap as Phase 10 | Moved to v1.2 (Phase 10) | 2026-07-18 |
 
 ## Session Continuity
 
-Last session: 2026-06-26T12:20:34.348Z
-Stopped at: Phase 8 executed: 9/9 plans, build+unit green, verified 6/6, secured 26/26; manual UAT (Resend+ISR) deferred
-Resume file: .planning/phases/08-edit-approved-request-changes/08-UAT.md
-Resume instructions: Phase 5 complete (all 4 plans). Next: Phase 6 (saved BIPs / student value depth). Run /gsd-plan-phase 6 when ready.
+Last session: 2026-07-18T03:46:08.983Z
+Stopped at: v1.2 ROADMAP.md created (Phase 9: Coordinator BIP Builder Completion + BIP Detail Page; Phase 10: Alert Subscriptions + Email Pipeline). REQUIREMENTS.md traceability finalized, 30/30 coverage validated.
+Resume file: .planning/ROADMAP.md
+Resume instructions: Roadmap approved and files written. Next: `/gsd-plan-phase 9` to plan Coordinator BIP Builder Completion + BIP Detail Page.
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Run `/gsd-plan-phase 9` to create the plan for Phase 9 (Coordinator BIP Builder Completion + BIP Detail Page).
+- Phase 10 (Alert Subscriptions + Email Pipeline) can be planned before, after, or in parallel with Phase 9 — fully independent per research.
