@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Coordinator BIP Builder
 status: executing
-stopped_at: "Phase 09 Plan 04 complete: builder-completion fields wired into wizard UI (Step 2 virtual detail + 5-option timing + participant floor, Step 3 partner-only checkbox, Step 4 accommodation notes)."
-last_updated: "2026-07-18T09:55:09+03:00"
+stopped_at: "Phase 09 Plan 05 complete: BipDetail type + both detail select strings extended, coordinator edit pre-fill and wizard preview adapter propagate the four builder-completion fields."
+last_updated: "2026-07-18T07:03:40.558Z"
 last_activity: 2026-07-18
 progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 9
-  completed_plans: 4
-  percent: 44
+  completed_plans: 5
+  percent: 56
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-07-18 after v1.1 milestone)
 ## Current Position
 
 Phase: 09 (coordinator-bip-builder-completion) — EXECUTING
-Plan: 5 of 9
+Plan: 6 of 9
 Status: Ready to execute
 Last activity: 2026-07-18
 
@@ -65,6 +65,7 @@ Last activity: 2026-07-18
 | Phase 09-coordinator-bip-builder-completion P02 | 3min | 3 tasks | 4 files |
 | Phase 09 P03 | 180 | 2 tasks | 2 files |
 | Phase 09 P04 | 3min | 3 tasks | 3 files |
+| Phase 09-coordinator-bip-builder-completion P05 | 6min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -183,6 +184,7 @@ Recent decisions affecting current work:
 - [Phase 09-02]: max_participants floor raised from 5 to 10 on step2Schema and fullBipSchema (Erasmus+ minimum); DB CHECK deliberately left untouched per RESEARCH OQ1, Zod floor is the binding proof
 - [Phase ?]: Plan 09-03: Partner-only badge reuses the status-pending amber token (#b45309/#fffbeb) at top of card body; w-fit added as a static class for correct pill sizing
 - [Phase 09-04]: Step 3's step3Schema.safeParse in handleSubmit now includes partner_institutions_only alongside partner_universities so the on-continue payload and the mergeDraft-mirrored draft store stay consistent with each other
+- [Phase 09-05]: BipDetail fields added as required (nullable) keys, not optional, so tsc enforces every producer (both detail selects + wizardAdapter literal) supplies them — Prevents a silently-partial shape; anti-Pitfall-1 design
 
 ### Pending Todos
 
@@ -222,8 +224,8 @@ Items acknowledged and deferred at v1.1 milestone close on 2026-07-18:
 
 ## Session Continuity
 
-Last session: 2026-07-18T09:55:09+03:00
-Stopped at: Phase 09 Plan 04 complete: builder-completion fields wired into wizard UI (Step 2 virtual detail + 5-option timing + participant floor, Step 3 partner-only checkbox, Step 4 accommodation notes).
+Last session: 2026-07-18T07:03:40.552Z
+Stopped at: Phase 09 Plan 05 complete: BipDetail type + both detail select strings extended, coordinator edit pre-fill and wizard preview adapter propagate the four builder-completion fields.
 Resume file: None
 Resume instructions: Continue Phase 9 execution with Plan 09-05 (BipDetail type/query plumbing + coordinator edit pre-fill + wizard preview adapter).
 
