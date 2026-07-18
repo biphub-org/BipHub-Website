@@ -51,6 +51,7 @@ export function WizardStep4ApplicationInfo({ onContinue, onAutoSave }: Props) {
       how_to_apply_url: draft.how_to_apply_url ?? '',
       contact_name: draft.contact_name ?? '',
       contact_email: draft.contact_email ?? '',
+      accommodation_notes: draft.accommodation_notes ?? '',
     },
     mode: 'onBlur',
   })
@@ -124,6 +125,24 @@ export function WizardStep4ApplicationInfo({ onContinue, onAutoSave }: Props) {
                 <Textarea
                   rows={3}
                   placeholder="Any prerequisites, application requirements, or selection criteria."
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          name="accommodation_notes"
+          control={form.control}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Accommodation notes (optional)</FormLabel>
+              <FormControl>
+                <Textarea
+                  rows={3}
+                  placeholder="Housing, cost, or booking guidance for participants — leave blank if not offered."
                   {...field}
                 />
               </FormControl>
