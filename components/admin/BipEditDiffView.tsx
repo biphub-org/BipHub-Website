@@ -171,6 +171,28 @@ const FIELDS: FieldDef[] = [
     getProposed: (d) => d.virtual_timing ?? null,
   },
   {
+    label: 'Virtual sessions',
+    getLive: (b) =>
+      b.virtual_sessions_count != null ? String(b.virtual_sessions_count) : null,
+    getProposed: (d) =>
+      d.virtual_sessions_count != null ? String(d.virtual_sessions_count) : null,
+  },
+  {
+    label: 'Virtual duration',
+    getLive: (b) => b.virtual_duration_notes,
+    getProposed: (d) => d.virtual_duration_notes ?? null,
+  },
+  {
+    label: 'Accommodation',
+    getLive: (b) => b.accommodation_notes,
+    getProposed: (d) => d.accommodation_notes ?? null,
+  },
+  {
+    label: 'Partner institutions only',
+    getLive: (b) => fmtBool(b.partner_institutions_only),
+    getProposed: (d) => fmtBool(d.partner_institutions_only),
+  },
+  {
     label: 'Green travel',
     getLive: (b) => fmtBool(b.green_travel),
     getProposed: (d) => fmtBool(d.green_travel),
