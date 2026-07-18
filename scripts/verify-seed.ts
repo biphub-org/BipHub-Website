@@ -37,6 +37,7 @@ type Bip = {
   study_levels: string[] | null
   green_travel: boolean | null
   inclusion_support: boolean | null
+  partner_institutions_only: boolean | null
 }
 
 const checks: Array<{ name: string; pass: boolean; detail: string }> = []
@@ -48,7 +49,7 @@ async function main() {
   const { data: bips, error } = await supabase
     .from('bips')
     .select(
-      'slug, status, is_seed, subject_areas, language_of_instruction, application_deadline, host_university_id, study_levels, green_travel, inclusion_support',
+      'slug, status, is_seed, subject_areas, language_of_instruction, application_deadline, host_university_id, study_levels, green_travel, inclusion_support, partner_institutions_only',
     )
     .eq('is_seed', true)
     .returns<Bip[]>()
@@ -150,6 +151,12 @@ async function main() {
   // 8. Inclusion support ~30% (5-7 acceptable)
   const inclusion = bips.filter((b) => b.inclusion_support === true).length
   check('inclusion_support_5_to_7', inclusion >= 5 && inclusion <= 7, `${inclusion} BIPs`)
+
+  // 9. Partner-institutions-only distribution (FOUN-14 / Plan 09-08): at least
+  // one seeded BIP flagged partner-institutions-only, mirroring the
+  // green_travel/inclusion_support distribution checks above.
+  const partnerOnly = bips.filter((b) => b.partner_institutions_only === true).length
+  check('partner_only_ge_1', partnerOnly >= 1, `${partnerOnly} BIPs`)
 
   // Render results
   let allPass = true
