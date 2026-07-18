@@ -13,9 +13,9 @@ Each maps to a roadmap phase. REQ-IDs continue existing category numbering.
 
 *Wire the BIP data model fully end-to-end. Four columns already exist in the DB but reach no UI; two live validation bugs ride alongside.*
 
-- [ ] **SUBM-09**: A coordinator can record the BIP's virtual-component detail — number of online sessions and free-text duration/schedule notes — in the builder *(wires `virtual_sessions_count`, `virtual_duration_notes`)*
-- [ ] **SUBM-10**: A coordinator can mark a BIP as open only to students from its listed partner institutions *(wires `partner_institutions_only`)*
-- [ ] **SUBM-11**: A coordinator can add accommodation / practical-information notes for prospective students *(wires `accommodation_notes`)*
+- [x] **SUBM-09**: A coordinator can record the BIP's virtual-component detail — number of online sessions and free-text duration/schedule notes — in the builder *(wires `virtual_sessions_count`, `virtual_duration_notes`)*
+- [x] **SUBM-10**: A coordinator can mark a BIP as open only to students from its listed partner institutions *(wires `partner_institutions_only`)*
+- [x] **SUBM-11**: A coordinator can add accommodation / practical-information notes for prospective students *(wires `accommodation_notes`)*
 - [ ] **SUBM-12**: Every virtual-timing option the builder offers saves successfully — no selectable option violates the database CHECK constraint *(fixes the live `virtual_timing` enum mismatch)*
 - [ ] **SUBM-13**: The builder enforces the Erasmus+ minimum group size of 10 on the participant-count field, consistent with the database *(fixes the `max_participants` wizard floor of 5; planning must check existing/seeded BIPs for values below 10 before tightening)*
 - [ ] **SUBM-14**: Any field a coordinator enters in the builder round-trips through the edit-and-re-review flow — an approved edit to that field appears on the live BIP, with no field silently dropped at merge *(anti-Pitfall-1: seven-layer propagation, enforced by per-field E2E)*
@@ -96,9 +96,9 @@ Finalized by the roadmapper against `.planning/ROADMAP.md`. Phase numbering cont
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SUBM-09 | Phase 9 — Coordinator BIP Builder Completion | Pending |
-| SUBM-10 | Phase 9 | Pending |
-| SUBM-11 | Phase 9 | Pending |
+| SUBM-09 | Phase 9 — Coordinator BIP Builder Completion | Complete |
+| SUBM-10 | Phase 9 | Complete |
+| SUBM-11 | Phase 9 | Complete |
 | SUBM-12 | Phase 9 | Pending |
 | SUBM-13 | Phase 9 | Pending |
 | SUBM-14 | Phase 9 | Pending |

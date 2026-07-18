@@ -53,7 +53,7 @@ Full phase details, success criteria, and per-plan breakdown: [milestones/v1.1-R
   4. A student browsing `/bips` sees a badge on cards for BIPs open only to partner institutions — noticeable but not alarming (BROW-14)
   5. All three seed sources (`seed.sql`, `seed.e2e.sql`, `seed-cloud-e2e.mjs`) are updated for every new field, with the previously-duplicated `bip_edits` column-list literal consolidated into one shared constant (FOUN-14)
 **Plans**: 9 plans
-  - [ ] 09-01-PLAN.md — Add the four builder-completion columns to `bip_edits` (migration) + [BLOCKING] cloud push + type regen
+  - [x] 09-01-PLAN.md — Add the four builder-completion columns to `bip_edits` (migration) + [BLOCKING] cloud push + type regen
   - [ ] 09-02-PLAN.md — Fix virtual_timing/participant bugs + consolidate create path onto fullBipSchema + extend schema/draft store (unit tests)
   - [ ] 09-03-PLAN.md — BROW-14 partner-only amber badge on `/bips` cards + listing query column
   - [ ] 09-04-PLAN.md — Wizard UI: virtual detail (Step 2), partner-only checkbox (Step 3), accommodation notes (Step 4)

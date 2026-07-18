@@ -2,15 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Coordinator BIP Builder
-status: planning
-last_updated: "2026-07-18T03:46:08.983Z"
+status: executing
+stopped_at: "Phase 09 Plan 01 complete: bip_edits builder-completion migration pushed to cloud, types regenerated, tsc green."
+last_updated: "2026-07-18T06:39:35.415Z"
 last_activity: 2026-07-18
 progress:
   total_phases: 3
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_plans: 9
+  completed_plans: 1
+  percent: 11
 ---
 
 # Project State
@@ -20,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-18 after v1.1 milestone)
 
 **Core value:** Students can reliably discover Erasmus+ BIPs by country, field of study, and dates, and universities can self-service list their BIPs through a fast, professional submission flow with admin review.
-**Current focus:** v1.2 — Coordinator BIP Builder (roadmap created, ready for `/gsd-plan-phase 9`)
+**Current focus:** Phase 09 — coordinator-bip-builder-completion
 
 ## Current Position
 
-Phase: 9 of 11 (Coordinator BIP Builder Completion) — context gathered, awaiting plan
-Plan: —
-Status: Phase 9 context gathered; ready for /gsd-plan-phase 9
-Last activity: 2026-07-18 — split v1.2 detail page into its own phase (9 builder / 10 detail / 11 alerts); Phase 9 discussion complete
+Phase: 09 (coordinator-bip-builder-completion) — EXECUTING
+Plan: 2 of 9
+Status: Ready to execute
+Last activity: 2026-07-18
 
 ## Performance Metrics
 
@@ -60,6 +61,7 @@ Last activity: 2026-07-18 — split v1.2 detail page into its own phase (9 build
 | Phase 08 P06 | 229 | 2 tasks | 4 files |
 | Phase 08-edit-approved-request-changes P07 | 208 | 2 tasks | 4 files |
 | Phase 08-edit-approved-request-changes P08 | 496 | 2 tasks | 4 files |
+| Phase 09-coordinator-bip-builder-completion P01 | 9min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -172,6 +174,7 @@ Recent decisions affecting current work:
 - v1.2 Research/Roadmap: Phase 9 (builder completion + detail page) and Phase 10 (alerts, carried from v1.1 Phase 7) are the full v1.2 scope — 30/30 requirements mapped, no orphans. Phase 9 is a hard-ordered internal pair (builder before detail page — mechanical dependency on the finalized `BipDetail` type, not a preference); Phase 10 is fully independent and can be planned/executed in parallel with Phase 9.
 - v1.2 Roadmap: Phase 9 success criteria anchor on anti-Pitfall-1 (per-field E2E proving an approved edit round-trips to the live page, not just wizard/detail-page render) and the `virtual_timing` enum fix (no CHECK-constraint violation on any offered option).
 - v1.2 Roadmap: Phase 10 success criteria anchor on infrastructure-first verification (`pg_net` enabled + real `cron.job_run_details` firing confirmed BEFORE other work is considered done), idempotency via a dedicated `bips.approved_at` marker (never `updated_at`, which edit-merges bump), and no-login one-click unsubscribe.
+- [Phase ?]: Plan 09-01: bip_edits column additions always mirror bips schema state; nullable/no-default/no-CHECK content columns validated by Zod at submit boundary, not Postgres — Follows exact 00020 additive pattern; regenerated types via supabase gen types --linked (not npm run db:types --local) to avoid the false-positive trap where local generation type-checks clean without reflecting the pushed cloud schema
 
 ### Pending Todos
 
@@ -211,9 +214,9 @@ Items acknowledged and deferred at v1.1 milestone close on 2026-07-18:
 
 ## Session Continuity
 
-Last session: 2026-07-18T03:46:08.983Z
-Stopped at: v1.2 ROADMAP.md created (Phase 9: Coordinator BIP Builder Completion + BIP Detail Page; Phase 10: Alert Subscriptions + Email Pipeline). REQUIREMENTS.md traceability finalized, 30/30 coverage validated.
-Resume file: .planning/ROADMAP.md
+Last session: 2026-07-18T06:39:35.407Z
+Stopped at: Phase 09 Plan 01 complete: bip_edits builder-completion migration pushed to cloud, types regenerated, tsc green.
+Resume file: .planning/phases/09-coordinator-bip-builder-completion/09-01-SUMMARY.md
 Resume instructions: Roadmap approved and files written. Next: `/gsd-plan-phase 9` to plan Coordinator BIP Builder Completion + BIP Detail Page.
 
 ## Operator Next Steps
