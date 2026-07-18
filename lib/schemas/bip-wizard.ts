@@ -37,7 +37,10 @@ export type Step1Values = z.infer<typeof step1Schema>
 
 // Step 2 — Programme details (UI-SPEC line 274-285).
 const STUDY_LEVELS = ['bachelor', 'master', 'phd'] as const
-const VIRTUAL_TIMINGS = ['before', 'after', 'concurrent'] as const
+// Matches supabase/migrations/00003_bips_full_schema.sql virtual_timing CHECK
+// exactly (SUBM-12). The legacy 'concurrent' value silently failed the DB
+// CHECK on save and must never reappear here.
+const VIRTUAL_TIMINGS = ['before', 'during', 'after', 'before_and_after', 'mixed'] as const
 const LANGUAGE_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'none'] as const
 
 export const step2Schema = z
@@ -64,7 +67,7 @@ export const step2Schema = z
     max_participants: z.coerce
       .number()
       .int()
-      .min(5, 'A BIP needs at least 5 participants.')
+      .min(10, 'A BIP needs at least 10 participants.')
       .max(20, 'A BIP can have at most 20 participants.'),
     study_levels: z
       .array(z.enum(STUDY_LEVELS))
@@ -77,6 +80,8 @@ export const step2Schema = z
     language_level_min: z.enum(LANGUAGE_LEVELS, {
       errorMap: () => ({ message: 'Pick a minimum CEFR level.' }),
     }),
+    virtual_sessions_count: z.coerce.number().int().min(0).max(50).optional(),
+    virtual_duration_notes: z.string().trim().max(500).optional().or(z.literal('')),
   })
   .refine((data) => data.physical_start_date < data.physical_end_date, {
     message: 'Physical end date must be after the start date.',
@@ -101,6 +106,7 @@ export type Step3Partner = z.infer<typeof step3PartnerSchema>
 
 export const step3Schema = z.object({
   partner_universities: z.array(step3PartnerSchema).default([]),
+  partner_institutions_only: z.boolean().optional().default(false),
 })
 export type Step3Values = z.infer<typeof step3Schema>
 
@@ -126,6 +132,7 @@ export const step4Schema = z
       .email('Use a valid email address.')
       .optional()
       .or(z.literal('')),
+    accommodation_notes: z.string().trim().max(1000).optional().or(z.literal('')),
   })
   .refine(
     (data) => {
@@ -164,10 +171,14 @@ export const fullBipSchema = z
     physical_end_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     application_deadline: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     ects_credits: z.coerce.number().int().min(1).max(30),
-    max_participants: z.coerce.number().int().min(5).max(20),
+    max_participants: z.coerce.number().int().min(10).max(20),
     study_levels: z.array(z.enum(STUDY_LEVELS)).min(1),
     language_of_instruction: z.string().min(2).max(10),
     language_level_min: z.enum(LANGUAGE_LEVELS),
+    virtual_sessions_count: z.coerce.number().int().min(0).max(50).optional(),
+    virtual_duration_notes: z.string().trim().max(500).optional().or(z.literal('')),
+    // Step 3
+    partner_institutions_only: z.boolean().optional().default(false),
     // Step 4
     green_travel: z.boolean(),
     inclusion_support: z.boolean(),
@@ -176,6 +187,7 @@ export const fullBipSchema = z
     how_to_apply_url: z.string().url().optional().or(z.literal('')),
     contact_name: z.string().trim().min(2).max(120).optional().or(z.literal('')),
     contact_email: z.string().email().optional().or(z.literal('')),
+    accommodation_notes: z.string().trim().max(1000).optional().or(z.literal('')),
   })
   .refine((d) => d.physical_start_date < d.physical_end_date, {
     message: 'Physical end date must be after the start date.',

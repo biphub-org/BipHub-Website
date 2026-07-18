@@ -33,7 +33,9 @@ export type BipDraftData = {
   learning_outcomes?: string
   // Step 2
   virtual_component_description?: string
-  virtual_timing?: 'before' | 'after' | 'concurrent'
+  virtual_timing?: 'before' | 'during' | 'after' | 'before_and_after' | 'mixed'
+  virtual_sessions_count?: number
+  virtual_duration_notes?: string
   host_city?: string
   physical_start_date?: string
   physical_end_date?: string
@@ -46,6 +48,7 @@ export type BipDraftData = {
   // Step 3 — partner_universities is preserved in Zustand/localStorage only
   // until submission; saveDraftAction strips it (foreign-key requires bip_id).
   partner_universities?: Step3PartnerDraft[]
+  partner_institutions_only?: boolean
   // Step 4
   green_travel?: boolean
   inclusion_support?: boolean
@@ -54,6 +57,7 @@ export type BipDraftData = {
   how_to_apply_url?: string
   contact_name?: string
   contact_email?: string
+  accommodation_notes?: string
 }
 
 export type SaveStatus = 'idle' | 'saving' | 'failed'

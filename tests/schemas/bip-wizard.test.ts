@@ -45,7 +45,7 @@ const validStep2Base = {
 // Minimal valid base fixture for fullBipSchema (Steps 1+2+4 flat shape).
 const validFullBase = {
   title: 'Sustainable Cities Winter School',
-  subject_areas: ['engineering'],
+  subject_areas: ['it-engineering'],
   description:
     'A ten-week blended intensive programme exploring sustainable urban planning across partner institutions.',
   learning_outcomes: 'Students will design a sustainable neighbourhood masterplan.',
