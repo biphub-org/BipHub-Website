@@ -29,6 +29,7 @@ export async function getBips(filters: BipFilterState): Promise<BipsQueryResult>
     id, slug, title, application_deadline, ects_credits, language_of_instruction,
     physical_start_date, physical_end_date, host_city, study_levels,
     green_travel, inclusion_support, is_seed, status, created_at, subject_areas,
+    partner_institutions_only,
     ${universityJoin}
   `
 
