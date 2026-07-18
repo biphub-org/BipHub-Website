@@ -397,6 +397,11 @@ export function BipSubmissionWizard({
             animate={{ opacity: 1 }}
             transition={{ duration: 0.2 }}
           >
+            {/* Single wrapper child: motion components forward multiple children
+                as one array, which trips React's key warning (the flagged child
+                is `previewStep`, owned by the edit page). Wrapping keeps m.div's
+                children a single element. */}
+            <div>
             <header className="mb-6">
               <h2 className="text-[22px] font-semibold text-ink">{step.title}</h2>
               <p className="mt-1 text-sm text-muted">{step.subtitle}</p>
@@ -433,6 +438,7 @@ export function BipSubmissionWizard({
                   Preview step requires Plan 02-07 integration.
                 </div>
               ))}
+            </div>
           </m.div>
         </div>
 
