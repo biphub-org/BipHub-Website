@@ -96,34 +96,34 @@ Finalized by the roadmapper against `.planning/ROADMAP.md`. Phase numbering cont
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SUBM-09 | Phase 9 — Coordinator BIP Builder Completion + BIP Detail Page | Pending |
+| SUBM-09 | Phase 9 — Coordinator BIP Builder Completion | Pending |
 | SUBM-10 | Phase 9 | Pending |
 | SUBM-11 | Phase 9 | Pending |
 | SUBM-12 | Phase 9 | Pending |
 | SUBM-13 | Phase 9 | Pending |
 | SUBM-14 | Phase 9 | Pending |
-| DETL-11 | Phase 9 | Pending |
-| DETL-12 | Phase 9 | Pending |
-| DETL-13 | Phase 9 | Pending |
-| DETL-14 | Phase 9 | Pending |
-| DETL-15 | Phase 9 | Pending |
-| DETL-16 | Phase 9 | Pending |
 | BROW-14 | Phase 9 | Pending |
 | FOUN-14 | Phase 9 | Pending |
-| ALRT-01 | Phase 10 — Alert Subscriptions + Email Pipeline | Pending |
-| ALRT-02 | Phase 10 | Pending |
-| ALRT-03 | Phase 10 | Pending |
-| ALRT-04 | Phase 10 | Pending |
-| ALRT-05 | Phase 10 | Pending |
-| ALRT-06 | Phase 10 | Pending |
-| ALRT-07 | Phase 10 | Pending |
-| ALRT-08 | Phase 10 | Pending |
-| ALRT-09 | Phase 10 | Pending |
-| FOUN-11 | Phase 10 | Pending |
-| FOUN-12 | Phase 10 | Pending |
-| FOUN-13 | Phase 10 | Pending |
+| DETL-11 | Phase 10 — BIP Detail Page | Pending |
+| DETL-12 | Phase 10 | Pending |
+| DETL-13 | Phase 10 | Pending |
+| DETL-14 | Phase 10 | Pending |
+| DETL-15 | Phase 10 | Pending |
+| DETL-16 | Phase 10 | Pending |
+| ALRT-01 | Phase 11 — Alert Subscriptions + Email Pipeline | Pending |
+| ALRT-02 | Phase 11 | Pending |
+| ALRT-03 | Phase 11 | Pending |
+| ALRT-04 | Phase 11 | Pending |
+| ALRT-05 | Phase 11 | Pending |
+| ALRT-06 | Phase 11 | Pending |
+| ALRT-07 | Phase 11 | Pending |
+| ALRT-08 | Phase 11 | Pending |
+| ALRT-09 | Phase 11 | Pending |
+| FOUN-11 | Phase 11 | Pending |
+| FOUN-12 | Phase 11 | Pending |
+| FOUN-13 | Phase 11 | Pending |
 
-**Coverage:** 30/30 v1.2 requirements mapped, no orphans, no duplicates. **Phase 9** (14 requirements): SUBM-09..14, DETL-11..16, BROW-14, FOUN-14 — a hard-ordered pair (detail page depends on the finalized field set, confirmed mechanical by research, not a preference). **Phase 10** (16 requirements): ALRT-01..09, FOUN-11..13 — fully independent of Phase 9. Totals by category: SUBM ×6, DETL ×6, BROW ×1, ALRT ×9, FOUN ×4 (FOUN-14 in Phase 9; FOUN-11/12/13 in Phase 10).
+**Coverage:** 30/30 v1.2 requirements mapped, no orphans, no duplicates. **Phase 9** (8 requirements): SUBM-09..14, BROW-14, FOUN-14 — complete the builder + partner-only badge + anti-drift. **Phase 10** (6 requirements): DETL-11..16 — redesign `/bip/[slug]`; depends on Phase 9 (needs the finalized field set — mechanical dependency per research). **Phase 11** (16 requirements): ALRT-01..09, FOUN-11..13 — alert pipeline, independent. Totals by category: SUBM ×6, DETL ×6, BROW ×1, ALRT ×9, FOUN ×4 (FOUN-14 in Phase 9; FOUN-11/12/13 in Phase 11). Builder and detail-page split into separate phases (was one) per user decision: build the builder first, design the detail page after.
 
 ---
 *Requirements defined: 2026-07-18 — scope confirmed (both phases); quality-revised (FOUN-11 RLS split, SUBM-13 group-size wording + backfill note, DETL-16 observable sections)*

@@ -4,7 +4,7 @@
 
 - ✅ **v1.0 MVP** — Phases 1–4 (shipped 2026-06-14) — full detail in [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 - ✅ **v1.1 Product Depth & Engagement** — Phases 5, 6, 8 (shipped 2026-07-18; Phase 7 deferred to v1.2) — full detail in [milestones/v1.1-ROADMAP.md](milestones/v1.1-ROADMAP.md)
-- 🚧 **v1.2 Coordinator BIP Builder** — Phases 9–10 (in progress)
+- 🚧 **v1.2 Coordinator BIP Builder** — Phases 9–11 (in progress)
 
 ## Phases
 
@@ -34,27 +34,41 @@ Full phase details, success criteria, and per-plan breakdown: [milestones/v1.1-R
 
 </details>
 
-### v1.2 Coordinator BIP Builder (Phases 9–10)
+### v1.2 Coordinator BIP Builder (Phases 9–11)
 
-- [ ] **Phase 9: Coordinator BIP Builder Completion + BIP Detail Page** - the BIP data model is fully wired end-to-end (wizard → draft store → submit/edit → admin merge → diff view → detail page), two live data-integrity bugs fixed, and `/bip/[slug]` redesigned against the finalized field set
-- [ ] **Phase 10: Alert Subscriptions + Email Pipeline** - students subscribe to new-BIP digest alerts by field/country, receive idempotent weekly/daily emails, and unsubscribe with no login required (carried from v1.1 Phase 7)
+- [ ] **Phase 9: Coordinator BIP Builder Completion** - the BIP data model is fully wired through the builder and edit-and-re-review flow (wizard → draft store → submit/edit → admin merge → diff view), two live data-integrity bugs fixed, and a partner-only badge on `/bips`
+- [ ] **Phase 10: BIP Detail Page** - `/bip/[slug]` redesigned against the finalized field set from Phase 9, presenting the complete BIP data in clear labelled sections
+- [ ] **Phase 11: Alert Subscriptions + Email Pipeline** - students subscribe to new-BIP digest alerts by field/country, receive idempotent weekly/daily emails, and unsubscribe with no login required (carried from v1.1 Phase 7)
 
 ## Phase Details
 
-### Phase 9: Coordinator BIP Builder Completion + BIP Detail Page
-**Goal**: Universities can fully express a BIP through the builder — every field the schema supports is wired into the wizard, survives the edit-and-re-review round trip, and renders on a redesigned public detail page — closing the four orphaned-column gaps and two live validation bugs research identified by direct code inspection.
-**Depends on**: Phase 8 (the `bip_edits` shadow-table edit-approval flow that SUBM-14's per-field round-trip requirement extends); also builds on Phase 2 (submission wizard) and Phase 3 (admin review merge). Hard-ordered internally: builder completion must land before the detail-page redesign, since the page layout is a mechanical function of the finalized `BipDetail` type and `.select()` strings, not a scheduling preference.
-**Requirements**: SUBM-09, SUBM-10, SUBM-11, SUBM-12, SUBM-13, SUBM-14, DETL-11, DETL-12, DETL-13, DETL-14, DETL-15, DETL-16, BROW-14, FOUN-14
+### Phase 9: Coordinator BIP Builder Completion
+**Goal**: Universities can fully express a BIP through the builder — every field the schema supports is wired into the wizard and survives the edit-and-re-review round trip — closing the four orphaned-column gaps and two live validation bugs research identified by direct code inspection.
+**Depends on**: Phase 8 (the `bip_edits` shadow-table edit-approval flow that SUBM-14's per-field round-trip requirement extends); also builds on Phase 2 (submission wizard) and Phase 3 (admin review merge).
+**Requirements**: SUBM-09, SUBM-10, SUBM-11, SUBM-12, SUBM-13, SUBM-14, BROW-14, FOUN-14
 **Success Criteria** (what must be TRUE):
-  1. A coordinator can enter the BIP's virtual-session count and duration/schedule notes, mark the BIP as open only to partner institutions, and add accommodation/practical-information notes in the builder — and every virtual-timing option the builder offers (`before`/`during`/`after`/`before_and_after`/`mixed`) saves successfully with no database CHECK-constraint error (SUBM-09, SUBM-10, SUBM-11, SUBM-12)
+  1. A coordinator can enter the BIP's virtual-session count and duration/schedule notes (in the virtual-component step), mark the BIP as open only to partner institutions (in the Partners step), and add accommodation notes (in the application/practical step) — and every virtual-timing option the builder offers (`before`/`during`/`after`/`before_and_after`/`mixed`) saves successfully with no database CHECK-constraint error (SUBM-09, SUBM-10, SUBM-11, SUBM-12)
   2. The builder's participant-count field enforces the Erasmus+ minimum of 10, matching the database constraint, with no wizard path that allows saving a value below 10 (SUBM-13)
-  3. A coordinator edits any of the newly-wired fields (virtual sessions, duration notes, partner-only flag, accommodation notes) on an already-approved BIP; once the admin approves that edit, the new value appears on the live public `/bip/[slug]` page — verified per field, not merely at wizard-render or diff-view time (SUBM-14, anti-Pitfall-1: seven-layer propagation)
-  4. The public detail page shows the virtual-component detail, a clear partner-institution-only flag, a dedicated accommodation/practical-information section, correctly-framed green-travel and inclusion-support indicators (sending-institution framing, resolving the v1.1 badge-suppression gap), the participant capacity, and groups the full field set into labelled sections (overview, schedule/virtual component, practical information, application) with the deadline and Apply CTA prominent (DETL-11, DETL-12, DETL-13, DETL-14, DETL-15, DETL-16)
-  5. A student browsing `/bips` sees a badge on cards for BIPs open only to partner institutions; and all three seed sources (`seed.sql`, `seed.e2e.sql`, `seed-cloud-e2e.mjs`) are updated for every new field, with the previously-duplicated `bip_edits` column-list literal consolidated into one shared constant (BROW-14, FOUN-14)
+  3. A coordinator edits any of the newly-wired fields (virtual sessions, duration notes, partner-only flag, accommodation notes) on an already-approved BIP; once the admin approves that edit, the new value is persisted on the live BIP row — verified per field via the edit-and-re-review flow, not merely at wizard-render or diff-view time (SUBM-14, anti-Pitfall-1: seven-layer propagation)
+  4. A student browsing `/bips` sees a badge on cards for BIPs open only to partner institutions — noticeable but not alarming (BROW-14)
+  5. All three seed sources (`seed.sql`, `seed.e2e.sql`, `seed-cloud-e2e.mjs`) are updated for every new field, with the previously-duplicated `bip_edits` column-list literal consolidated into one shared constant (FOUN-14)
 **Plans**: TBD
 **UI hint**: yes
 
-### Phase 10: Alert Subscriptions + Email Pipeline
+### Phase 10: BIP Detail Page
+**Goal**: The public `/bip/[slug]` page is redesigned against the finalized Phase 9 field set, presenting the complete BIP data — including the four newly-wired fields and participant capacity — in clear, scannable labelled sections.
+**Depends on**: Phase 9 — a hard mechanical dependency, not a preference: the page layout and the detail query's `.select()` strings / `BipDetail` type can only be finalized once the builder field set is locked. (Per user decision, detail-page layout decisions are deliberately deferred until Phase 9 ships and are gathered in this phase's own discussion.)
+**Requirements**: DETL-11, DETL-12, DETL-13, DETL-14, DETL-15, DETL-16
+**Success Criteria** (what must be TRUE):
+  1. The detail page shows the virtual-component detail (session count + duration/schedule notes) (DETL-11)
+  2. The detail page clearly flags when a BIP is open only to partner-institution students — noticeable but not alarming, matching the `/bips` card badge — so a student knows before contacting the coordinator (DETL-12)
+  3. The detail page presents accommodation info in its own dedicated section, shown only for BIPs that provide it (DETL-13)
+  4. The detail page shows the BIP's participant capacity (DETL-15) and groups the complete field set into clear labelled sections (overview, schedule/virtual component, accommodation, application) with the deadline and Apply CTA prominent (DETL-16)
+  5. Green-travel and inclusion-support indicators are surfaced with correct sending-institution framing (DETL-14) — framing/treatment deferred and to be decided in this phase's discussion (a low-priority item per user)
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 11: Alert Subscriptions + Email Pipeline
 **Goal**: Students can subscribe to new-BIP alert digests by field of study and/or country, receive a weekly (default) or daily email listing newly-approved matching BIPs exactly once per BIP, and unsubscribe without signing in — with the underlying cron/Edge Function infrastructure verified as actually working, not just deployed.
 **Depends on**: Phase 3 (`approveBipAction`/`approveEditAction` already produce the `status = 'approved'` state this pipeline reads — read-only dependency, zero changes required to either action). Fully independent of Phase 9; shares no files, tables, or Server Actions with it and can be planned or executed in parallel.
 **Requirements**: ALRT-01, ALRT-02, ALRT-03, ALRT-04, ALRT-05, ALRT-06, ALRT-07, ALRT-08, ALRT-09, FOUN-11, FOUN-12, FOUN-13
@@ -79,5 +93,6 @@ Full phase details, success criteria, and per-plan breakdown: [milestones/v1.1-R
 | 6. Saved BIPs Sync | v1.1 | 4/4 | Complete | 2026-06-15 |
 | 7. Alert Subscriptions + Email Pipeline | v1.1→v1.2 | 0/TBD | Deferred to v1.2 | - |
 | 8. Edit-Approved + Request-Changes | v1.1 | 9/9 | Complete | 2026-06-26 |
-| 9. Coordinator BIP Builder Completion + BIP Detail Page | v1.2 | 0/TBD | Not started | - |
-| 10. Alert Subscriptions + Email Pipeline | v1.2 | 0/TBD | Not started | - |
+| 9. Coordinator BIP Builder Completion | v1.2 | 0/TBD | Not started | - |
+| 10. BIP Detail Page | v1.2 | 0/TBD | Not started | - |
+| 11. Alert Subscriptions + Email Pipeline | v1.2 | 0/TBD | Not started | - |

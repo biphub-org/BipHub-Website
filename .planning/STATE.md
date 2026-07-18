@@ -6,7 +6,7 @@ status: planning
 last_updated: "2026-07-18T03:46:08.983Z"
 last_activity: 2026-07-18
 progress:
-  total_phases: 2
+  total_phases: 3
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-07-18 after v1.1 milestone)
 
 ## Current Position
 
-Phase: 9 of 10 (Coordinator BIP Builder Completion + BIP Detail Page) — not started
+Phase: 9 of 11 (Coordinator BIP Builder Completion) — context gathered, awaiting plan
 Plan: —
-Status: Roadmap created; awaiting phase planning
-Last activity: 2026-07-18 — v1.2 ROADMAP.md created (Phase 9 + Phase 10), REQUIREMENTS.md traceability finalized (30/30 coverage)
+Status: Phase 9 context gathered; ready for /gsd-plan-phase 9
+Last activity: 2026-07-18 — split v1.2 detail page into its own phase (9 builder / 10 detail / 11 alerts); Phase 9 discussion complete
 
 ## Performance Metrics
 
@@ -43,10 +43,11 @@ Last activity: 2026-07-18 — v1.2 ROADMAP.md created (Phase 9 + Phase 10), REQU
 |-------|-------|-------|----------|
 | 5 | 4 | - | - |
 | 6 | 4 | - | - |
-| 7 | 0 (deferred to Phase 10) | - | - |
+| 7 | 0 (deferred → Phase 11) | - | - |
 | 8 | 9 | - | - |
-| 9 | TBD | - | - |
-| 10 | TBD | - | - |
+| 9 — Builder Completion | TBD | - | - |
+| 10 — BIP Detail Page | TBD | - | - |
+| 11 — Alert Subscriptions | TBD | - | - |
 
 *Updated after each plan completion*
 | Phase 06-saved-bips-sync P02 | 593s | 3 tasks | 8 files |
