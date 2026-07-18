@@ -29,7 +29,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
@@ -66,7 +65,7 @@ export function TwoTabConflictDialog({ open, onReload, onOverwrite }: Props) {
             Your draft was changed in another browser tab. What would you like to do?
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter className="flex-col gap-2 sm:flex-col sm:justify-stretch">
+        <div className="flex flex-col gap-2">
           <Button
             type="button"
             onClick={onReload}
@@ -83,7 +82,7 @@ export function TwoTabConflictDialog({ open, onReload, onOverwrite }: Props) {
           >
             Overwrite with this version
           </Button>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   )
