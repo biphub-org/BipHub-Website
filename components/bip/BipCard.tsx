@@ -109,6 +109,13 @@ export function BipCard({ bip }: BipCardProps) {
 
         {/* === Card body === */}
         <div className="flex flex-1 flex-col p-5 pt-4">
+          {/* Partner-institutions-only badge — restrained amber, reuses status-pending token */}
+          {bip.partner_institutions_only && (
+            <span className="mb-2 inline-flex w-fit rounded-pill border border-status-pending bg-status-pending-bg px-2.5 py-1 text-[11px] font-semibold text-status-pending">
+              Partner institutions only
+            </span>
+          )}
+
           {/* Field tag chips — one per field of study */}
           {fieldLabels.length > 0 && (
             <div className="mb-2 flex flex-wrap gap-1.5">
