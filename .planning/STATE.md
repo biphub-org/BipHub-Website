@@ -1,34 +1,33 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: Product Depth & Engagement
-status: Awaiting next milestone
-stopped_at: "Phase 8 executed: 9/9 plans, build+unit green, verified 6/6, secured 26/26; manual UAT (Resend+ISR) deferred"
-last_updated: "2026-07-18T03:39:38.051Z"
-last_activity: 2026-07-18 — Milestone v1.1 completed and archived
+milestone: v1.2
+milestone_name: Coordinator BIP Builder
+status: planning
+last_updated: "2026-07-18T03:46:08.983Z"
+last_activity: 2026-07-18
 progress:
-  total_phases: 4
-  completed_phases: 3
-  total_plans: 17
-  completed_plans: 17
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-14 after v1.0 milestone)
+See: .planning/PROJECT.md (updated 2026-07-18 after v1.1 milestone)
 
 **Core value:** Students can reliably discover Erasmus+ BIPs by country, field of study, and dates, and universities can self-service list their BIPs through a fast, professional submission flow with admin review.
-**Current focus:** Phase 8 — edit-approved-request-changes
+**Current focus:** v1.2 — Coordinator BIP Builder (defining requirements)
 
 ## Current Position
 
-Phase: Milestone v1.1 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-07-18 — Milestone v1.1 completed and archived
+Status: Defining requirements
+Last activity: 2026-07-18 — Milestone v1.2 started
 
 ## Performance Metrics
 

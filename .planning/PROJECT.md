@@ -17,16 +17,18 @@ Students now have real accounts: magic-link sign-in, a dedicated dashboard separ
 
 **Next milestone:** v1.2 — coordinator BIP builder + BIP detail page + carried-forward Phase 7 alerts — see Current Milestone below.
 
-## Current Milestone: v1.1 Product Depth & Engagement
+## Current Milestone: v1.2 (scoping)
 
-**Goal:** Deepen the product for its two human audiences — give students reasons to return, smooth the coordinator/admin path that feeds the site — and close table-stakes gaps v1.0 missed (surfaced by research, not guessed).
+**Goal:** Finish the coordinator BIP builder so the BIP data model and creation flow are complete — which unblocks designing the BIP detail page — then land the carried-forward student alert subscriptions.
 
 **Target features (workstreams):**
-- **Student value** — server-side accounts, saved-BIPs sync across devices, email alerts for new BIPs in a student's field/country
-- **Coordinator/admin UX** — edit-approved-BIP-with-re-review, smoother submission, better admin tooling
-- **Gap-fill** — important platform features v1.0 lacks, surfaced by domain research
+- **Coordinator BIP builder** — complete the BIP creation/edit experience (fields, validation, UX) so it fully expresses the BIP data model *(to be scoped in this milestone)*
+- **BIP detail page** — design/build the public detail page against the finalized builder output *(depends on builder)*
+- **Alert Subscriptions + Email Pipeline (carried from v1.1 Phase 7)** — students subscribe to new-BIP alerts by field/country, idempotent digest emails, signed unsubscribe, dashboard management (ALRT-01..08)
 
-**Deferred to a later milestone:** Public read API + JSON-LD/SEO ("data layer for devs") — deliberately postponed until the product has a real audience worth serving via API.
+**Deferred to a later milestone:** Public read API + JSON-LD/SEO ("data layer for devs") — postponed until the product has a real audience worth serving via API.
+
+*Requirements and roadmap for v1.2 are being defined — see REQUIREMENTS.md once generated.*
 
 ## Requirements
 
