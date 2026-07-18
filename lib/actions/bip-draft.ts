@@ -67,7 +67,17 @@ export async function saveDraftAction(
               : (rest.contact_email ?? null),
         }
       : {}
-  const persistable = { ...rest, ...howToApply }
+
+  // Draft saves send the WHOLE partial draft (`{ ...draft, ...stepData }`),
+  // including fields the coordinator has not filled. Empty HTML date/number
+  // inputs arrive as `''`, which Postgres rejects for date/numeric columns
+  // ("invalid input syntax for type date: \"\""), failing the save from any
+  // step once a blank date is present. Coerce `'' → null` so partial drafts
+  // persist; every affected column is nullable, so null is always valid.
+  const persistableRaw = { ...rest, ...howToApply }
+  const persistable = Object.fromEntries(
+    Object.entries(persistableRaw).map(([k, v]) => [k, v === '' ? null : v]),
+  ) as typeof persistableRaw
 
   if (bipId && lastKnownUpdatedAt) {
     // UPDATE with optimistic locking — only succeeds if updated_at matches.
