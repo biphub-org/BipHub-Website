@@ -1,536 +1,296 @@
 # Pitfalls Research
 
-**Domain:** EU Erasmus+ BIP directory — v1.1 feature additions to an existing Next.js 15 + Supabase + Resend + Vercel system
-**Researched:** 2026-06-14
-**Confidence:** HIGH (v1.0 codebase fully read; Supabase/Resend official docs verified; integration-specific risks derived from actual migration files and action patterns in the existing repo)
+**Domain:** EU Erasmus+ BIP directory — v1.2 additions to an existing Next.js 15.5 + Supabase + Resend + Vercel system
+**Researched:** 2026-07-18
+**Confidence:** HIGH (grounded in direct reads of `supabase/migrations/00017_bip_edits.sql`, `lib/queries/bipEdits.ts`, `lib/actions/admin-edit-bips.ts`, `lib/email/send.ts`, `scripts/verify-seed.ts`, `supabase/config.toml`, project MEMORY notes, KNOWN-BUGS.md, RETROSPECTIVE.md); MEDIUM (Supabase pg_cron/pg_net operational specifics, Resend batch-API limits — WebSearch/training-data informed, flagged per-item); HIGH (this project's own prior-milestone lessons — RLS USING+WITH CHECK, seed drift, e2e shared state — carried forward, not re-derived)
 
----
-
-## Scope: v1.1 Feature Additions
-
-These pitfalls are specific to adding the following to the **existing** BipHub system — not general web advice:
-
-- **(A)** Student accounts: a second auth audience with no institutional-email gate, saved-BIPs sync, and email alerts for new matching BIPs
-- **(B)** Coordinator edit-of-approved-BIP with a re-review gate
-- **(C)** Admin tooling improvements
-
-Each pitfall is tagged with the workstream that triggers it and the phase of the v1.1 roadmap that should address it.
+**Scope note:** This file extends `.planning/milestones/v1.1-research/PITFALLS.md` — it does not repeat that document's 14 pitfalls (student-JWT timing, `bip_edits` shadow-table shape, coordinator/admin route guards, missing RLS indexes, alert double-send basics, unsubscribe absence, GDPR consent recording, ISR staleness on edit, audit-log gaps, slug immutability, erasure-cascade gaps). Where a v1.1 pitfall recurs in a new, more specific form for v1.2 (e.g. digest idempotency, erasure cascade for new tables), this file cites the earlier pitfall by number and adds only what is new.
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 1: Student Role Does Not Propagate to the JWT Immediately — Stale Claims Gate Middleware
-
-**Workstream:** A — Student accounts
+### Pitfall 1: A New BIP-Model Field Is Wired Into the Wizard and Detail Page but Silently Dropped by the Edit-Approval Merge
 
 **What goes wrong:**
-A student registers, the signup trigger fires and inserts a `profiles` row with `role = 'student'`. The existing `sync_role_to_app_metadata()` trigger (migration 00002 + 00008) mirrors the role into `auth.users.raw_app_meta_data`. However, the JWT that the Supabase SSR client holds in the browser cookie was issued _before_ the trigger ran. For up to one hour (the default JWT lifetime), `auth.jwt() -> 'app_metadata' ->> 'role'` inside RLS policies returns `null` for a freshly-registered student. Any RLS policy that gate-checks for `role = 'student'` to allow access to the `saved_bips` or `subscriptions` tables will silently deny writes. The student sees a mysterious "permission denied" error on their first save attempt.
+The v1.2 builder work adds fields the schema already has but the UI doesn't (confirmed live: `virtual_sessions_count`, `virtual_duration_notes`, `accommodation_notes`, `partner_institutions_only` on `bips`, per `.planning/research/FEATURES.md`). A developer adds the field to the create wizard (`lib/schemas/bip-wizard.ts`, wizard step component, `submitBipAction`) and to the detail page renderer. Everything works for **new** BIP submissions. Then a coordinator edits an **already-approved** BIP and changes that new field. The edit is captured correctly in the wizard's Zustand draft and written to `bip_edits` via `submitEditAction` — but only if the column was also added to the `bip_edits` table (migration `00017_bip_edits.sql`) **and** to the two independent column-list literals that gate what actually gets read and merged: `BIP_EDIT_CONTENT_SELECT` in `lib/queries/bipEdits.ts` and `EDIT_CONTENT_SELECT` + `buildMergePayload()` in `lib/actions/admin-edit-bips.ts`. If any one of these four surfaces is missed, the admin's "approve edit" click succeeds, `bip_edits.status` flips to `approved`, the audit log records `approve_edit`, `revalidatePath` fires, the coordinator gets a "your edit is live" email — and the new field's value on the live `bips` row silently stays whatever it was before. There is no error, no failed query, no log line. The bug is invisible until someone compares the edit diff view to the live page.
 
 **Why it happens:**
-The trigger-based role mirror (00008) is correct for _subsequent_ JWT refreshes, but the signup flow issues a JWT at the moment `signUp()` completes — before the trigger has inserted the profile row that the mirror function reads. The sequence is: Auth creates `auth.users` → JWT issued → `signUp` returns to the browser → Postgres trigger fires on `profiles` INSERT → updates `raw_app_meta_data`. The JWT in the cookie does not retroactively contain the role.
+`bip_edits` is not "all bips columns automatically" — it is a hand-maintained shadow schema (currently 22 content columns, `partner_institutions` jsonb, deliberately excluding `slug` and `status`). Every column addition to `bips` for a coordinator-editable field requires four synchronized edits, not one migration. This is exactly the kind of drift the shadow-table design (chosen in v1.1 specifically to keep the public page live during re-review) makes structurally possible: the "proposed content" and "live content" schemas are two separate tables that must be kept congruent by hand, forever.
 
 **How to avoid:**
-Do not gate `saved_bips` INSERT/SELECT RLS solely on `app_metadata.role = 'student'`. Instead, use `auth.uid() IS NOT NULL` (any authenticated user) as the primary guard for student-owned tables, and keep the role check only for distinguishing coordinator vs student permissions on shared tables. For the student dashboard, use `(select auth.uid()) = user_id` as the RLS predicate — this works immediately after registration because `auth.uid()` is always populated in the JWT at issuance. Optionally, force a session refresh on the `/auth/callback` route after email verification to ensure the next JWT contains the mirrored role.
-
-```sql
--- CORRECT: saved_bips insert does not require role = 'student'
-create policy "saved_bips_insert_own"
-  on public.saved_bips for insert
-  to authenticated
-  with check ((select auth.uid()) = user_id);
-
--- WRONG: this silently fails for new students until JWT refresh
-create policy "saved_bips_insert_student"
-  on public.saved_bips for insert
-  to authenticated
-  with check (
-    (select auth.jwt() -> 'app_metadata' ->> 'role') = 'student'
-    and (select auth.uid()) = user_id
-  );
-```
+- Treat "add a field to the BIP model" as a **checklist**, not a single migration: (1) `bips` column + CHECK constraint, (2) `bip_edits` column (same migration or immediately following one), (3) wizard Zod schema + step UI, (4) `BIP_EDIT_CONTENT_SELECT` (bipEdits.ts), (5) `EDIT_CONTENT_SELECT` + `buildMergePayload()` (admin-edit-bips.ts), (6) detail-page render, (7) all three seed sources (Pitfall 3), (8) `database.types.ts` regen (Pitfall 4).
+- Collapse the duplicated column-list literal (Pitfall 2 below) into one shared constant so there is only one place to update, not two.
+- Add a build-time or test-time assertion that `bip_edits` columns (minus `id`, `bip_id`, `created_by`, `status`, `admin_note`, `created_at`, `updated_at`) are a superset match against the coordinator-editable `bips` columns — even a simple Vitest that introspects both column lists from `database.types.ts` and diffs them catches this class of bug at CI time instead of in production.
+- Write one Playwright spec per new field: edit an approved BIP's new field → admin approves → assert the live `/bip/[slug]` page shows the new value, not the pre-edit one. This is the only test that actually exercises the merge payload; unit tests on the wizard or the detail page alone will pass while this bug ships.
 
 **Warning signs:**
-- Student gets "permission denied" on first save immediately after email verification
-- `saved_bips` INSERT works after the user signs out and back in (confirms stale JWT, not a policy error)
-- RLS policies on student tables check `app_metadata.role` for INSERT
+- A migration adds a column to `bips` with no matching migration/`ALTER TABLE` on `bip_edits` in the same PR
+- `buildMergePayload()` in `admin-edit-bips.ts` is not touched by a PR that adds a new coordinator-editable field
+- Grep for the field name in `lib/actions/admin-edit-bips.ts` and `lib/queries/bipEdits.ts` returns zero hits after the wizard/detail-page work is "done"
+- Manual test only exercises the **create** wizard, never the **edit-approved** path for the new field
 
-**Phase to address:** Phase A (student accounts) — schema design step, before any student-facing route is built.
+**Phase to address:** Coordinator BIP-builder-completion phase — every new field task must include the `bip_edits`/merge-payload step as an explicit sub-task, not an assumed side effect of the wizard change.
 
 ---
 
-### Pitfall 2: Student + Coordinator Sharing the `profiles` Table — Existing RLS Policies Silently Gate Students Out
-
-**Workstream:** A — Student accounts
+### Pitfall 2: Two Independent Copies of the Same Column List Drift Apart
 
 **What goes wrong:**
-The existing `profiles` table has a `role` column with values `'coordinator'` and `'admin'`. The existing RLS policy `profiles_update_own_or_admin` allows a user to update their own row. The existing `bips_select_own_or_approved` policy on `bips` checks `created_by = auth.uid()`. These policies are written for coordinators and do not actively block students — but several coordinator dashboard queries join `profiles` and assume a `university_id` and `erasmus_code` are populated. If a student's `profiles` row has `university_id = NULL`, any query that does `JOIN profiles ON bips.created_by = profiles.id` returns mismatched nulls. More critically, if the onboarding flow at `/onboarding` is reached by a student (no institutional-email gate), it will try to set `university_id` and `erasmus_code` — student-specific fields that don't exist in the current schema. The onboarding flow will either break for students or create corrupted coordinator-shaped profile rows.
+`lib/queries/bipEdits.ts` defines `BIP_EDIT_CONTENT_SELECT` (a 28-line SQL select-string literal) and `lib/actions/admin-edit-bips.ts` defines its own `EDIT_CONTENT_SELECT` — the same 22+ columns, copy-pasted rather than imported from one source (the file comment in `admin-edit-bips.ts` even says "mirrors BIP_EDIT_CONTENT_SELECT in bipEdits.ts"). A developer adding a field to one copy and forgetting the other produces two different failure modes depending on which copy was missed: if `bipEdits.ts`'s copy is missed, the admin diff view never shows the new field even though the merge would apply it correctly; if `admin-edit-bips.ts`'s copy is missed, the diff view shows the coordinator's proposed new value but approving the edit silently discards it (this is the concrete mechanism behind Pitfall 1).
 
 **Why it happens:**
-Adding a third role to `profiles` without auditing which Server Actions, RSC queries, and middleware branches assume `role IN ('coordinator', 'admin')` causes silent behavioral breakage. The middleware currently redirects to `/dashboard` after sign-in for coordinators; students should land on `/student-dashboard`. If the post-login routing in `signInAction` does not check `role = 'student'` explicitly, students land on the coordinator dashboard.
+The comment documenting the duplication ("mirrors...") is an honest acknowledgment that this is copy-paste, not a shared import — likely done originally to avoid a cross-module import between a query file and an action file. That tradeoff was reasonable for 22 static fields; it becomes a liability the moment the field list needs to grow again in v1.2.
 
 **How to avoid:**
-Before adding the student role: audit every location that reads `profiles.role` or `profiles.university_id` and add a branch for `'student'`. Key files to update: `lib/actions/auth.ts` (`signInAction` post-login routing), `middleware.ts` (protect `/student-dashboard` routes), `app/(dashboard)/layout.tsx` (profile-complete gate). Add a schema constraint: `role text not null check (role in ('coordinator', 'admin', 'student'))`. Student profiles should have `university_id = NULL` by design — update any NOT NULL constraint on `profiles.university_id` before the migration.
+Extract both literals into a single exported constant (e.g. `lib/constants/bip-edit-columns.ts`) imported by both `bipEdits.ts` and `admin-edit-bips.ts`, and reuse the same constant to derive `buildMergePayload()`'s key list programmatically (map over the field names instead of hand-listing every field a second time in the merge object). This turns "add a field in 3 places" into "add a field in 1 place, used in 3 places."
 
 **Warning signs:**
-- Students redirected to `/dashboard` (coordinator dashboard) after login
-- `profiles.university_id` constraint fails on student signup
-- `signInAction`'s routing logic only checks `profile?.university_id` for completeness, causing students to loop through `/onboarding` forever
+- `grep -n "title, subject_areas, isced_f_code"` returns matches in more than one file
+- A code review approves a `bip_edits`-column-adding PR that only touches one of the two files
 
-**Phase to address:** Phase A (student accounts) — must be addressed in the very first plan before any student-visible route is built.
+**Phase to address:** Coordinator BIP-builder-completion phase, first plan — refactor before adding new fields, not after.
 
 ---
 
-### Pitfall 3: Student Role Weakens Coordinator and Admin Guards by Accident
-
-**Workstream:** A — Student accounts
+### Pitfall 3: New Fields Ship Without Touching Any of the Three Seed Sources — Wizard Bugs Go Untested
 
 **What goes wrong:**
-The current middleware guards `/dashboard` with `!claims → redirect('/login')` but does NOT check `role = 'coordinator'`. It similarly guards `/admin` with `role === 'admin'`. If a student navigates to `/dashboard`, they currently pass the middleware guard (they are authenticated) and land in the coordinator dashboard — which then crashes when trying to list "their" BIPs (query returns 0 rows, but the UI may show coordinator-specific controls). Worse: if a coordinator route eventually shows form controls that call a coordinator-only Server Action, a student who has reached that page could submit the form, and the Server Action's `getClaims()` check would see a valid authenticated user — passing the auth check — but the RLS on `bips` INSERT would also pass because `bips_insert_coordinator` only checks `auth.uid() = created_by` (no role check). A student can submit a BIP as if they were a coordinator.
+This project has **three** independent seed/fixture sources that must all reflect new BIP-model fields for the field to be meaningfully tested end-to-end: `supabase/seed.sql` (local dev, checked by `scripts/verify-seed.ts`), `supabase/seed.e2e.sql` (Playwright local path), and `scripts/seed-cloud-e2e.mjs` (Playwright cloud path — the one CI actually exercises, per the project's own recorded lesson that these two e2e files drifted and broke specs on 2026-07-17). A new field like `partner_institutions_only` or `virtual_sessions_count` can be added to the schema, wizard, and merge payload correctly, and still have zero seeded BIPs exercising it — meaning `verify-seed.ts`'s distribution checks don't cover it, and no Playwright fixture ever has the field set to a non-default value. The wizard bug (or the merge-payload bug from Pitfall 1) then ships to production undetected because nothing in CI ever creates or edits a BIP where the new field differs from its column default.
 
 **Why it happens:**
-The v1.0 system conflates "authenticated" with "coordinator" for the `/dashboard` route group, because in v1.0 only coordinators and admins could register. Adding students without updating the middleware role gate exposes this assumption.
+Seed files are typically updated only when a bug is hit against them (as the retrospective documents for the two e2e files), not proactively when a schema field is added. There's no CI check that a new `bips`/`bip_edits` column appears in all three seed sources.
 
 **How to avoid:**
-Add a `role = 'coordinator' OR role = 'admin'` guard to the `/dashboard` middleware branch (or use a separate `/student-dashboard` route group that students are redirected to). Also add a `WITH CHECK` role guard to `bips_insert_coordinator`:
-
-```sql
--- Add role guard so students cannot accidentally insert BIPs
-drop policy if exists "bips_insert_coordinator" on public.bips;
-create policy "bips_insert_coordinator"
-  on public.bips for insert
-  to authenticated
-  with check (
-    (select auth.uid()) = created_by
-    and (select auth.jwt() -> 'app_metadata' ->> 'role') in ('coordinator', 'admin')
-  );
-```
-
-Note: the role timing issue from Pitfall 1 applies here too — guard the application layer (Server Action) with a role check in addition to, not instead of, the RLS policy.
+- Every migration that adds a BIP-model field should be paired with an update to `supabase/seed.sql` (at least one seed BIP exercising a non-default value) and a `verify-seed.ts` assertion for the new field's distribution, mirroring the existing pattern for `subject_areas`/`green_travel`/`inclusion_support`.
+- For `seed.e2e.sql` and `seed-cloud-e2e.mjs`: since these two already have a documented drift history, treat any BIP-model schema change as a trigger to run both `node scripts/seed-cloud-e2e.mjs` and a full `npx playwright test` before merging, not just at incident time.
+- Consider a lightweight drift-check script (extending the existing `verify-seed.ts` pattern) that diffs the column set referenced by `seed.e2e.sql`'s INSERT statements against `seed-cloud-e2e.mjs`'s object literals — this was the exact gap that caused the 2026-07-17 incident and nothing currently prevents a recurrence for v1.2's new fields.
 
 **Warning signs:**
-- A student account can reach `/dashboard` without a redirect
-- A student can call `submitBipAction` via Playwright or curl without a permission error from the Server Action layer
-- Coordinator `role in ('coordinator')` guards absent from middleware
+- A schema migration for a new field has no corresponding diff in any of the three seed files
+- `verify-seed.ts` has no check referencing the new column
+- `seed.e2e.sql` and `seed-cloud-e2e.mjs` diverge in column coverage (check via `grep` for the new column name in both files after any schema change)
 
-**Phase to address:** Phase A (student accounts) — middleware and RLS migration for coordinator route group must be updated before student registration is enabled.
+**Phase to address:** Coordinator BIP-builder-completion phase (new fields) and Alert Subscriptions phase (new subscription/delivery fixtures) — both introduce schema that needs seed coverage; treat as a standing checklist item, not phase-specific.
 
 ---
 
-### Pitfall 4: `saved_bips` Table Missing `bip_id` Foreign Key Index — Full-Table RLS Scan
-
-**Workstream:** A — Student accounts
+### Pitfall 4: `database.types.ts` Regenerated Against `--local` While the Actual Dev/Deploy Target Is the Shared Cloud Project
 
 **What goes wrong:**
-The new `saved_bips` table links `user_id` to `bip_id`. The RLS SELECT policy is `user_id = auth.uid()`. When a student loads their saved list, Postgres must evaluate this policy for every row in the table — at 10,000 saved_bips rows across all students, this becomes a full-table scan before filtering to the calling user's rows. Response times balloon past 500ms.
+`package.json`'s `db:types` script runs `supabase gen types typescript --local > lib/supabase/database.types.ts`. But per this project's own recorded operational fact, local dev does not use a separate local Postgres — `.env.local` points at the shared **cloud** Supabase project, and the standing rule is "push migration to cloud → verify column → THEN deploy code." A developer who runs `supabase db reset` + `db:types` locally after writing a new migration gets types reflecting their local ephemeral DB (which did apply the new migration), but if that migration was never `supabase db push`ed to the cloud project, the app — which queries the cloud DB, not local — will 400 on the new column exactly as happened before (`42703 column does not exist`, the empty `/bips` incident from `subject_areas`). The types file will claim the column exists while the database the app actually talks to does not have it yet.
 
 **Why it happens:**
-The v1.0 PITFALLS (Pitfall — missing RLS indexes) established the pattern: index all columns used in RLS predicates. When writing a new migration for a new feature table, this step is easy to omit. Also: `bip_id` in `saved_bips` is a foreign key to `bips.id` but without an index, sub-selects checking BIP status (e.g., "only save approved BIPs") also scan.
+`--local` is the natural default for a types-gen script and matches how most Supabase project templates document it. It is easy to forget that this project's dev/prod topology (documented in project memory, not in any README) makes `--local` and the actual runtime database two different instances that can drift out of sync in either direction.
 
 **How to avoid:**
-Every migration that creates a table with a user-ownership RLS policy MUST index `user_id` and any foreign key column used in the RLS predicate:
-
-```sql
-create index saved_bips_user_id_idx on public.saved_bips (user_id);
-create index saved_bips_bip_id_idx on public.saved_bips (bip_id);
-create index subscriptions_user_id_idx on public.subscriptions (user_id);
-```
-
-Run `EXPLAIN (ANALYZE, BUFFERS)` on the SELECT policy path after seeding 5,000+ rows locally to confirm index usage before merging.
+For every new migration touching `bips`, `bip_edits`, or new subscription/delivery tables in v1.2: push to cloud (`supabase db push`) **before** regenerating types and before merging any code that references the new column, exactly as the project's standing local-dev rule already states — the types-gen step should happen after the push, not instead of it. Consider changing `db:types` to target the linked cloud project directly (`supabase gen types typescript --linked`) so the generated types can never silently diverge from the database the app actually runs against.
 
 **Warning signs:**
-- Supabase dashboard query logs show > 200ms for saved_bips SELECT with < 500 rows
-- `EXPLAIN` output shows `Seq Scan` on `saved_bips`
-- New tables in migration files lack `CREATE INDEX` after `CREATE TABLE`
+- A PR adds a migration and regenerates `database.types.ts` but has no corresponding "pushed to cloud" note/commit
+- Local dev server 400s with `42703` on a column that "exists" in `database.types.ts`
+- `supabase db push --dry-run` (or its cloud-linked equivalent) reports pending migrations at the point code referencing the new column is about to be deployed
 
-**Phase to address:** Phase A (student accounts) — schema migration plan, same file as table creation.
+**Phase to address:** Every phase in v1.2 that adds a migration (builder-completion, detail-page if it needs new denormalized columns, alert-subscriptions) — restate the "push before deploy" rule explicitly in each phase's plan, since it is currently only captured in agent memory, not in `CONTRIBUTING.md` or a pre-deploy checklist.
 
 ---
 
-### Pitfall 5: Email Alert Digest Sends the Same BIP to the Same Subscriber Twice (Double-Send)
-
-**Workstream:** A — Email alerts
+### Pitfall 5: Digest Cron and the Approve Action Race on "What Counts as Newly Approved"
 
 **What goes wrong:**
-The alert pipeline: a cron job (pg_cron or Vercel cron) wakes up, queries new BIPs approved since last run, matches them against `subscriptions`, and calls `sendEmail()` via Resend for each match. If:
-- The cron fires twice within its window (Vercel Hobby cron has no exactly-once guarantee)
-- A deployment restarts mid-job
-- A Resend call fails and the job retries from scratch
-
-...the same subscriber receives the same "New BIP matching your field" email twice in a minute. With Resend's rate limit of 5 API requests/second, a burst retry also risks a 429 that gets swallowed in the catch block — breaking the fire-and-forget pattern already established in `lib/email/send.ts`.
+The alert pipeline (carried-forward Phase 7) needs to determine "which BIPs became approved since the last digest run" to notify matching subscribers. If this is implemented as `WHERE bips.status = 'approved' AND updated_at > <high-water-mark>`, it collides with the **existing** `approveEditAction`/`approveBipAction` behavior: `updated_at` is also bumped by unrelated updates — most relevantly, `approveEditAction`'s merge payload (`buildMergePayload()`) sets `updated_at = new Date().toISOString()` on every edit-approval merge, even though the BIP has been `approved` and already publicly visible (and already alerted-on) since its original approval. A naive `updated_at`-based high-water mark will re-notify every subscriber for a BIP that simply had a coordinator edit merged in, producing the double-send/duplicate-alert problem the v1.1 research already flagged (v1.1 PITFALLS Pitfall 5) — but through a v1.2-specific new mechanism, not the originally-scoped one. Additionally, there's a genuine commit-visibility race: if the cron job's query runs concurrently with an in-flight `approveBipAction` transaction, the newly-approved row may or may not be visible depending on transaction isolation and exact timing — needs a monotonic, unambiguous marker.
 
 **Why it happens:**
-The existing `sendEmail()` is fire-and-forget transactional (no idempotency key, no delivery record). This is correct for approval/rejection emails (triggered once per status change). Alert digests are different: they are bulk, scheduled, and retryable — a different failure model.
+`updated_at` is the generic "something changed" timestamp reused across unrelated transitions (original approval, edit approval, any future field correction). Alert eligibility needs a marker for **"became publicly visible for the first time,"** which is a different, narrower event than "row was updated."
 
 **How to avoid:**
-Create a `bip_alert_deliveries` table to record each send attempt as the deduplication token:
-
-```sql
-create table public.bip_alert_deliveries (
-  id          uuid primary key default gen_random_uuid(),
-  bip_id      uuid not null references public.bips(id) on delete cascade,
-  user_id     uuid not null references public.profiles(id) on delete cascade,
-  sent_at     timestamptz not null default now(),
-  unique (bip_id, user_id)   -- prevents double-send per (BIP, subscriber) pair
-);
-```
-
-In the alert job: INSERT the delivery record in the same transaction as (or immediately before) the Resend call, using `ON CONFLICT DO NOTHING`. If the row already exists for `(bip_id, user_id)`, skip the send. This is idempotent: running the job twice sends each email exactly once.
-
-Also use a `subscriptions.last_alerted_at` high-water mark per subscriber per run, so the job query is: `WHERE bips.approved_at > subscriptions.last_alerted_at`. Never re-scan the full approved corpus on each run.
+Add a dedicated `bips.approved_at` (or `first_approved_at`) timestamp column, set once — only on the `pending → approved` (or `changes_requested → approved`) transition in `approveBipAction`/`bip-status.ts` — and explicitly **never** touched by `approveEditAction`'s merge payload. The digest cron's high-water mark query becomes `WHERE approved_at > last_alerted_at`, immune to edit-merge noise. Combine with the `bip_alert_deliveries` unique-`(bip_id, user_id)` idempotency table from v1.1 research as a second, independent line of defense — the timestamp prevents re-scanning, the unique constraint prevents re-sending even if the scan logic has a bug.
 
 **Warning signs:**
-- No `bip_alert_deliveries` table (or equivalent idempotency log) in migrations
-- Alert job queries `status = 'approved'` without a high-water mark filter
-- `sendEmail()` called in a loop without any deduplication guard
-- Students complaining about duplicate alert emails
+- Alert-eligibility query filters on `updated_at`, not a dedicated `approved_at`/`first_approved_at` column
+- `buildMergePayload()` (or any edit-merge path) sets a column the alert query also reads as its high-water mark
+- Subscribers report receiving an alert for a BIP they already saw an alert for, correlated in time with an edit-approval event (not a genuinely new BIP)
 
-**Phase to address:** Phase A (email alerts) — idempotency table must exist before the first alert cron run in any environment.
+**Phase to address:** Alert Subscriptions + Email Pipeline phase — schema design step, before the cron query is written; must be reviewed against every existing `bips.status`-mutating Server Action (`bip-submit.ts`, `bip-status.ts`, `bip-revise.ts`, `admin-bips.ts`, `admin-edit-bips.ts`) to confirm none of them incidentally bump the new marker.
 
 ---
 
-### Pitfall 6: Resend Rate Limit Hit by Digest Job — 429 Swallowed, Emails Silently Dropped
-
-**Workstream:** A — Email alerts
+### Pitfall 6: pg_cron Is Configured and Tested Differently Locally vs. on Cloud Supabase — "Works Locally" Is Not a Valid Signal
 
 **What goes wrong:**
-The existing `sendEmail()` wraps Resend in a try/catch and does NOT re-throw on failure (D-11 fire-and-forget contract). For transactional emails this is correct — a Resend outage should not reverse a committed approval. For a digest job dispatching N emails in a loop, this is catastrophic: Resend's limit is 5 API requests/second across all emails from the team. With 50 subscribers matching one popular BIP and the job firing with no rate-control, 50 calls hit Resend in ~1 second, triggering a 429 from call 6 onward. All 45 subsequent emails silently fail with no retry. The subscriber never receives the alert.
+Supabase's `pg_cron` extension schedules jobs that typically invoke an Edge Function or call an external URL via `pg_net`. The project's own accumulated state (`STATE.md`, recorded before Phase 7 was deferred) already flags the core gap: **local `pg_cron` cannot call a public URL** — there is no public URL for a local Edge Function — so end-to-end local testing requires manually invoking the function (`supabase functions serve`) rather than letting the scheduled job fire. A team that builds and "verifies" the digest cron purely against local `supabase start` risks shipping a job definition that references the wrong function URL, wrong `Authorization` header (Edge Functions require a service-role or anon key in the request, which `pg_net`'s `net.http_post` must be configured to send), or a cron schedule string that's syntactically valid but semantically wrong (e.g. timezone assumptions — `pg_cron` schedules run in the **database session's configured timezone**, which for Supabase is UTC by default; a digest intended for "9am local time" needs explicit UTC-offset math, not a naive cron string).
+This project also runs the shared **cloud** Supabase project for local dev (per the project's own memory notes) — meaning a real `pg_cron` job created via a migration and pushed to cloud will actually start firing against the shared dev/test database the moment it's pushed, potentially generating real (or fallback-logged) emails before the feature is feature-flagged or before the Server-Action side is ready, unless the job is disabled/scheduled far in the future during development.
 
 **Why it happens:**
-The existing `sendEmail()` pattern was designed for individual transactional sends, not bulk loops. Copying it into an alert loop inherits its silent-fail behavior at scale.
+`pg_cron` + `pg_net` is infrastructure-as-SQL: the job definition lives in a migration, is deployed the same way any other migration is (`supabase db push`), and takes effect immediately on the shared cloud project — there is no separate "staging" cron environment to test against first, and no way to dry-run a scheduled job locally with full fidelity.
 
 **How to avoid:**
-Add a deliberate delay between Resend calls in the alert job (100ms between sends = safe at 10/sec with headroom). Use `Promise.allSettled` with chunks of 5, not `Promise.all` on an unbounded array. Capture per-email send results and log failures to the `bip_alert_deliveries` table with a `status` column (`sent` / `failed`). On `failed`, schedule a retry pass. Do not rely on the `bip_alert_deliveries` unique constraint alone as the only failure signal — check `.ok` on each Resend response.
-
-Alternatively, use Resend Broadcasts (their audience-based bulk sending API) once the subscriber list exceeds 100 addresses — Broadcasts handle rate control, unsubscribe headers, and deliverability automatically. This requires storing subscribers as a Resend Audience, adding complexity; weigh against the subscriber volume.
+- Enable and verify both `pg_cron` and `pg_net` extensions explicitly in a migration (`create extension if not exists pg_cron; create extension if not exists pg_net;`), and confirm they're enabled in the Supabase dashboard's Database → Extensions page for the cloud project (extensions must be turned on there independently of the migration in some Supabase project configurations).
+- During development, schedule the job with `cron.schedule(...)` but keep it initially set to a very sparse or far-future cadence (or gated behind a `feature_flags` row / `enabled boolean` the job checks before doing any work) until the Server-Action/Edge-Function side is fully tested — do not let "push the migration" and "go live" be the same event.
+- Test the actual job invocation path manually against cloud (`select cron.schedule(...)` then `select * from cron.job_run_details order by start_time desc limit 5;` to inspect real run outcomes) rather than relying on local `supabase start` behavior, which cannot exercise the public-URL invocation path at all.
+- Log every cron-triggered run to a dedicated table (or rely on `cron.job_run_details`, which Supabase retains for a bounded window) so a silent failure (e.g. the Edge Function 500s) is observable — `pg_net` failures do not raise in a way that's visible without checking `net._http_response` or `cron.job_run_details.status`.
 
 **Warning signs:**
-- Alert job calls `sendEmail()` inside `Promise.all([...subscribers.map(s => sendEmail(...))])` with no chunking or delay
-- Resend API logs show 429 responses followed by silence (no retry)
-- Alert job does not log per-email send results anywhere
-- No `status` column on the deliveries table
+- The cron job migration has never been exercised against the cloud project before being merged (only tested via manual Edge Function invocation)
+- No `enabled`/feature-flag gate on the job — pushing the migration to cloud is the same action as "go live"
+- No query against `cron.job_run_details` was run after the first scheduled fire to confirm success
+- Digest emails are timed assuming local/CET time but the cron schedule string was written without a UTC offset
 
-**Phase to address:** Phase A (email alerts) — alert job implementation, before first production run.
+**Phase to address:** Alert Subscriptions + Email Pipeline phase — must be the first infrastructure task (before subscription UI), since the project has already flagged this as a Phase 7 prerequisite; do not let it become another deferred manual-verification item (see Pitfall 10 below).
 
 ---
 
-### Pitfall 7: Email Alert Subscriptions Have No Unsubscribe Mechanism — GDPR + Deliverability Failure
-
-**Workstream:** A — Email alerts
+### Pitfall 7: Resend's 100-Email/Day Free-Tier Ceiling Is a Digest-Killer, Not a Theoretical Concern
 
 **What goes wrong:**
-Students sign up for "alert me when a BIP in Engineering in Germany is approved." BipHub sends alert emails from `noreply@biphub.eu`. The email body has no unsubscribe link. Under GDPR Article 7 (consent withdrawal), any marketing-adjacent email must offer a clear withdrawal mechanism. Under Gmail/Yahoo 2024 bulk sender requirements (enforced for > 5,000 emails/day, but spam classification applies at any volume), emails without a `List-Unsubscribe` header have significantly higher spam placement rates. Without an unsubscribe path: students who want to stop receiving alerts must delete their account (disproportionate), spam-complain (damages `biphub.eu` domain reputation and risks Resend account suspension), or ignore the email (reducing engagement but also reducing future deliverability).
+This project's own `STATE.md` already flags the number: Resend's free tier caps at 100 emails/day. A digest pipeline is structurally different from the existing transactional emails (one email per submit/approve/reject/edit action, naturally rate-limited by human action cadence) — a single popular BIP being approved can fan out to dozens of matching subscribers in one cron run, and multiple BIPs approved between digest runs compound linearly. At even modest catalogue growth (the target scale discussed in `PROJECT.md` is well past the "under 500 BIPs" search threshold), a single digest run can plausibly exceed 100 emails on a good day for university outreach, silently truncating or failing sends for the remainder once the daily cap is hit — and per the v1.1 research already on file, the existing `sendEmail()` fire-and-forget try/catch means a Resend 429/402 (over-limit) response is swallowed, not surfaced, so subscribers simply never receive their alert with zero operator visibility.
 
 **Why it happens:**
-Transactional email patterns (approval/rejection) do not need unsubscribe links — GDPR treats them as legitimate interest. Alert subscriptions are opt-in preference emails — functionally marketing. Teams add alert pipelines using the existing transactional template without adding the required unsubscribe infrastructure.
+The daily cap is a hard account-level limit, not a per-request rate limit that can be worked around with retries or backoff — once hit, no further sends succeed until the next UTC day, and the existing error-swallowing pattern (correct for transactional emails, where a failure just means "resend later is fine") hides this from anyone unless someone is watching the Resend dashboard.
 
 **How to avoid:**
-- Generate a per-subscription signed unsubscribe token (HMAC-SHA256 of `subscription_id + created_at` with a server secret): `HMAC(secret, sub_id + "|" + created_at)`. Store the token hash in the `subscriptions` table.
-- Add a public `GET /api/unsubscribe?token=...` route that verifies the token and sets `subscriptions.active = false` (does NOT require auth — the token is the credential). This is the one-click `List-Unsubscribe: <URL>` target.
-- Include the unsubscribe token URL in every alert email as a footer link AND in the `List-Unsubscribe` header.
-- Extend the `delete_my_account()` RPC to also delete `subscriptions` rows for the departing user (currently only handles `bips` and `profiles`).
-- Document in `/privacy`: "You may cancel BIP alert subscriptions at any time by clicking Unsubscribe in any alert email."
+- Compute the realistic digest volume ceiling before building: (approved BIPs per digest window) × (average matching subscribers per BIP), and compare against 100/day. Document the threshold in the phase plan as an explicit "upgrade trigger," as `STATE.md` already anticipates (Resend Starter, $20/mo, 5K/day).
+- Log per-digest-run send counts and failures to a durable table (extending the `bip_alert_deliveries` idempotency table from v1.1 research with a `status` column, also from that research) so a daily-cap breach is visible in the data, not just inferred from user complaints.
+- Consider batching: Resend's batch-send API accepts multiple recipients per call up to its own per-call cap (verify current limit against Resend's API reference before implementing — this number changes across plans and has moved in the past; do not hardcode a training-data-remembered figure into code comments without checking `resend.com/docs` at implementation time). Batching reduces API-call count but does **not** raise the daily-email-count ceiling.
+- Decide up front (as a phase-plan decision, not an incident-response one) whether the daily cap breach behavior is "queue and send tomorrow" or "hard fail and alert the admin inbox" — silently dropping sends must not be the default behavior inherited from the transactional fire-and-forget pattern.
 
 **Warning signs:**
-- Alert email templates have no unsubscribe footer link
-- No `List-Unsubscribe` header in Resend send call
-- `subscriptions` table has no `active` boolean column
-- `delete_my_account()` RPC does not delete `subscriptions` rows (check the RPC source in 00013)
-- No public unsubscribe endpoint in the app
+- No instrumentation exists to answer "how many alert emails did we send yesterday?"
+- The digest job has no explicit handling path for a 429/quota-exceeded response distinct from a transient network failure
+- Phase plan does not state the volume threshold at which Resend plan upgrade becomes necessary
 
-**Phase to address:** Phase A (email alerts) — must ship with the first alert email template, not added later.
+**Phase to address:** Alert Subscriptions + Email Pipeline phase — capacity planning and failure-mode decision belong in the phase's design step, before the cron job ships to cloud.
 
 ---
 
-### Pitfall 8: Double Opt-In / GDPR Consent Not Recorded for Email Subscriptions
-
-**Workstream:** A — Email alerts
+### Pitfall 8: Signed Unsubscribe Token Has No Expiry, No Scope Binding, or No One-Click POST Support
 
 **What goes wrong:**
-A student clicks "Alert me for Engineering BIPs in Germany" and is immediately enrolled. GDPR Article 7 requires that consent be freely given, specific, informed, and unambiguous. If the subscription action doesn't record:
-- What the user consented to (`"Email alerts for field=engineering, country=DE"`)
-- When they consented (`created_at`)
-- How they consented (e.g., checked a checkbox vs implicit on form submit)
-
-...then BipHub cannot demonstrate lawful processing if challenged by a Data Protection Authority or a user exercising their Article 15 right of access ("show me what you have on me"). The existing `/privacy` page (Plan 04-02) documents zero-analytics and article-17 erasure but does not mention subscription email consent, because subscriptions did not exist in v1.0.
-
-**Why it happens:**
-GDPR consent audit trails feel like over-engineering until a DPA inquiry arrives. The typical shortcut is to log `created_at` but not the consent purpose or mechanism.
+The v1.1 research already specifies the core idea (HMAC-signed token, public unsubscribe endpoint, no auth required). Three specific implementation mistakes are common and each defeats part of the security/compliance goal:
+1. **No expiry check** — if the token is `HMAC(secret, subscription_id + created_at)` with no expiry embedded or enforced, the token is valid forever. This is usually *fine* for the "click unsubscribe" use case (you want it to always work), but it means anyone who ever intercepts or logs the URL (browser history, email-client link-preview crawlers, shared-inbox scenarios) can unsubscribe that user at any future point — a low-severity but real annoyance/abuse vector with no mitigation if the token is a bare, non-expiring credential.
+2. **No per-recipient/per-send scoping** — if the same token is reused across every digest email sent to that subscriber (rather than being tied to a specific send or rotated), and the HMAC input is guessable (e.g. sequential subscription IDs), an attacker can potentially construct valid unsubscribe URLs for other subscriptions without ever seeing an email, if the HMAC secret is weak or the input space is small. Mitigate by using the actual UUID `subscription_id` (already non-guessable) as the HMAC input, not a sequential integer.
+3. **GET-only unsubscribe with no RFC 8058 one-click POST support** — Gmail/Yahoo's 2024+ bulk-sender requirements (which the v1.1 research already cites) require **both** a `List-Unsubscribe` header **and**, for true one-click compliance, a `List-Unsubscribe-Post: List-Unsubscribe=One-Click` header paired with an endpoint that accepts a POST with no user interaction — some mail clients now auto-fire the one-click POST during spam-filtering/prefetch, which means a GET-based unsubscribe link that mutates state on **any** request (including a prefetch or bot crawl) will unsubscribe users who never clicked anything. This is a subtle, high-consequence failure mode: mail client link-scanning security features (e.g. Outlook Safe Links, corporate email gateways) routinely GET-follow links in incoming email to check for malware — if that GET alone flips `subscriptions.active = false`, users are unsubscribed without ever seeing the email.
 
 **How to avoid:**
-Add a `consent_text` column to `subscriptions` that stores the human-readable consent string at the moment of subscription:
-```sql
-alter table public.subscriptions add column consent_text text not null;
--- e.g., "Opted in to email alerts for field=engineering, country=DE on biphub.eu subscription form"
-```
-
-Store `subscribed_at timestamptz not null default now()`. This is the audit trail. Update `/privacy` to include a section on subscription email consent, the data stored (email, field, country preference, consent timestamp), and the unsubscribe mechanism.
+- Support both mechanisms distinctly: the `List-Unsubscribe` header's URL should point to a page (GET, human-facing, shows a confirmation or a one-click confirm button) — not one that mutates state on GET. The separate `List-Unsubscribe-Post` mechanism (a `mailto:` or HTTPS POST target with body `List-Unsubscribe=One-Click`) is the one that should actually flip `active = false` immediately, and should be a **dedicated POST-only route**, since mail clients that support one-click unsubscribe send exactly that POST body and nothing else — safe to auto-process. If one-click POST support isn't in v1.2 scope, at minimum ensure the GET-based unsubscribe page requires an explicit confirm button click (not a bare link-visit-mutates-state pattern) to avoid the link-scanner false-positive problem — bare GET-mutates-state was an actual, widely-documented email deliverability incident pattern.
+- Bind the token to the specific `subscription_id` (UUID, already non-guessable) and verify the HMAC server-side using a server-only secret (never expose the HMAC secret to the client, never derive it from anything guessable like `created_at` alone without the UUID).
+- Decide explicitly whether the token expires. A reasonable default: tokens do not expire (unsubscribe should always work), but the confirmation page should show which subscription is being cancelled so a user recognizes what they're unsubscribing from, mitigating the "forever-valid, silently-processed" risk.
 
 **Warning signs:**
-- `subscriptions` table has no `consent_text` or `consent_mechanism` column
-- `/privacy` page does not mention email alert subscriptions
-- Subscription action does not show the user what they are opting into before confirming
+- Visiting the unsubscribe URL with a plain `curl -I` (HEAD/GET, no confirm step) immediately flips `active = false`
+- No distinction in the codebase between a `List-Unsubscribe` GET target and a `List-Unsubscribe-Post` handler
+- HMAC input includes only a timestamp or a guessable identifier, not the subscription's UUID
 
-**Phase to address:** Phase A (email alerts) — schema design step and `/privacy` update in same plan.
+**Phase to address:** Alert Subscriptions + Email Pipeline phase — unsubscribe mechanism design step, alongside the email template that first embeds the link.
 
 ---
 
-### Pitfall 9: Coordinator Edits an Approved BIP — ISR Cache Serves the Old Version for Up to One Hour
-
-**Workstream:** B — Edit-approved-BIP with re-review
+### Pitfall 9: New PII-Bearing Tables (`subscriptions`, `bip_alert_deliveries`) Repeat the Public-Readable-By-Default and Missing-`WITH CHECK` Traps From Scratch
 
 **What goes wrong:**
-An approved BIP at `/bip/sustainable-cities-berlin-2025` is cached by Next.js ISR with `revalidate = 3600` (one hour, set in Plan 01-07). The coordinator submits an edit. The edit moves the BIP to `status = 'pending_edit'` (or similar). The Server Action revalidates `/dashboard` and `/bips` — but does NOT call `revalidatePath('/bip/sustainable-cities-berlin-2025')`. For the next 58 minutes, the public BIP detail page serves the old (now incorrect) content. Even worse: because the BIP is still `status = 'approved'` during re-review (to keep it publicly visible), the public detail page continues to serve the pre-edit content.
+CLAUDE.md's two standing never-do items — "never create a table without `ENABLE ROW LEVEL SECURITY`" and "never write an UPDATE policy without both `USING` and `WITH CHECK`" — are project-wide rules precisely because every new table is a fresh opportunity to reintroduce them, and the existing `bip_edits` migration (00017) shows the team already applies this correctly when careful. The specific v1.2 risk: the alert-subscription tables need at least one UPDATE path a student can reach directly (e.g., pausing/resuming a subscription from the student dashboard) and the unsubscribe endpoint needs to UPDATE `subscriptions.active` **without an authenticated session at all** (the signed token is the credential, per Pitfall 8/v1.1 Pitfall 7). This second requirement is unusual for this codebase — every other UPDATE policy so far gates on `auth.uid()` from a JWT; the unsubscribe path has no JWT. If the unsubscribe route is naively implemented as `createClient()` (anon key + no session) attempting `UPDATE subscriptions SET active = false WHERE id = $1`, it will simply fail RLS (no policy matches an unauthenticated anon request), and the "fix" under time pressure is often to grant a dangerously broad anon UPDATE policy (`using (true)`) — which lets anyone flip any subscription's `active` state by guessing/enumerating IDs, or to route the unsubscribe action through `createAdminClient()` (service-role, bypasses RLS) called from a route outside the sanctioned `app/(admin)/` / `lib/supabase/admin.ts` boundary — both violate existing CLAUDE.md never-do items.
 
 **Why it happens:**
-`revalidatePath()` is a targeted call — it only busts what you name. The edit action will naturally revalidate dashboard-related paths. Forgetting to revalidate the specific `/bip/[slug]` path is a common omission. The existing `approveAction` in v1.0 does call `revalidatePath('/bip/...')` correctly (as noted in STATE.md), but the new _coordinator edit_ Server Action may not reproduce this pattern.
+Every prior authenticated-user table in this codebase assumes a JWT is present. The unsubscribe flow is the first genuinely anonymous-but-authorized-by-token mutation path in the system, and the existing RLS mental model (role/ownership checks against `auth.uid()`) doesn't map onto it directly.
 
 **How to avoid:**
-In the `editApprovedBipAction` Server Action: collect the BIP's slug BEFORE the update (same pattern as `delete_my_account` collects slugs before the RPC). After successfully saving the edit and moving to re-review status, call:
-```typescript
-revalidatePath(`/bip/${slug}`)
-revalidatePath('/bips')
-revalidatePath('/dashboard')
-```
-
-If the edit changes the slug (e.g., title change), also call `revalidatePath('/bip/[old-slug]')` so the old URL stops serving content. Slug changes for approved BIPs should be forbidden or trigger a redirect — see Pitfall 10.
+- Do not perform the unsubscribe UPDATE through the anon-key RLS path at all. Verify the HMAC token **in application code** (a Server Action or Route Handler, not client-side), and only then perform the mutation via a narrowly-scoped `SECURITY DEFINER` Postgres function (mirroring the `delete_my_account()` pattern already used in this codebase) that takes the subscription ID and a verified-token flag, rather than widening RLS or reaching for `createAdminClient()`. This keeps the "the token is the credential" logic entirely inside a single, auditable function, the same way `delete_my_account()` centralizes account erasure.
+- For the student-dashboard pause/resume path (a real JWT is present), apply the standard `USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id AND <only mutable columns are being changed>)` pattern already established for other tables.
+- Explicitly test (as this project already tests `bip_edits`' WITH CHECK): can a subscriber flip another subscriber's `active` flag by ID-guessing via the REST API? Can a subscriber self-escalate a delivery record's `status`?
 
 **Warning signs:**
-- `editApprovedBipAction` calls `revalidatePath('/dashboard')` but not `revalidatePath('/bip/[slug]')`
-- BIP detail page shows stale content after coordinator edit (verify by checking `updated_at` in the response vs the database)
-- ISR cache `revalidate` value is > 0 on `/bip/[slug]` route (it is — 3600 from Plan 01-07)
+- Unsubscribe route imports `createAdminClient` outside `app/(admin)/` or `lib/supabase/admin.ts`
+- Any RLS policy on `subscriptions` or `bip_alert_deliveries` uses `using (true)` for UPDATE
+- `subscriptions` or `bip_alert_deliveries` table creation migration has no `ENABLE ROW LEVEL SECURITY` line (CLAUDE.md — Supabase tables are public-readable via anon key by default)
 
-**Phase to address:** Phase B (coordinator edit flow) — every Server Action that modifies a BIP with status `approved` or `pending_edit` must call `revalidatePath('/bip/[slug]')`.
+**Phase to address:** Alert Subscriptions + Email Pipeline phase — schema/RLS migration review step, before the unsubscribe route is built.
 
 ---
 
-### Pitfall 10: Edit-Approved Flow Leaks Unapproved Content to the Public During Re-Review
-
-**Workstream:** B — Edit-approved-BIP with re-review
+### Pitfall 10: New Alert Tables Are Not Added to `delete_my_account()` or `/privacy`, Repeating v1.1 Pitfall 14 in a New Shape
 
 **What goes wrong:**
-The coordinator submits edits to an approved BIP. Two design choices exist, each with a different failure mode:
-
-**Choice A — BIP stays `approved` + edits stored in a shadow `bip_edits` table:** The public page continues to serve the _approved_ (original) version during re-review. The admin panel shows the pending diff. After admin approves the diff, it's merged and `revalidatePath()` fires. This is the correct approach but requires a separate `bip_edits` table and a diff-merge Server Action.
-
-**Choice B — BIP status changes to `pending_edit`:** The `bips_select_approved_public` policy (migration 00001) only returns `status = 'approved'` rows to anonymous users. If the coordinator's edit changes the status to `pending_edit`, the public BIP at `/bip/[slug]` immediately returns 404 (ISR has no row to render) or serves the now-stale ISR cache. If the coordinator then has a change of heart and withdraws, the admin never reviews — but the ISR cache still serves old content until revalidated.
+This is v1.1 PITFALLS Pitfall 14 recurring: `delete_my_account()` (migration 00013) is a hand-maintained `SECURITY DEFINER` RPC that explicitly anonymizes/deletes specific tables; it does not automatically pick up new tables. v1.2 adds at least two new PII-bearing tables (`subscriptions`, `bip_alert_deliveries`) plus possibly a `bip_edits`-adjacent extension for the new BIP-model fields. Each needs an explicit decision:
+- `subscriptions`: should cascade-delete on account deletion (a subscription preference is not public data worth anonymizing-and-keeping, unlike an approved BIP listing).
+- `bip_alert_deliveries`: less obvious — deleting delivery-audit rows on account deletion destroys the idempotency history needed to prove "we already sent this," but keeping them post-deletion retains a `user_id` FK that must resolve to `ON DELETE SET NULL` or `CASCADE`, not `RESTRICT` (which would block the whole `delete_my_account()` transaction with a hard FK violation, exactly as v1.1 Pitfall 14 describes for `saved_bips`/`subscriptions`).
+If a new PII table has an FK to `profiles`/`auth.users` with the Postgres default `ON DELETE NO ACTION`/`RESTRICT`, a user attempting Article 17 erasure gets a hard failure mid-transaction — worse than v1.1's version of this bug because a partial delivery-history table is now involved, and the correct GDPR answer (delete vs. anonymize vs. retain-for-legitimate-interest) is genuinely less obvious for delivery-audit data than it was for `saved_bips`.
 
 **Why it happens:**
-Both approaches are subtle. Choice A requires extra schema and merge logic. Choice B (simpler schema) accidentally removes the BIP from public view during re-review, which is unacceptable for a live directory.
+Same root cause as v1.1 Pitfall 14: the RPC and the privacy documentation are not derived from a live table list — they are manually written and only get updated when someone remembers to update them alongside a new table.
 
 **How to avoid:**
-Use a `bip_edits` shadow table (Choice A). The BIP retains `status = 'approved'` and remains publicly accessible throughout re-review. The shadow table stores the pending delta:
-
-```sql
-create table public.bip_edits (
-  id          uuid primary key default gen_random_uuid(),
-  bip_id      uuid not null references public.bips(id) on delete cascade,
-  editor_id   uuid not null references public.profiles(id) on delete set null,
-  edit_data   jsonb not null,  -- the proposed changes as a partial BIP object
-  status      text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
-  submitted_at timestamptz not null default now(),
-  reviewed_at timestamptz,
-  reviewer_id uuid references public.profiles(id) on delete set null
-);
-```
-
-The admin reviews `bip_edits` rows, not the `bips` row directly. On approval, a Server Action merges `edit_data` into `bips`, marks `bip_edits.status = 'approved'`, and calls `revalidatePath('/bip/[slug]')`. The public page is never disrupted.
+- For every new PII table added in v1.2, make the FK-cascade decision an explicit line item in the phase plan (not an afterthought): `subscriptions.user_id` → `ON DELETE CASCADE`. For `bip_alert_deliveries.user_id`, decide deliberately between `ON DELETE CASCADE` (simplicity, loses delivery-audit trail post-erasure) and `ON DELETE SET NULL` with the FK made nullable (retains aggregate delivery-count/idempotency history without retaining PII, since `bip_id` + a null `user_id` is not personally identifying) — the second option is more defensible under a "legitimate interest in operational delivery records" GDPR argument, but requires the unique `(bip_id, user_id)` idempotency constraint to tolerate a null `user_id` post-erasure without re-enabling a duplicate send (partial unique index or `NULLS NOT DISTINCT` handling needed).
+- Update `/privacy` in the same PR that ships the new table — enumerate what's stored (subscription preferences, delivery timestamps), the legal basis, and the unsubscribe/deletion mechanism, mirroring the existing `/privacy` treatment of `saved_bips`.
+- Add both new tables to the "Looks Done But Isn't" verification checklist (see below) before considering the phase complete.
 
 **Warning signs:**
-- No `bip_edits` table in the migration plan — edits written directly to `bips` status column
-- `bips.status` gains a new value like `pending_edit` without a separate shadow table
-- After a coordinator submits an edit, the public BIP URL returns 404 or stale content
+- New table's FK to `profiles`/`auth.users` has no explicit `ON DELETE` clause (defaults to `RESTRICT`/`NO ACTION`)
+- `delete_my_account()` RPC source is unchanged in a PR that adds a new PII table
+- `/privacy` page is unchanged in a PR that adds `subscriptions`/`bip_alert_deliveries`
+- Calling `delete_my_account()` for a user with an active subscription throws a foreign-key violation instead of succeeding
 
-**Phase to address:** Phase B (coordinator edit flow) — schema design decision, must be locked before any edit UI is built.
+**Phase to address:** Alert Subscriptions + Email Pipeline phase, schema step — cross-check against `delete_my_account()` and `/privacy` before the phase is marked done, same discipline already established (per PROJECT.md) for Phase 6's `saved_bips` cascade.
 
 ---
 
-### Pitfall 11: Edit-Approved Audit Log Gap — `bip_status_history` Trigger Does Not Cover Edit-in-Place
-
-**Workstream:** B — Edit-approved-BIP with re-review
+### Pitfall 11: Detail-Page Redesign Coincides With Builder Field Additions, Multiplying the ISR-Revalidation Surface Without a Corresponding Audit
 
 **What goes wrong:**
-The existing `log_bip_status_change()` trigger (migration 00010) fires on `UPDATE OF status` on `bips`. It logs `submit`, `resubmit`, `withdraw`, and implicitly admin transitions. If the edit-approved flow uses a `bip_edits` shadow table (Pitfall 10, Choice A), the `bips.status` never changes during the edit cycle — it stays `approved`. The trigger does not fire. The admin's decision (approve/reject the edit) is invisible in the audit log. An admin who rejects an edit has no recorded trace that the edit was even proposed.
+The BIP detail page currently has roughly seven distinct call sites across the codebase that call `revalidatePath('/bip/[slug]')` (or its `/bips`/`/admin` siblings) after a mutation: `admin-bips.ts` (approve, listing-edit), `admin-edit-bips.ts` (approve-edit only — reject/request-changes deliberately skip it), `account.ts` (erasure/anonymization touches every affected slug). A detail-page redesign done in the same milestone as builder field additions creates two compounding risks: (1) if the redesign changes how the page is composed (e.g., splitting previously-inline data into a differently-cached sub-component, or changing the route segment/slug format), some of the seven existing `revalidatePath` call sites may target a path that no longer matches the new page's actual cache key, silently reintroducing v1.1 Pitfall 9 (stale ISR) for a subset of mutation paths that "used to work"; (2) new BIP-model fields rendered on the redesigned page are automatically covered by the *existing* full-page ISR ("whole page revalidates" model) as long as no one introduces per-component fetch caching or Partial Prerendering for the new sections — if a developer optimizes the redesign by adding a scoped `fetch()` cache or React `cache()` boundary around just the new fields "for performance," that boundary needs its own explicit revalidation tag, or the new fields will show stale data even after `revalidatePath('/bip/[slug]')` busts the rest of the page.
 
 **Why it happens:**
-The `bip_status_history` trigger was designed for the v1.0 state machine (`draft → pending → approved → rejected → draft`). The v1.1 edit-approved cycle adds a new arc (`approved → [review in shadow table] → approved again`) that bypasses the trigger's `UPDATE OF status` predicate.
+`revalidatePath` operates on the page's cache entry as a whole under the current architecture; the moment any part of the redesign introduces finer-grained caching (a common temptation during a "redesign" pass, since redesigns often touch performance too), the implicit "one call busts everything" assumption that all seven existing call sites rely on breaks for just that piece.
 
 **How to avoid:**
-Extend `bip_status_history` with new `action_kind` values: `edit_submitted`, `edit_approved`, `edit_rejected`. Write explicit `INSERT INTO bip_status_history` calls inside the admin Server Actions that approve/reject `bip_edits` rows. Since these Server Actions run with the existing `createServerClient` (admin role), the `bsh_insert_admin` RLS policy already permits inserts. Log:
-- `action_kind = 'edit_submitted'`: when the coordinator submits an edit (INSERT into bip_edits)
-- `action_kind = 'edit_approved'`: when admin merges the edit
-- `action_kind = 'edit_rejected'`: when admin rejects the edit
-
-Also check that the `action_kind` CHECK constraint on `bip_status_history` is migrated to add these new values before any inserts are attempted.
+- Before starting the redesign, enumerate all seven-plus current `revalidatePath` call sites touching `/bip/[slug]` (`admin-bips.ts` lines ~119-121, ~251-252, ~474-475; `admin-edit-bips.ts` line ~266; `account.ts` line ~91) and confirm the redesign does not change the slug/route shape those calls target.
+- If the redesign introduces any new per-segment caching (fetch-level `revalidate` options, `unstable_cache`, or PPR), add a corresponding explicit revalidation call at every one of the existing mutation call sites — do not assume the top-level `revalidatePath('/bip/[slug]')` cascades into finer-grained cache tags introduced later without an explicit tag-based invalidation (`revalidateTag`) alongside it.
+- Re-run the existing "ISR bust on edit" / "ISR bust on merge" verification checklist items from v1.1 PITFALLS against the redesigned page before considering the detail-page phase done — a visual redesign passing without re-verifying ISR behavior is the most likely way this pitfall ships unnoticed (the page "looks right" on the first cached load either way).
 
 **Warning signs:**
-- `bip_status_history.action_kind` CHECK constraint does not include `edit_submitted`, `edit_approved`, `edit_rejected`
-- Admin approve/reject edit Server Action has no `INSERT INTO bip_status_history` call
-- Admin audit trail in the UI shows no history for approved-BIP edits
+- Redesign PR introduces `unstable_cache`, a scoped `fetch()` with its own `revalidate` option, or PPR flags without a corresponding `revalidateTag`/`revalidatePath` update in the seven existing mutation call sites
+- A new BIP-model field shows the pre-edit value immediately after an admin approves an edit, while other fields on the same page show the new value
+- Slug/route segment format changes as part of the redesign without an audit of every hardcoded `` `/bip/${slug}` `` template literal across `lib/actions/`
 
-**Phase to address:** Phase B (coordinator edit flow) — schema migration must extend `action_kind` constraint before edit Server Actions are written.
-
----
-
-### Pitfall 12: Coordinator Can Self-Escalate a `bip_edits` Edit via Direct RLS Bypass
-
-**Workstream:** B — Edit-approved-BIP with re-review
-
-**What goes wrong:**
-If `bip_edits` RLS allows a coordinator to UPDATE their own pending edit row (e.g., to change `edit_data`), and the UPDATE policy does NOT include a `WITH CHECK` that prevents changing `status` from `pending` to `approved`, a coordinator can approve their own edit by issuing:
-```sql
-UPDATE bip_edits SET status = 'approved' WHERE id = $their_edit_id
-```
-This is the same class of vulnerability as v1.0 Pitfall 5 (missing `WITH CHECK`) but applied to the new shadow table.
-
-**Why it happens:**
-New table, new migration, same classic mistake. The v1.0 PITFALLS doc documents it clearly, but it must be re-applied to every new table with an UPDATE policy.
-
-**How to avoid:**
-Apply the `USING + WITH CHECK` rule to `bip_edits`:
-
-```sql
--- Coordinator can update their own PENDING edit (e.g., to revise before admin reviews)
-create policy "bip_edits_update_own_pending"
-  on public.bip_edits for update
-  to authenticated
-  using (
-    (select auth.uid()) = editor_id
-    and status = 'pending'
-  )
-  with check (
-    (select auth.uid()) = editor_id
-    and status = 'pending'  -- cannot self-transition to approved/rejected
-  );
-
--- Admin can update any edit (approve or reject)
-create policy "bip_edits_update_admin"
-  on public.bip_edits for update
-  to authenticated
-  using (
-    (select auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
-  )
-  with check (
-    (select auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
-  );
-```
-
-**Warning signs:**
-- `bip_edits` UPDATE policy for coordinators has `USING` but no `WITH CHECK`
-- A coordinator can set `bip_edits.status = 'approved'` directly via the Supabase REST API
-
-**Phase to address:** Phase B (coordinator edit flow) — migration review step.
-
----
-
-### Pitfall 13: Slug Changes During Edit Cause Permanent Broken URLs
-
-**Workstream:** B — Edit-approved-BIP with re-review
-
-**What goes wrong:**
-A coordinator edits an approved BIP titled "Sustainable Cities – Berlin 2025" and changes it to "Sustainable Urban Planning – Berlin 2025". The admin approves the edit and the merge Server Action updates `bips.title` and also regenerates the slug: `sustainable-urban-planning-berlin-2025`. The ISR page at `/bip/sustainable-cities-berlin-2025` now returns 404. Any student who bookmarked the old URL, any link shared on social media, and any Google-indexed page for the old slug becomes dead. Since `/bip/[slug]` uses `dynamicParams = true` and ISR, the old slug's page is not deleted — it serves the last cached ISR version indefinitely until the cache expires, then returns 404.
-
-**Why it happens:**
-Slug generation at BIP creation time is permanent in v1.0 (Plan 01-07 decision: slug from title + Erasmus code). Allowing slug regeneration during an edit breaks the URL contract.
-
-**How to avoid:**
-**Lock slugs as immutable for approved BIPs.** The edit-approved flow must explicitly exclude `slug` from the editable fields in the `bip_edits.edit_data` schema, or validate in the merge Server Action that the proposed new slug is identical to the existing one. If a title change genuinely warrants a new slug, treat it as a separate admin-only operation that:
-1. Creates a redirect from the old slug to the new slug (a `bip_redirects` table or Next.js `redirects` in `next.config.ts`)
-2. Calls `revalidatePath('/bip/[old-slug]')` to bust the old ISR cache
-
-For v1.1, the simplest rule: **slug is immutable after first approval.** Document this constraint in the edit UI ("Slug cannot be changed after approval — contact an admin for URL changes").
-
-**Warning signs:**
-- Edit form includes a "Slug" field or auto-regenerates slug from title
-- Merge Server Action calls `generateSlug(newTitle)` and updates `bips.slug`
-- No redirect in place after a slug change is merged
-
-**Phase to address:** Phase B (coordinator edit flow) — edit form design and merge Server Action, enforce at both UI and DB layer.
-
----
-
-### Pitfall 14: Student Account Erasure Does Not Cascade to `saved_bips` and `subscriptions`
-
-**Workstream:** A — Student accounts; cross-cutting GDPR
-
-**What goes wrong:**
-The existing `delete_my_account()` RPC (migration 00013) handles coordinator erasure: anonymize approved BIPs, hard-delete drafts/pending/rejected, delete `auth.users` row (cascades to `profiles`). It does NOT handle `saved_bips` or `subscriptions` — tables that do not exist in v1.0. When a student calls `delete_my_account()`, the `auth.users` delete will succeed, but if `saved_bips.user_id` has a FK to `profiles.id` with `ON DELETE CASCADE`, the cascade chain covers it. However, `subscriptions.user_id` must also be handled. If the FK cascade is not set up correctly, the `delete from auth.users` will fail with a FK violation, leaving the account in a half-deleted state.
-
-**Why it happens:**
-The RPC was written before these tables existed. New tables added in v1.1 must be audited against the erasure RPC on creation.
-
-**How to avoid:**
-For every new table added in v1.1 that holds user PII:
-1. Define the FK to `auth.users` or `profiles` with `ON DELETE CASCADE` if the row should be deleted on account deletion.
-2. Update the `delete_my_account()` RPC to explicitly handle any edge cases the cascade does not cover (e.g., subscription unsubscribe token revocation, Resend audience removal if Resend Audiences are used).
-3. Update `/privacy` to enumerate the new data surfaces.
-
-```sql
--- saved_bips: cascade delete on user removal (no anonymization needed — not public)
-create table public.saved_bips (
-  ...
-  user_id uuid not null references public.profiles(id) on delete cascade,
-  ...
-);
-
--- subscriptions: cascade delete is correct (subscription is personal preference, not public)
-create table public.subscriptions (
-  ...
-  user_id uuid not null references public.profiles(id) on delete cascade,
-  ...
-);
-```
-
-Also update the `delete_my_account()` RPC to explicitly delete the user's Resend Audience contact if Resend Audiences are used, since the cascade only handles the Postgres side.
-
-**Warning signs:**
-- `saved_bips` or `subscriptions` FK to `profiles.id` has no `ON DELETE` clause (defaults to `RESTRICT` — breaks account deletion)
-- `delete_my_account()` RPC source (00013) is not updated when new tables are added
-- `/privacy` page still lists only v1.0 data surfaces after v1.1 ships
-
-**Phase to address:** Phase A (schema) — on every new table creation; also an explicit cross-check task in every phase that adds a PII-bearing table.
+**Phase to address:** BIP detail-page redesign phase — must include an explicit ISR-call-site audit task, cross-referenced against the builder-completion phase's new fields so both land coherently.
 
 ---
 
 ## Technical Debt Patterns
 
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
-|----------|-------------------|----------------|-----------------|
-| Use `app_metadata.role = 'student'` as the primary RLS guard on student tables | Matches coordinator pattern | Silently blocks all student writes for up to 1 hour after signup (Pitfall 1) | Never for INSERT; acceptable for SELECT after JWT refresh |
-| Reuse existing `/dashboard` route group for students | Less routing logic | Students hit coordinator UI; coordinator BIP-submit potentially accessible (Pitfall 3) | Never — use separate route group |
-| Skip `bip_alert_deliveries` idempotency table | Simpler alert job | Double-sends on cron retry, no audit trail (Pitfall 5) | Never |
-| Fire alert emails inside `Promise.all(subscribers.map(...))` | Faster job completion | Hits Resend 5 req/sec limit; failures silently swallowed (Pitfall 6) | Never — chunk with delay |
-| Omit unsubscribe link from alert emails | Simpler email template | GDPR violation, domain reputation damage, potential Resend suspension (Pitfall 7) | Never |
-| Change BIP status to `pending_edit` during re-review (no shadow table) | Simpler schema | BIP disappears from public directory during review (Pitfall 10) | Never for an active directory |
-| Allow slug regeneration on approved BIP title edit | Keeps slug "fresh" | Permanent broken URLs for bookmarks and Google index (Pitfall 13) | Never after first approval |
-| Copy `delete_my_account()` RPC without updating for new tables | Faster erasure implementation | FK violation on student account deletion if cascades not set up correctly (Pitfall 14) | Never — audit every new PII table at creation |
+|----------|-------------------|-----------------|-----------------|
+| Keep two hand-copied `bip_edits` column-list literals instead of one shared constant | Avoids one cross-module import | Drift between `bipEdits.ts` and `admin-edit-bips.ts` silently drops new fields at merge time (Pitfall 1/2) | Never once a second field is added in v1.2 |
+| Regenerate `database.types.ts` via `--local` without pushing the migration to cloud first | Faster local iteration loop | Types claim a column exists while the shared cloud DB the app actually queries 400s on it (Pitfall 4) | Never for a migration destined for cloud within the same work session |
+| Use `updated_at` as the alert-digest high-water mark instead of a dedicated `approved_at` | No new column needed | Every edit-merge re-triggers alert emails for already-notified subscribers (Pitfall 5) | Never |
+| Push a `pg_cron` migration straight to the shared cloud project with no `enabled` gate | Simpler migration, no flag plumbing | Job starts firing against the shared dev/test database immediately, before the Server Action side is ready (Pitfall 6) | Only if the job body is a true no-op until a companion migration flips it on |
+| Route the unsubscribe mutation through `createAdminClient()` to sidestep RLS | Fast to ship, bypasses the anon-token-auth design problem | Violates the `app/(admin)/`-only service-role boundary (CLAUDE.md never-do); broad blast radius if ever reused elsewhere | Never |
+| Skip updating `delete_my_account()`/`/privacy` when shipping `subscriptions`/`bip_alert_deliveries` | Ships the feature faster | FK violation on erasure (GDPR Art. 17 failure) or an incomplete privacy disclosure | Never |
+| Add a per-field scoped cache during the detail-page redesign "for performance" without updating existing `revalidatePath` call sites | Marginal perf win on an already-ISR'd page | Reintroduces stale-content bugs the v1.1 Pitfall 9 fix already solved, for a page that "looks done" | Only with an explicit `revalidateTag` companion at every existing mutation call site |
 
 ---
 
 ## Integration Gotchas
 
 | Integration | Common Mistake | Correct Approach |
-|-------------|----------------|------------------|
-| Supabase Auth + new `student` role | Gate all student table policies on `app_metadata.role = 'student'` | Use `auth.uid() = user_id` for ownership; reserve role check for cross-role table access |
-| Supabase trigger + JWT | Assume trigger-updated `app_metadata.role` is visible in current session's JWT | It is not — JWT is only updated on next session refresh. Force session refresh on `/auth/callback` for new students |
-| Resend + alert digest | Use same fire-and-forget pattern as transactional emails | Add chunked sending with delay; log per-send results; implement idempotency table |
-| Resend bulk emails | Use `resend.emails.send()` in a loop for > 50 recipients | Use Resend Broadcasts/Audiences API beyond 100 subscribers (auto-handles `List-Unsubscribe`) |
-| Next.js ISR + edit-approved | `revalidatePath('/dashboard')` is sufficient after BIP edit | Must also call `revalidatePath('/bip/[slug]')` and `revalidatePath('/bips')` |
-| Vercel cron + email digest | Vercel Hobby cron has 10-second execution timeout | Offload to Supabase Edge Function (150s timeout) or pg_cron + pg_net; do not run long email loops in Vercel serverless |
-| `bip_status_history` trigger + shadow `bip_edits` table | Trigger only fires on `UPDATE OF status` on `bips`; edit cycle bypasses it | Explicit `INSERT INTO bip_status_history` in edit approve/reject Server Actions |
-| `delete_my_account()` RPC + new tables | RPC was written for v1.0 tables only | Audit every new PII table at creation; update RPC or rely on `ON DELETE CASCADE` FK |
+|-------------|-----------------|-------------------|
+| Supabase `pg_cron` + `pg_net` | Test only against local `supabase start`, which cannot invoke a public URL | Verify extensions enabled on the cloud project dashboard; test the real invocation path via `cron.job_run_details`, not local-only manual function calls |
+| Supabase shared cloud dev DB + scheduled jobs | Assume pushing a cron migration is a safe no-op until "later" | A pushed `pg_cron` job starts firing against the shared dev/test database immediately; gate with an `enabled` flag or far-future schedule during development |
+| Resend digest fan-out | Reuse the existing per-recipient `sendEmail()` loop pattern designed for one-at-a-time transactional sends | Batch and rate-limit deliberately (per v1.1 research Pitfall 6); track daily volume against the 100/day free-tier ceiling explicitly |
+| `List-Unsubscribe` / `List-Unsubscribe-Post` (RFC 8058) | Ship a GET-only unsubscribe link that mutates state on visit | Separate the human-facing confirm page (GET) from the one-click machine-processed endpoint (POST-only, `List-Unsubscribe=One-Click` body) so mail-client link-scanners don't silently unsubscribe users |
+| `bip_edits` shadow table + new BIP-model fields | Add a field to the wizard/detail page and assume `bip_edits`/merge payload "just works" | Explicitly extend `BIP_EDIT_CONTENT_SELECT`, `EDIT_CONTENT_SELECT`, and `buildMergePayload()` for every new coordinator-editable column (Pitfall 1) |
+| `database.types.ts` regen + shared cloud dev DB | Run `db:types --local` as the source of truth for what "is deployed" | Push migration to cloud first (`supabase db push`), then regenerate types against the linked/cloud project, matching the project's own standing deploy-order rule |
+| Playwright E2E + scheduled cron features | Assume the cron job "just runs" during test setup like other seeded state | Cron-driven digest behavior must be triggered explicitly in test setup (direct function/RPC invocation), not relied upon to fire on its real schedule during a test run |
 
 ---
 
 ## Performance Traps
 
 | Trap | Symptoms | Prevention | When It Breaks |
-|------|----------|------------|----------------|
-| `saved_bips` / `subscriptions` missing `user_id` index | RLS scan takes 200ms+ at 1,000 rows | `CREATE INDEX saved_bips_user_id_idx` in same migration as table creation | At 500+ total rows |
-| Alert digest queries full `bips` table on every run | Job takes 30s+, risks timeout | High-water mark: `approved_at > last_alerted_at` per subscriber | At 100 BIPs |
-| Alert email loop with no rate limiting | 429 from Resend at call 6; subsequent emails silently dropped | Chunk sends 5 at a time with 100ms delay | At 6+ matching subscribers |
-| `bip_edits.edit_data` is unbounded JSONB | Row size grows unbounded if edit history is kept | Keep only the latest pending edit per BIP; archive accepted/rejected edits | At 1,000+ edits |
-| `bip_edits` table not indexed on `bip_id` + `status` | Admin review queue slow to load pending edits | `CREATE INDEX bip_edits_pending_idx ON bip_edits (bip_id, status) WHERE status = 'pending'` | At 50+ BIPs with edits |
+|------|----------|------------|-----------------|
+| Digest cron re-scans the entire `bips` table every run instead of using a high-water mark | Job duration grows linearly with total approved BIPs, not with new BIPs since last run | `approved_at > last_alerted_at` per-subscriber high-water mark (Pitfall 5), indexed on `approved_at` | At a few hundred approved BIPs, well within v1's target scale |
+| `subscriptions`/`bip_alert_deliveries` missing indexes on `user_id`/`bip_id` (repeats v1.1 Performance Trap for `saved_bips`) | RLS-gated SELECT/UPDATE scans grow with total row count instead of per-user row count | `CREATE INDEX` on `user_id` and `bip_id` in the same migration as table creation | At a few hundred subscribers |
+| `bip_alert_deliveries` unique-constraint check becomes a full-table scan without a supporting index | `ON CONFLICT DO NOTHING` upserts slow down as delivery history grows | The unique index on `(bip_id, user_id)` itself services this — confirm it isn't dropped/altered inadvertently when handling the nullable-`user_id`-post-erasure case (Pitfall 10) | At thousands of delivery rows if the index is ever weakened |
+| Detail-page redesign adds new joined data (e.g. richer partner-institution details) without checking existing query shape | Detail-page RSC query time grows with new joins that weren't needed before | Profile the redesigned page's query plan before merging; reuse existing `ADMIN_BIP_SELECT`-style single-query patterns instead of N+1 fetches per new field | Noticeable at even moderate BIP-catalogue size given the multiple joins (host university, partner universities, coordinator profile) already in play |
 
 ---
 
@@ -538,103 +298,100 @@ Also update the `delete_my_account()` RPC to explicitly delete the user's Resend
 
 | Mistake | Risk | Prevention |
 |---------|------|------------|
-| Student reaches `/dashboard` coordinator UI | Student can potentially submit BIPs as coordinator; coordinator-only data visible | Add `role in ('coordinator', 'admin')` middleware guard on `/dashboard`; separate `/student-dashboard` route group |
-| `bip_edits` UPDATE policy missing `WITH CHECK` | Coordinator self-approves own edit | Always include both `USING` and `WITH CHECK` on every UPDATE policy on new tables (v1.0 never-do carried forward) |
-| Unsubscribe token not HMAC-signed | Any user can unsubscribe any other user by guessing subscription IDs | HMAC-SHA256(server_secret, subscription_id + created_at); verify server-side on unsubscribe |
-| Unsubscribe endpoint requires authentication | Students who are signed out cannot unsubscribe from emails | Unsubscribe route MUST be public (token is the credential); do not call `getClaims()` |
-| Alert digest Server Action or cron uses `createAdminClient` | Service-role key exposed outside `(admin)` route group | Alert digest is coordinator/student-agnostic — use `createServerClient` with service-role only if calling from a trusted Supabase Edge Function, never from a Next.js Server Action outside `(admin)` |
-| `bip_edits.edit_data` contains coordinator PII | JSONB column not subject to column-level RLS | Ensure coordinator profile data is not duplicated into `edit_data`; store references (field IDs) not denormalized PII |
-| Student role added to `profiles.role` CHECK without migrating coordinator routes | Students accidentally access coordinator-only Server Actions | Run through every coordinator Server Action and add explicit role assertion: `if (claims.app_metadata?.role !== 'coordinator' && claims.app_metadata?.role !== 'admin') return { error: 'Forbidden' }` |
+| Unsubscribe route bypasses RLS via `createAdminClient()` outside `app/(admin)/` | Service-role key exposed to a public, unauthenticated route surface; violates CLAUDE.md never-do | Verify the HMAC token in application code, then mutate via a narrowly-scoped `SECURITY DEFINER` function (mirrors `delete_my_account()`), never via the admin client from a public route |
+| Unsubscribe token has no scoping to a non-guessable identifier | An attacker with a weak-HMAC-secret or sequential-ID scenario could unsubscribe other users | Use the subscription's UUID as the HMAC input; keep the HMAC secret server-only, never in a client bundle |
+| One-click unsubscribe implemented as GET-mutates-state | Mail-client link-scanners/prefetchers silently unsubscribe users who never opened or clicked the email | Separate GET (human-facing, confirm-required) from POST (machine `List-Unsubscribe-Post`, safe to auto-process) |
+| `subscriptions`/`bip_alert_deliveries` created without `ENABLE ROW LEVEL SECURITY` | Public-readable via anon key by default (CLAUDE.md never-do) — subscriber emails/preferences exposed | `ENABLE ROW LEVEL SECURITY` + explicit policies in the same migration as `CREATE TABLE`, no exceptions |
+| UPDATE policy on `subscriptions` (student pause/resume) has `USING` but no `WITH CHECK` | A subscriber could reassign a subscription to another `user_id` or flip protected columns | Both `USING` and `WITH CHECK` on every UPDATE policy, per the CLAUDE.md never-do already applied correctly in `bip_edits` (00017) |
+| `bip_alert_deliveries.user_id` FK defaults to `RESTRICT` | `delete_my_account()` transaction hard-fails with an FK violation, blocking GDPR Art. 17 erasure | Explicit `ON DELETE CASCADE` or `SET NULL` (with nullable column) decided deliberately, not left to the Postgres default |
+| pg_cron job migration pushed to shared cloud DB with no `enabled` gate | Job fires against the shared dev/test project before the feature is ready, sending real/logged emails to real seeded test users | Gate with an `enabled` flag row or a deliberately far-future initial schedule until the companion Server Action code is live |
 
 ---
 
 ## UX Pitfalls
 
 | Pitfall | User Impact | Better Approach |
-|---------|-------------|-----------------|
-| No feedback when student saves a BIP and RLS silently rejects (Pitfall 1) | Student thinks save worked; refreshes and bookmark is gone | Always show explicit success confirmation after `saved_bips` INSERT; re-fetch to confirm persistence |
-| Alert subscription created with no way to manage or cancel | Students receive irrelevant alerts forever; spam-complain | Subscription management page in student dashboard: list active subscriptions, one-click cancel |
-| Coordinator edit UI does not show "currently live" vs "pending edit" distinction | Coordinator confused whether their edit has been applied | Show "Live" badge on the current approved content and "Pending admin review" on the shadow edit |
-| Edit approval email goes to coordinator with no link to the live BIP | Coordinator has to navigate manually to verify | Approval notification email includes the `/bip/[slug]` link |
-| Unsubscribe page shows blank/error for expired or invalid token | Student thinks they are still subscribed | Graceful "Already unsubscribed or link expired" message; never 500 on invalid unsubscribe token |
+|---------|-------------|-------------------|
+| New builder field (e.g. `partner_institutions_only`) added to the wizard but the edit-diff view doesn't render it | Admin approves an edit without seeing what actually changed for that field, defeating the purpose of the diff review | Diff view must derive its field list from the same shared constant as the merge payload (Pitfall 2's fix), so every editable field is automatically diffable |
+| Coordinator submits a new field's value on an edit, admin approves, live page doesn't change (Pitfall 1) | Coordinator gets an "edit approved" email and finds the site unchanged — erodes trust in the edit flow entirely | Playwright coverage per new field (Pitfall 1's fix) catches this before it reaches a real coordinator |
+| Unsubscribe confirmation page gives no context on what the user is cancelling | Student unsubscribes from all BIP alerts by mistake, or isn't sure it worked | Confirmation page names the specific subscription (field/country) being cancelled, with a clear success state |
+| Digest email fails silently once the Resend daily cap is hit | Subscribers simply never receive an alert for a BIP they'd have wanted to know about, with no visibility to the team | Instrument send failures distinctly from successes (Pitfall 7); treat "quota exceeded" as an operational alert, not a swallowed error |
 
 ---
 
 ## "Looks Done But Isn't" Checklist
 
-- [ ] **Student RLS:** `saved_bips` INSERT policy verified with a fresh student session (just registered, no JWT refresh) — save must succeed immediately
-- [ ] **Role guard on coordinator routes:** Playwright test: create a student account, navigate to `/dashboard` — must redirect to `/student-dashboard` or `/`
-- [ ] **Idempotency table:** Run alert job twice in a row — subscriber receives exactly one email, not two; `bip_alert_deliveries` has one row per (bip_id, user_id)
-- [ ] **Unsubscribe:** Click unsubscribe link in an alert email (without being logged in) — `subscriptions.active` flips to false; no authentication error shown
-- [ ] **List-Unsubscribe header:** Check raw email headers of an alert email — must contain `List-Unsubscribe: <https://biphub.eu/api/unsubscribe?token=...>`
-- [ ] **ISR bust on edit:** Coordinator submits edit on approved BIP; check `/bip/[slug]` — still serves old approved content (shadow edit, public unaffected) AND admin panel shows pending edit
-- [ ] **ISR bust on merge:** Admin approves edit; within seconds `/bip/[slug]` serves new content (revalidatePath called)
-- [ ] **Audit log coverage:** After admin approves an edit, `bip_status_history` contains a row with `action_kind = 'edit_approved'`
-- [ ] **Slug immutability:** Submit an edit that changes only the title — resulting merged BIP must have the same slug as before
-- [ ] **Account erasure cascade:** Student deletes account — `saved_bips` rows gone, `subscriptions` rows gone, `bip_alert_deliveries` rows gone (verify via direct SQL query)
-- [ ] **`/privacy` updated:** New data surfaces (`saved_bips`, `subscriptions`, `bip_alert_deliveries`, `bip_edits`) enumerated in the privacy page
-- [ ] **`WITH CHECK` on `bip_edits` UPDATE:** Coordinator cannot set `bip_edits.status = 'approved'` directly via REST API (test with curl + coordinator JWT)
-- [ ] **Coordinator role guard on BIP submit:** Student JWT cannot successfully call `submitBipAction` or insert into `bips` (verify RLS blocks it)
+- [ ] **New BIP-model field:** appears in (1) `bips` migration, (2) `bip_edits` migration, (3) wizard schema + step UI, (4) shared column-list constant used by both `bipEdits.ts` and `admin-edit-bips.ts`, (5) `buildMergePayload()`, (6) detail-page render, (7) all three seed sources, (8) `verify-seed.ts` distribution check
+- [ ] **Edit-merge round trip:** for every new field, a Playwright spec edits an approved BIP's new field, admin approves, and asserts the live `/bip/[slug]` page shows the new value — not just that the wizard/detail-page render correctly in isolation
+- [ ] **`database.types.ts` freshness:** regenerated against the cloud/linked project (not stale `--local`) after every migration that's about to ship
+- [ ] **Alert high-water mark:** digest query filters on a dedicated `approved_at`/`first_approved_at` column, confirmed untouched by `approveEditAction`'s merge payload
+- [ ] **pg_cron real-environment test:** job has actually fired against the cloud project at least once, verified via `cron.job_run_details`, not only invoked manually via `supabase functions serve`
+- [ ] **Resend volume math:** documented expected daily digest email volume vs. the 100/day free-tier ceiling, with an explicit upgrade-trigger threshold
+- [ ] **Unsubscribe token security:** token is bound to the subscription's UUID (not a guessable ID), verified server-side, and the mutation runs through a `SECURITY DEFINER` function — not `createAdminClient()` from a public route
+- [ ] **One-click unsubscribe safety:** GET-based link does not mutate state on mere visit; a separate POST-only path handles `List-Unsubscribe-Post`
+- [ ] **RLS on new tables:** `subscriptions` and `bip_alert_deliveries` both have `ENABLE ROW LEVEL SECURITY` and every UPDATE policy has both `USING` and `WITH CHECK`
+- [ ] **GDPR cascade:** `delete_my_account()` handles `subscriptions` and `bip_alert_deliveries` explicitly (cascade or deliberate anonymize decision), verified by actually calling the RPC for a user with an active subscription and confirming no FK violation
+- [ ] **`/privacy` updated:** `subscriptions` and `bip_alert_deliveries` enumerated alongside existing `saved_bips`/`bip_edits` disclosures
+- [ ] **ISR call-site audit:** every existing `revalidatePath('/bip/[slug]')` call site still targets the correct cache key after the detail-page redesign; any new scoped caching has an explicit companion `revalidateTag`/`revalidatePath`
+- [ ] **Seed drift check:** `seed.e2e.sql` and `seed-cloud-e2e.mjs` re-diffed for column coverage after every schema change in this milestone, not just at incident time
+- [ ] **E2E test isolation:** any new subscription/digest-related Playwright spec owns dedicated, disposable fixtures (mirrors the BUG-002 fix pattern) rather than scavenging shared seeded BIPs or subscriber rows
 
 ---
 
 ## Recovery Strategies
 
 | Pitfall | Recovery Cost | Recovery Steps |
-|---------|---------------|----------------|
-| Student JWT role gap causes silent save failures | LOW | Force client session refresh in `/auth/callback` handler; no data loss (saves just failed) |
-| Student reaches coordinator dashboard (Pitfall 3) | LOW | Add middleware role guard; no data corrupted if RLS was intact |
-| Alert double-send triggered | MEDIUM | Send a "we sent this twice by mistake" clarification email to affected subscribers; add idempotency table; no data loss |
-| Alert emails delivered with no unsubscribe link | HIGH | Resend may suspend account for CAN-SPAM violation; must immediately add `List-Unsubscribe` header and unsubscribe endpoint and re-notify all active subscribers; domain reputation damage may take weeks to recover |
-| Public BIP taken offline during edit re-review (Pitfall 10, Choice B deployed by mistake) | HIGH | Emergency migration: restore `status = 'approved'` for affected BIPs; force ISR revalidation; create `bip_edits` shadow table; re-migrate edit data |
-| Slug change breaks public URL (Pitfall 13) | MEDIUM | Add redirect from old slug to new slug in `next.config.ts` or a `bip_redirects` table; call `revalidatePath` on old slug; old Google index updates within days |
-| Account deletion fails with FK violation (Pitfall 14) | HIGH | User's account cannot be deleted — GDPR Article 17 breach; emergency: manual deletion via admin panel + direct DB fix; long-term: correct FK cascade in migration |
+|---------|-----------------|------------------|
+| New field silently dropped by edit-merge (Pitfall 1) | MEDIUM | Backfill: for every `bip_edits` row with `status='approved'` after the bug window, diff the stored `edit_data`/columns against the live `bips` row for the affected field and re-apply manually; add the missing field to the merge payload; add regression test |
+| `database.types.ts` drift from cloud (Pitfall 4) | LOW | Regenerate against the cloud project immediately; no data loss, just a build-time type mismatch until fixed |
+| Alert digest double-sends via edit-merge `updated_at` collision (Pitfall 5) | MEDIUM | Add `approved_at` column, backfill from `bip_status_history`'s original `approve` event timestamps; send a brief "you may have received a duplicate alert" note if volume warrants it (mirrors v1.1's recovery guidance for double-sends) |
+| pg_cron job fires prematurely against shared cloud DB (Pitfall 6) | MEDIUM | Immediately `cron.unschedule()` or flip the `enabled` gate off; audit `cron.job_run_details` and `bip_alert_deliveries` for any sends that went out during the premature window; notify affected recipients if real emails went out |
+| Resend daily cap breached mid-digest (Pitfall 7) | LOW–MEDIUM | Queue the remaining recipients for the next UTC day (idempotency table already prevents re-sending to those already delivered); if it recurs, treat as the documented upgrade trigger and move to a paid Resend plan |
+| Unsubscribe link auto-processed by a mail-client link-scanner (Pitfall 8) | HIGH | If real users were incorrectly unsubscribed, this is hard to detect after the fact without deliberate logging; requires re-opt-in outreach and a mechanism fix (GET/POST separation) before it recurs — treat any single confirmed incident as high-priority |
+| New PII table causes FK violation on account erasure (Pitfall 10) | HIGH | Same as v1.1 Pitfall 14's recovery: GDPR Art. 17 breach risk; manual admin-panel deletion + direct DB fix short-term, correct the FK cascade in a follow-up migration |
+| ISR call site missed after detail-page redesign (Pitfall 11) | LOW–MEDIUM | Add the missing `revalidatePath`/`revalidateTag` call; manually trigger revalidation for any BIPs edited during the gap window |
 
 ---
 
 ## Pitfall-to-Phase Mapping
 
 | Pitfall | Prevention Phase | Verification |
-|---------|------------------|--------------|
-| Student JWT role timing — silently blocked saves (P1) | Phase A — Student auth schema | Fresh-signup INSERT test in a Playwright spec |
-| Student + coordinator `profiles` table conflict (P2) | Phase A — Student auth schema, first plan | Unit test: student signup → profile row has no university_id; onboarding not triggered |
-| Student weakens coordinator/admin middleware guards (P3) | Phase A — Middleware + RLS migration | Playwright: student JWT cannot access `/dashboard`; cannot insert into `bips` |
-| Missing RLS indexes on `saved_bips`/`subscriptions` (P4) | Phase A — Schema migration | `EXPLAIN` on SELECT shows index scan, not seq scan |
-| Email alert double-send — no idempotency table (P5) | Phase A — Alert pipeline implementation | Run job twice; verify one delivery per (bip, user) |
-| Resend rate limit hit by digest loop (P6) | Phase A — Alert pipeline implementation | Monitor Resend logs after first run; no 429 responses |
-| No unsubscribe mechanism (P7) | Phase A — First alert email template | Inspect email headers for `List-Unsubscribe`; test unsubscribe URL without auth |
-| GDPR consent not recorded for subscriptions (P8) | Phase A — Schema + `/privacy` update | `subscriptions` table has `consent_text`; `/privacy` mentions subscriptions |
-| ISR cache stale after coordinator edit (P9) | Phase B — Edit Server Action implementation | After submitting edit, reload `/bip/[slug]` — still serves approved content (correct); after admin merge, serves new content |
-| Unapproved edit leaks to public (P10) | Phase B — Schema design (shadow table decision) | `bips.status` stays `approved` during re-review; public page unaffected |
-| Audit log gap for edit cycle (P11) | Phase B — `bip_status_history` migration + Server Actions | After edit approval, `SELECT * FROM bip_status_history WHERE action_kind = 'edit_approved'` returns rows |
-| `bip_edits` UPDATE missing `WITH CHECK` (P12) | Phase B — Schema migration review | Coordinator REST API call to set `status = 'approved'` on own edit returns 403 |
-| Slug change breaks public URLs (P13) | Phase B — Edit form + merge Server Action | Submit edit with title change; slug remains unchanged in `bips` table |
-| Account erasure cascade missing for v1.1 tables (P14) | Every phase that adds a PII table (A and B) | Delete student account; verify `saved_bips`, `subscriptions`, `bip_alert_deliveries` rows all removed |
+|---------|-------------------|----------------|
+| New BIP-model field dropped at edit-merge (P1) | Coordinator BIP-builder-completion phase | Playwright: edit approved BIP's new field → admin approves → live page reflects new value |
+| Duplicated column-list literal drift (P2) | Coordinator BIP-builder-completion phase, first plan | Single shared constant imported by both `bipEdits.ts` and `admin-edit-bips.ts`; grep confirms no second copy exists |
+| Seed files not updated for new fields (P3) | Coordinator BIP-builder-completion + Alert Subscriptions phases | `verify-seed.ts` has an assertion for every new field; `seed.e2e.sql`/`seed-cloud-e2e.mjs` diffed for column-name parity |
+| `database.types.ts` regenerated against stale `--local` (P4) | Every phase adding a migration | Types regenerated against cloud/linked project after `supabase db push`, confirmed before merge |
+| Digest/edit-merge `updated_at` collision (P5) | Alert Subscriptions + Email Pipeline phase, schema step | Dedicated `approved_at` column exists and is confirmed untouched by `buildMergePayload()` |
+| pg_cron local-vs-cloud test gap (P6) | Alert Subscriptions + Email Pipeline phase, first infra task | `cron.job_run_details` shows a real successful cloud-project run before the phase is marked done |
+| Resend 100/day ceiling vs digest volume (P7) | Alert Subscriptions + Email Pipeline phase, design step | Volume math documented; failure-mode (queue vs. hard-fail) decided and instrumented |
+| Unsubscribe token security + one-click POST (P8) | Alert Subscriptions + Email Pipeline phase, unsubscribe design step | Token bound to UUID; GET does not mutate state; dedicated POST path for one-click |
+| RLS gaps on `subscriptions`/`bip_alert_deliveries` (P9) | Alert Subscriptions + Email Pipeline phase, schema/RLS review | Both tables have RLS enabled; every UPDATE policy has USING + WITH CHECK; unsubscribe mutation goes through a SECURITY DEFINER function, not `createAdminClient()` |
+| GDPR cascade gap for new tables (P10) | Alert Subscriptions + Email Pipeline phase, schema step | `delete_my_account()` extended; `/privacy` updated; RPC call tested against a user with an active subscription |
+| ISR call-site audit after detail-page redesign (P11) | BIP detail-page redesign phase | All existing `revalidatePath('/bip/[slug]')` call sites confirmed still correct; any new scoped caching has a companion invalidation call |
 
 ---
 
 ## Sources
 
-- [Supabase Custom Claims and RBAC Documentation](https://supabase.com/docs/guides/database/postgres/custom-claims-and-role-based-access-control-rbac) — JWT timing for custom role claims; role propagation via access token hooks
-- [Supabase Custom Access Token Hook](https://supabase.com/docs/guides/auth/auth-hooks/custom-access-token-hook) — role claims in JWT; hook fires before token issuance, not retroactively
-- [Supabase Row Level Security Documentation](https://supabase.com/docs/guides/database/postgres/row-level-security) — USING + WITH CHECK on UPDATE, view security_invoker, performance via indexed RLS predicates
-- [Supabase RLS Troubleshooting — Performance and Best Practices](https://supabase.com/docs/guides/troubleshooting/rls-performance-and-best-practices-Z5Jjwv) — index all RLS predicate columns
-- [Supabase Cron Documentation](https://supabase.com/docs/guides/cron) — pg_cron scheduling, Edge Function invocation
-- [Supabase Edge Function Limits](https://supabase.com/docs/guides/functions/limits) — 150s request timeout (vs Vercel Hobby's 10s)
-- [Resend Usage Limits](https://resend.com/docs/api-reference/rate-limit) — 5 requests/second per team; free plan daily/monthly quotas
-- [Resend Audiences / Broadcasts](https://resend.com/blog/manage-subscribers-using-resend-audiences) — bulk send API; automatic `List-Unsubscribe` header for Broadcasts
-- [Gmail/Yahoo 2024 Bulk Sender Requirements](https://resend.com/blog/gmail-and-yahoo-bulk-sending-requirements-for-2024) — `List-Unsubscribe` header required for bulk; transactional excluded
-- [Email Unsubscribe Requirements 2026](https://prospeo.io/s/email-unsubscribe-requirements) — one-click unsubscribe is mandatory for marketing; spam rate thresholds
-- [Next.js CDN Caching Guide](https://nextjs.org/docs/app/guides/cdn-caching) — on-demand revalidation via `revalidatePath` busts Next.js server cache; CDN purge must be triggered separately for external CDN layers
-- [Next.js How Revalidation Works](https://nextjs.org/docs/app/guides/how-revalidation-works) — ISR and on-demand path revalidation mechanics
-- [BipHub v1.0 PITFALLS.md](../.planning/milestones/v1.0-research/PITFALLS.md) — baseline pitfalls carried forward; especially: UPDATE policy missing WITH CHECK (Pitfall 5), GDPR erasure cascade (Pitfall 10), ISR cache invalidation (integration gotchas), missing RLS indexes (performance traps)
-- [BipHub migration 00006 — RLS policies](../supabase/migrations/00006_rls_policies.sql) — existing policy shapes; coordinator gate patterns; `bips_insert_coordinator` must be updated for student role
-- [BipHub migration 00010 — bip_status_history](../supabase/migrations/00010_bip_status_history.sql) — trigger only fires on `UPDATE OF status`; edit-approved cycle bypasses it
-- [BipHub migration 00011 — bips_update_own_editable](../supabase/migrations/00011_bips_update_own_editable.sql) — WITH CHECK clamps post-image to `draft`; edit-approved coordinator policy must not weaken this
-- [BipHub migration 00013 — delete_my_account](../supabase/migrations/00013_delete_my_account.sql) — RPC must be extended for v1.1 PII tables
-- [BipHub lib/email/send.ts](../lib/email/send.ts) — fire-and-forget contract (D-11); incompatible with bulk alert loops without chunking + idempotency
-- [BipHub STATE.md — Accumulated Context](../.planning/STATE.md) — ISR strategy (revalidate=3600 on /bip/[slug]), slug generation decision, GDPR erasure RPC design
+- [BipHub v1.1 PITFALLS.md](../milestones/v1.1-research/PITFALLS.md) — baseline pitfalls this file extends (student-JWT timing, `bip_edits` shadow-table shape, alert double-send/rate-limit basics, unsubscribe absence, GDPR consent recording, ISR staleness on edit, audit-log gaps, slug immutability, erasure-cascade gaps for `saved_bips`/`subscriptions`)
+- [BipHub RETROSPECTIVE.md](../RETROSPECTIVE.md) — v1.1 lessons: deferred manual UAT accumulating silently, e2e shared-state coupling (BUG-002), two-seed-file drift, resequencing deferred scope
+- [BipHub KNOWN-BUGS.md](../KNOWN-BUGS.md) — BUG-001 (approved-edit wizard trapped by an RLS policy scoped to non-approved statuses) and BUG-002 (one flaky test cascading into four failures via shared seeded-BIP state) — both root-caused with file/line-level evidence
+- [BipHub CLAUDE.md](../../CLAUDE.md) — standing never-do items: RLS on every table, USING+WITH CHECK on every UPDATE policy, `createAdminClient` scoping, `getClaims()` not `getSession()`, `revalidatePath` for ISR
+- [BipHub project memory: local-dev-uses-cloud-supabase] — local dev/`.env.local` points at the shared cloud Supabase project; migrations must be pushed to cloud before code that references new columns is deployed
+- [BipHub project memory: e2e-two-seed-files-must-stay-in-sync] — `supabase/seed.e2e.sql` vs `scripts/seed-cloud-e2e.mjs` drift incident (2026-07-17), four fixtures lost on a fresh cloud re-seed
+- [BipHub `.planning/research/FEATURES.md` (v1.2, in progress)] — confirms four schema-present/UI-absent BIP fields (`virtual_sessions_count`, `virtual_duration_notes`, `accommodation_notes`, `partner_institutions_only`) plus a live `virtual_timing` enum/CHECK-constraint mismatch between wizard and DB
+- [`supabase/migrations/00017_bip_edits.sql`](../../supabase/migrations/00017_bip_edits.sql) — current `bip_edits` shape (22 content columns + `partner_institutions` jsonb), RLS policies with correct USING+WITH CHECK pattern already applied
+- [`lib/queries/bipEdits.ts`](../../lib/queries/bipEdits.ts) / [`lib/actions/admin-edit-bips.ts`](../../lib/actions/admin-edit-bips.ts) — the two independently-maintained column-list literals (`BIP_EDIT_CONTENT_SELECT`, `EDIT_CONTENT_SELECT`) and the `buildMergePayload()` function that is the concrete mechanism behind Pitfall 1
+- [`lib/email/send.ts`](../../lib/email/send.ts) — existing fire-and-forget transactional email contract (D-11), template registry pattern to extend for digest emails
+- [`scripts/verify-seed.ts`](../../scripts/verify-seed.ts) — existing distribution-check pattern to extend for new fields
+- [`supabase/config.toml`](../../supabase/config.toml) — no `pg_cron`/`pg_net` extension currently configured; must be added for Phase 7/Alert-Subscriptions work
+- [Supabase Cron Documentation](https://supabase.com/docs/guides/cron) — `pg_cron` scheduling model, `cron.job_run_details` observability table
+- [Supabase pg_net Documentation](https://supabase.com/docs/guides/database/extensions/pg_net) — async HTTP calls from Postgres, used to invoke Edge Functions from cron jobs
+- [Resend Usage Limits / Pricing](https://resend.com/docs/api-reference/rate-limit) — free-tier daily/monthly caps (verify current numbers at implementation time; the 100/day figure is already documented in this project's own `STATE.md`)
+- [Gmail/Yahoo 2024+ Bulk Sender Requirements](https://resend.com/blog/gmail-and-yahoo-bulk-sending-requirements-for-2024) — `List-Unsubscribe` + one-click requirements for bulk senders
+- [RFC 8058 — One-Click List-Unsubscribe](https://datatracker.ietf.org/doc/html/rfc8058) — `List-Unsubscribe-Post` header mechanics; POST-only processing to avoid link-scanner false positives
+- [Next.js `revalidatePath`/`revalidateTag` documentation](https://nextjs.org/docs/app/api-reference/functions/revalidatePath) — scoped vs. path-level cache invalidation, relevant to the detail-page-redesign ISR audit (Pitfall 11)
 
 ---
-*Pitfalls research for: BipHub v1.1 — adding student accounts, email alerts, edit-approved-with-re-review, and admin tooling to an existing Next.js 15 + Supabase + Resend system*
-*Researched: 2026-06-14*
+*Pitfalls research for: BipHub v1.2 — completing the coordinator BIP builder, redesigning the BIP detail page, and shipping carried-forward Alert Subscriptions + Email Pipeline on the existing Next.js 15.5 + Supabase + Resend + Vercel system*
+*Researched: 2026-07-18*
