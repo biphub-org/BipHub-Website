@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Product Depth & Engagement
-status: verifying
+status: Awaiting next milestone
 stopped_at: "Phase 8 executed: 9/9 plans, build+unit green, verified 6/6, secured 26/26; manual UAT (Resend+ISR) deferred"
-last_updated: "2026-06-26T12:20:34.364Z"
-last_activity: 2026-06-26
+last_updated: "2026-07-18T03:39:38.051Z"
+last_activity: 2026-07-18 — Milestone v1.1 completed and archived
 progress:
   total_phases: 4
   completed_phases: 3
@@ -25,15 +25,10 @@ See: .planning/PROJECT.md (updated 2026-06-14 after v1.0 milestone)
 
 ## Current Position
 
-Phase: 8 (edit-approved-request-changes) — EXECUTING
-Plan: 9 of 9
-Status: Phase complete — ready for verification
-Last activity: 2026-06-26
-
-```
-v1.1 Progress: [░░░░░░░░░░░░░░░░░░░░] 0%
-Phase 5 ░  Phase 6 ░  Phase 7 ░  Phase 8 ░
-```
+Phase: Milestone v1.1 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-07-18 — Milestone v1.1 completed and archived
 
 ## Performance Metrics
 
@@ -199,6 +194,16 @@ Items acknowledged and deferred at v1.0 milestone close on 2026-06-14:
 | Test infra | BIPS-NAV-BUG: same-pathname router.push no-op under LOCAL `next start` only (deployed Vercel filters work) — map-filter clear test `test.fixme`'d | Local-only artifact; not a prod bug | 2026-06-14 |
 | Automation | Evaluate n8n for v2 outreach automation (coordinator seed outreach, multi-channel admin digests, AI moderation) — only if integration count grows beyond Resend | Deferred to v2 | 2026-05-11 |
 
+Items acknowledged and deferred at v1.1 milestone close on 2026-07-18:
+
+| Category | Item | Status | Deferred At |
+|----------|------|--------|-------------|
+| Verification | Phase 08 human-verify (08-VERIFICATION.md): Resend edit-outcome email delivery (EDIT-07) + ISR revalidate-on-approve timing (EDIT-04) — runtime, needs real Resend key | Carried to v1.2 | 2026-07-18 |
+| UAT | Phase 08 manual UAT (08-UAT.md): same Resend+ISR runtime sign-off | Carried to v1.2 | 2026-07-18 |
+| UAT | Phase 05 human-UAT (05-HUMAN-UAT.md): 1 pending scenario | Carried to v1.2 | 2026-07-18 |
+| Debug | bug-001-approved-edit debug session marked `awaiting_human_verify` — bug is RESOLVED (`9bcccc7`, KNOWN-BUGS.md); session file was never flipped to verified | Resolved; bookkeeping only | 2026-07-18 |
+| Feature | Phase 7 (Alert Subscriptions + Email Pipeline) not built — full scope moved to v1.2 roadmap | Moved to v1.2 | 2026-07-18 |
+
 ## Session Continuity
 
 Last session: 2026-06-26T12:20:34.348Z
@@ -208,4 +213,4 @@ Resume instructions: Phase 5 complete (all 4 plans). Next: Phase 6 (saved BIPs /
 
 ## Operator Next Steps
 
-- Phase 5 is complete. Run `/gsd-plan-phase 6` to plan Phase 6 (saved BIPs, student value).
+- Start the next milestone with /gsd-new-milestone

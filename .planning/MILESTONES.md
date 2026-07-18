@@ -1,5 +1,26 @@
 # Milestones
 
+## v1.1 Product Depth & Engagement (Shipped: 2026-07-18)
+
+**Phases completed:** 3 of 4 planned (Phases 5, 6, 8) — 17 plans
+
+**Stats:** 127 commits (42 `feat`) · 2026-06-15 → 2026-07-18 (~33 days). Phase 7 (Alert Subscriptions) not built — see Known Gaps.
+
+**Key accomplishments:**
+
+- **Phase 5 — Student Auth + Role Model:** Student role added to the DB via a Custom Access Token Hook that mints the role into the first JWT; two RLS holes (self-escalation + BIP insert) and a signup-trigger privilege-escalation hole closed. Magic-link OTP sign-in, `/register/student` entry page + `/student-dashboard` shell, student sign-out variant, callback magiclink branch, and the middleware D-11 redirect matrix — the full student routing spine, server + UI. 8-test `student-auth.spec.ts` covering all success criteria plus FOUN-07/FOUN-08 guards, suite green.
+- **Phase 6 — Saved BIPs Sync:** Server-side save/unsave with cross-device sync and localStorage-bookmark migration; new PII table cascade-wired for GDPR erasure and enumerated in `/privacy`.
+- **Phase 8 — Edit-Approved + Request-Changes:** Coordinators submit edits to live approved BIPs through admin re-review while the public page stays up (shadow `bip_edits` table). New `changes_requested` moderation state (amber token + 4 transitions), 3 note-bearing edit-outcome email templates on the exhaustive `EmailPayload` union, all-fields side-by-side `BipEditDiffView` (22 fields), unified admin queue with Edit badges, and a three-button admin verdict panel. Full audit trail in `bip_status_history`.
+- **Post-milestone stabilization:** BUG-001 (approved-edit wizard trapped by RLS) resolved via an `editMode` no-save path; BUG-002 (e2e shared-state cascade + Step-4 submission-wizard flake) resolved with dedicated fixtures and single-click save + conflict-recovery helpers. E2E suite green (38 passed / 2 skipped).
+
+**Known Gaps:**
+
+- **Phase 7 — Alert Subscriptions + Email Pipeline (NOT built):** Deliberately deferred to v1.2 to prioritize the coordinator BIP-builder work (which unblocks BIP detail-page design). All Phase 7 requirements carry forward to the v1.2 roadmap. The transactional email pipeline (`lib/email/send.ts`, Resend + 6 templates) shipped in v1.0/Phase 8 and is independent of the Phase 7 alert/digest layer.
+
+**Known deferred items at close:** 4 (carried into v1.2, tracked in STATE.md Deferred Items) — Phase 8 Resend-delivery + ISR-refresh manual UAT/verification (EDIT-07/EDIT-04), Phase 05 1 pending human-UAT scenario, and the BUG-001 debug session (resolved in `9bcccc7`; session file simply not marked verified).
+
+---
+
 ## v1.0 MVP (Shipped: 2026-06-14)
 
 **Phases completed:** 4 phases, 30 plans, 80 tasks

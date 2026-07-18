@@ -10,12 +10,12 @@ Students can reliably discover BIPs by country, field of study, and dates, and u
 
 ## Current State
 
-**Shipped:** v1.0 MVP (2026-06-14) — 4 phases, 30 plans, ~24,500 LOC.
-The full three-audience product is live: students discover BIPs (map + filters + search + detail), coordinators self-service submit via a wizard, and admins review with an audit trail + email notifications. Deployed on Vercel against cloud Supabase. Playwright E2E suite passes against cloud (17/17 golden-path).
+**Shipped:** v1.1 Product Depth & Engagement (2026-07-18) — 3 of 4 planned phases (5, 6, 8), 17 plans, on top of v1.0 MVP (2026-06-14, 4 phases, 30 plans, ~24,500 LOC).
+Students now have real accounts: magic-link sign-in, a dedicated dashboard separate from coordinator/admin areas, server-side saved BIPs synced across devices with localStorage migration, and full GDPR cascade. Coordinators can edit already-approved BIPs through admin re-review while the live page stays public (shadow `bip_edits` table), and admins gained a third "request changes" moderation state with full audit trail. Deployed on Vercel against cloud Supabase. Playwright E2E suite green (38/38 golden-path, 2 skipped).
 
-**Known deferred (non-blocking):** Phase 01 visual + Phase 03 runtime human-verify checkpoints; minor a11y colour-contrast polish (→ v1.1); `BIPS-NAV-BUG` is a local `next start`-only test artifact (deployed filters work). See `milestones/v1.0-MILESTONE-AUDIT.md`.
+**Deferred at v1.1 close:** Phase 7 (Alert Subscriptions + Email Pipeline) was NOT built — deliberately moved to v1.2 to prioritize the coordinator BIP-builder work (which unblocks BIP detail-page design). Phase 8 Resend-delivery + ISR-refresh manual UAT/verification carried to v1.2. See `STATE.md` Deferred Items.
 
-**Next milestone:** v1.1 Product Depth & Engagement — see Current Milestone below.
+**Next milestone:** v1.2 — coordinator BIP builder + BIP detail page + carried-forward Phase 7 alerts — see Current Milestone below.
 
 ## Current Milestone: v1.1 Product Depth & Engagement
 
@@ -49,13 +49,17 @@ The full three-audience product is live: students discover BIPs (map + filters +
 #### Foundation
 - ✓ RLS on every table; GDPR (privacy page + Art-17 account erasure); Lighthouse ≥90; WCAG AA (axe sweep passed); MIT + CONTRIBUTING; Playwright E2E — v1.0
 
-### Active (v1.1 — scoping)
+#### Student Accounts & Coordinator Edit Flow (shipped in v1.1 — 2026-07-18)
+- ✓ Student role + magic-link auth + dedicated `/student-dashboard`, role guards tightened (STUD-01/02/03, FOUN-07/08) — v1.1 Phase 5
+- ✓ Server-side saved BIPs with cross-device sync + localStorage migration + GDPR cascade + `/privacy` enumeration (STUD-04..08, FOUN-09/10) — v1.1 Phase 6
+- ✓ Coordinator edit of approved BIPs via admin re-review (live page stays public) + third "request changes" moderation state + audit trail + slug immutability (EDIT-01..09) — v1.1 Phase 8
 
-Requirements being defined for v1.1 Product Depth & Engagement (student value, coordinator/admin UX, research-surfaced gap-fill). See `.planning/REQUIREMENTS.md` once generated.
+### Active (v1.2 — scoping)
+
+Requirements being defined for v1.2: coordinator BIP builder + BIP detail page, plus the carried-forward Phase 7 Alert Subscriptions + Email Pipeline (ALRT-01..08). See `.planning/REQUIREMENTS.md` once generated.
 
 ### Out of Scope
 
-- **Server-side student accounts / saved BIPs** — bookmarks via localStorage only in v1
 - **University-to-university messaging** — defer to v2
 - **In-platform application submission** — link out to university contact
 - **BIP reviews or ratings** — quality risk, defer
@@ -111,6 +115,12 @@ Requirements being defined for v1.1 Product Depth & Engagement (student value, c
 | `biphub-homepage.html` as v1 visual source of truth | Avoids design drift during build | ✓ v1.0 |
 | EU palette deliberately chosen | Communicates context immediately to target users | ✓ v1.0 |
 | Vertical MVP slicing | Each phase delivers shipped user capability | ✓ v1.0 |
+| Student role minted via Custom Access Token Hook | Role lands in the first JWT; RLS reads it without an extra round-trip | ✓ v1.1 |
+| Magic-link (OTP) sign-in for students | No passwords for the low-friction student audience; institutional email not required | ✓ v1.1 |
+| Shadow `bip_edits` table for approved-BIP edits | Live public page stays up during re-review; never mutate the approved row directly (PITFALLS approach, not snapshot) | ✓ v1.1 |
+| `changes_requested` as a third moderation state | Lets admins request revisions without a hard reject; full audit trail in `bip_status_history` | ✓ v1.1 |
+| `editMode` no-save wizard path (BUG-001 fix) | Approved-edit wizard advances on the Zustand draft alone; avoids widening RLS to let coordinators mutate live rows | ✓ v1.1 |
+| Defer Phase 7 (alerts) to v1.2, ship v1.1 with 3/4 phases | Coordinator BIP-builder work unblocks BIP detail-page design; alerts are additive engagement, independent of shipped features | — v1.2 |
 
 ## Evolution
 
@@ -130,4 +140,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-14 — started v1.1 Product Depth & Engagement milestone*
+*Last updated: 2026-07-18 — completed v1.1 Product Depth & Engagement (Phases 5, 6, 8); Phase 7 deferred to v1.2*
