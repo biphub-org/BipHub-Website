@@ -56,6 +56,8 @@ export function draftToBipDetail(
     learning_outcomes: draft.learning_outcomes ?? null,
     virtual_component_description: draft.virtual_component_description ?? null,
     virtual_timing: draft.virtual_timing ?? null,
+    virtual_sessions_count: draft.virtual_sessions_count ?? null,
+    virtual_duration_notes: draft.virtual_duration_notes ?? null,
     physical_start_date: draft.physical_start_date ?? null,
     physical_end_date: draft.physical_end_date ?? null,
     host_city: draft.host_city ?? null,
@@ -75,6 +77,8 @@ export function draftToBipDetail(
     status: ctx.status,
     created_at: ctx.createdAt,
     subject_areas: draft.subject_areas ?? [],
+    accommodation_notes: draft.accommodation_notes ?? null,
+    partner_institutions_only: draft.partner_institutions_only ?? false,
     host_university: host
       ? {
           id: host.id,
