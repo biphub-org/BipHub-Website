@@ -56,7 +56,7 @@ Full phase details, success criteria, and per-plan breakdown: [milestones/v1.1-R
   - [x] 09-01-PLAN.md — Add the four builder-completion columns to `bip_edits` (migration) + [BLOCKING] cloud push + type regen
   - [x] 09-02-PLAN.md — Fix virtual_timing/participant bugs + consolidate create path onto fullBipSchema + extend schema/draft store (unit tests)
   - [x] 09-03-PLAN.md — BROW-14 partner-only amber badge on `/bips` cards + listing query column
-  - [ ] 09-04-PLAN.md — Wizard UI: virtual detail (Step 2), partner-only checkbox (Step 3), accommodation notes (Step 4)
+  - [x] 09-04-PLAN.md — Wizard UI: virtual detail (Step 2), partner-only checkbox (Step 3), accommodation notes (Step 4)
   - [ ] 09-05-PLAN.md — BipDetail type/query plumbing + coordinator edit pre-fill + wizard preview adapter
   - [ ] 09-06-PLAN.md — Write paths: admin edit payload + coordinator edit-content builder carry the four fields
   - [ ] 09-07-PLAN.md — bip_edits merge-on-approve + diff view + FOUN-14 shared column constant
