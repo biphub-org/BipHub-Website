@@ -39,6 +39,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      bip_attachments: {
+        Row: {
+          bip_id: string
+          created_at: string
+          created_by: string | null
+          file_name: string
+          id: string
+          kind: string
+          mime_type: string
+          size_bytes: number | null
+          storage_path: string
+        }
+        Insert: {
+          bip_id: string
+          created_at?: string
+          created_by?: string | null
+          file_name: string
+          id?: string
+          kind?: string
+          mime_type: string
+          size_bytes?: number | null
+          storage_path: string
+        }
+        Update: {
+          bip_id?: string
+          created_at?: string
+          created_by?: string | null
+          file_name?: string
+          id?: string
+          kind?: string
+          mime_type?: string
+          size_bytes?: number | null
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bip_attachments_bip_id_fkey"
+            columns: ["bip_id"]
+            isOneToOne: false
+            referencedRelation: "bips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bip_edits: {
         Row: {
           accommodation_notes: string | null
@@ -52,6 +96,8 @@ export type Database = {
           description: string | null
           ects_credits: number | null
           eligibility_notes: string | null
+          external_bip_id: string | null
+          fees: string | null
           green_travel: boolean | null
           host_city: string | null
           how_to_apply_type: string | null
@@ -70,10 +116,12 @@ export type Database = {
           status: string
           study_levels: string[] | null
           subject_areas: string[] | null
+          target_group: string | null
           title: string | null
           updated_at: string
           virtual_component_description: string | null
           virtual_duration_notes: string | null
+          virtual_session_date: string | null
           virtual_sessions_count: number | null
           virtual_timing: string | null
         }
@@ -89,6 +137,8 @@ export type Database = {
           description?: string | null
           ects_credits?: number | null
           eligibility_notes?: string | null
+          external_bip_id?: string | null
+          fees?: string | null
           green_travel?: boolean | null
           host_city?: string | null
           how_to_apply_type?: string | null
@@ -107,10 +157,12 @@ export type Database = {
           status?: string
           study_levels?: string[] | null
           subject_areas?: string[] | null
+          target_group?: string | null
           title?: string | null
           updated_at?: string
           virtual_component_description?: string | null
           virtual_duration_notes?: string | null
+          virtual_session_date?: string | null
           virtual_sessions_count?: number | null
           virtual_timing?: string | null
         }
@@ -126,6 +178,8 @@ export type Database = {
           description?: string | null
           ects_credits?: number | null
           eligibility_notes?: string | null
+          external_bip_id?: string | null
+          fees?: string | null
           green_travel?: boolean | null
           host_city?: string | null
           how_to_apply_type?: string | null
@@ -144,10 +198,12 @@ export type Database = {
           status?: string
           study_levels?: string[] | null
           subject_areas?: string[] | null
+          target_group?: string | null
           title?: string | null
           updated_at?: string
           virtual_component_description?: string | null
           virtual_duration_notes?: string | null
+          virtual_session_date?: string | null
           virtual_sessions_count?: number | null
           virtual_timing?: string | null
         }
@@ -265,6 +321,8 @@ export type Database = {
           description: string | null
           ects_credits: number | null
           eligibility_notes: string | null
+          external_bip_id: string | null
+          fees: string | null
           green_travel: boolean
           host_city: string | null
           host_university_id: string | null
@@ -288,10 +346,12 @@ export type Database = {
           study_levels: string[]
           subject_area: string | null
           subject_areas: string[]
+          target_group: string | null
           title: string
           updated_at: string
           virtual_component_description: string | null
           virtual_duration_notes: string | null
+          virtual_session_date: string | null
           virtual_sessions_count: number | null
           virtual_timing: string | null
         }
@@ -305,6 +365,8 @@ export type Database = {
           description?: string | null
           ects_credits?: number | null
           eligibility_notes?: string | null
+          external_bip_id?: string | null
+          fees?: string | null
           green_travel?: boolean
           host_city?: string | null
           host_university_id?: string | null
@@ -328,10 +390,12 @@ export type Database = {
           study_levels?: string[]
           subject_area?: string | null
           subject_areas?: string[]
+          target_group?: string | null
           title: string
           updated_at?: string
           virtual_component_description?: string | null
           virtual_duration_notes?: string | null
+          virtual_session_date?: string | null
           virtual_sessions_count?: number | null
           virtual_timing?: string | null
         }
@@ -345,6 +409,8 @@ export type Database = {
           description?: string | null
           ects_credits?: number | null
           eligibility_notes?: string | null
+          external_bip_id?: string | null
+          fees?: string | null
           green_travel?: boolean
           host_city?: string | null
           host_university_id?: string | null
@@ -368,10 +434,12 @@ export type Database = {
           study_levels?: string[]
           subject_area?: string | null
           subject_areas?: string[]
+          target_group?: string | null
           title?: string
           updated_at?: string
           virtual_component_description?: string | null
           virtual_duration_notes?: string | null
+          virtual_session_date?: string | null
           virtual_sessions_count?: number | null
           virtual_timing?: string | null
         }
