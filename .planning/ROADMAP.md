@@ -52,7 +52,16 @@ Full phase details, success criteria, and per-plan breakdown: [milestones/v1.1-R
   3. A coordinator edits any of the newly-wired fields (virtual sessions, duration notes, partner-only flag, accommodation notes) on an already-approved BIP; once the admin approves that edit, the new value is persisted on the live BIP row — verified per field via the edit-and-re-review flow, not merely at wizard-render or diff-view time (SUBM-14, anti-Pitfall-1: seven-layer propagation)
   4. A student browsing `/bips` sees a badge on cards for BIPs open only to partner institutions — noticeable but not alarming (BROW-14)
   5. All three seed sources (`seed.sql`, `seed.e2e.sql`, `seed-cloud-e2e.mjs`) are updated for every new field, with the previously-duplicated `bip_edits` column-list literal consolidated into one shared constant (FOUN-14)
-**Plans**: TBD
+**Plans**: 9 plans
+  - [ ] 09-01-PLAN.md — Add the four builder-completion columns to `bip_edits` (migration) + [BLOCKING] cloud push + type regen
+  - [ ] 09-02-PLAN.md — Fix virtual_timing/participant bugs + consolidate create path onto fullBipSchema + extend schema/draft store (unit tests)
+  - [ ] 09-03-PLAN.md — BROW-14 partner-only amber badge on `/bips` cards + listing query column
+  - [ ] 09-04-PLAN.md — Wizard UI: virtual detail (Step 2), partner-only checkbox (Step 3), accommodation notes (Step 4)
+  - [ ] 09-05-PLAN.md — BipDetail type/query plumbing + coordinator edit pre-fill + wizard preview adapter
+  - [ ] 09-06-PLAN.md — Write paths: admin edit payload + coordinator edit-content builder carry the four fields
+  - [ ] 09-07-PLAN.md — bip_edits merge-on-approve + diff view + FOUN-14 shared column constant
+  - [ ] 09-08-PLAN.md — Update all three seed sources + verify-seed for the four fields (edit-target fixture)
+  - [ ] 09-09-PLAN.md — E2E: create-path fields, per-field edit→approve→persist read-back (D-08), `/bips` badge
 **UI hint**: yes
 
 ### Phase 10: BIP Detail Page
@@ -93,6 +102,6 @@ Full phase details, success criteria, and per-plan breakdown: [milestones/v1.1-R
 | 6. Saved BIPs Sync | v1.1 | 4/4 | Complete | 2026-06-15 |
 | 7. Alert Subscriptions + Email Pipeline | v1.1→v1.2 | 0/TBD | Deferred to v1.2 | - |
 | 8. Edit-Approved + Request-Changes | v1.1 | 9/9 | Complete | 2026-06-26 |
-| 9. Coordinator BIP Builder Completion | v1.2 | 0/TBD | Not started | - |
+| 9. Coordinator BIP Builder Completion | v1.2 | 0/9 | Planned | - |
 | 10. BIP Detail Page | v1.2 | 0/TBD | Not started | - |
 | 11. Alert Subscriptions + Email Pipeline | v1.2 | 0/TBD | Not started | - |
