@@ -37,14 +37,14 @@ export type BipDraftData = {
   // Step 2
   virtual_component_description?: string
   virtual_timing?: 'before' | 'during' | 'after' | 'before_and_after' | 'mixed'
-  virtual_session_date?: string
+  virtual_session_dates?: string[]
   host_city?: string
   physical_start_date?: string
   physical_end_date?: string
   application_deadline?: string
   ects_credits?: number
   max_participants?: number
-  study_levels?: Array<'bachelor' | 'master' | 'phd' | 'vocational'>
+  study_levels?: Array<'vocational' | 'bachelor' | 'master' | 'phd' | 'none'>
   language_of_instruction?: string
   language_level_min?: 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2' | 'none'
   // Step 3 — partner_universities is preserved in Zustand/localStorage only
@@ -56,9 +56,11 @@ export type BipDraftData = {
   how_to_apply_url?: string
   contact_name?: string
   contact_email?: string
+  contact_phone?: string
   fees?: string
   eligibility_notes?: string
   accommodation_notes?: string
+  card_image_path?: string
 }
 
 export type SaveStatus = 'idle' | 'saving' | 'failed'

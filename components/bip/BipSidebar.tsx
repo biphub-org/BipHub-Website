@@ -4,6 +4,7 @@ import type { BipDetail } from '@/lib/queries/bipDetail'
 import { DeadlineBadge } from '@/components/bip/DeadlineBadge'
 import { BipApplyCta } from '@/components/bip/BipApplyCta'
 import { ShareButton } from '@/components/bip/ShareButton'
+import { formatLongDateRange } from '@/lib/utils/dates'
 
 /**
  * BipSidebar — sticky 340px right column at lg+ (D-09 / UI-SPEC line 357).
@@ -47,9 +48,7 @@ export function BipSidebar({
 
   const host = bip.host_university
   const datesLine =
-    bip.physical_start_date && bip.physical_end_date
-      ? `${bip.physical_start_date} → ${bip.physical_end_date}`
-      : (bip.physical_start_date ?? 'TBC')
+    formatLongDateRange(bip.physical_start_date, bip.physical_end_date) ?? 'TBC'
 
   const targetGroupLabel: Record<string, string> = {
     students: 'Students',

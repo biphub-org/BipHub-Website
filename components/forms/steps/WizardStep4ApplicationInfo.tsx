@@ -5,9 +5,9 @@
  *
  * Order (item 15): how-to-apply first, then Fees, Eligibility, Accommodation.
  * - how_to_apply_type radio: `url` reveals the URL field; `contact` reveals
- *   contact_name + contact_email pair. Conditional reveal animates with
- *   LazyMotion + m.div opacity transition (CLAUDE.md: never framer-motion).
- * - fees / eligibility_notes / accommodation_notes textareas (all optional).
+ *   contact_name + contact_email + optional contact_phone. Conditional reveal
+ *   animates with LazyMotion + m.div opacity transition (CLAUDE.md: never framer-motion).
+ * - fees (required) / eligibility_notes / accommodation_notes textareas.
  *
  * Schema-level refinement enforces that exactly one application channel is
  * filled in (URL or both contact fields).
@@ -30,6 +30,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { useBipDraft } from '@/lib/store/bip-draft'
 import { step4Schema, type Step4Values } from '@/lib/schemas/bip-wizard'
 import { BipAttachmentsField } from '@/components/forms/BipAttachmentsField'
+import { BipCardImageField } from '@/components/forms/BipCardImageField'
 
 interface Props {
   onContinue: (values: Step4Values) => void
@@ -47,9 +48,11 @@ export function WizardStep4ApplicationInfo({ onContinue, onAutoSave }: Props) {
       how_to_apply_url: draft.how_to_apply_url ?? '',
       contact_name: draft.contact_name ?? '',
       contact_email: draft.contact_email ?? '',
+      contact_phone: draft.contact_phone ?? '',
       fees: draft.fees ?? '',
       eligibility_notes: draft.eligibility_notes ?? '',
       accommodation_notes: draft.accommodation_notes ?? '',
+      card_image_path: draft.card_image_path ?? '',
     },
     mode: 'onBlur',
   })
@@ -165,6 +168,23 @@ export function WizardStep4ApplicationInfo({ onContinue, onAutoSave }: Props) {
                   </FormItem>
                 )}
               />
+              <FormField
+                name="contact_phone"
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Contact phone (optional)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="tel"
+                        placeholder="+32 16 32 40 10"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </m.div>
           )}
         </LazyMotion>
@@ -175,11 +195,11 @@ export function WizardStep4ApplicationInfo({ onContinue, onAutoSave }: Props) {
           control={form.control}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Fees (optional)</FormLabel>
+              <FormLabel>Fees</FormLabel>
               <FormControl>
                 <Textarea
                   rows={3}
-                  placeholder="Any participation fees, and what they cover — leave blank if there are none."
+                  placeholder="Any participation fees and what they cover. If the programme is free, write “No fees”."
                   {...field}
                 />
               </FormControl>
@@ -217,6 +237,23 @@ export function WizardStep4ApplicationInfo({ onContinue, onAutoSave }: Props) {
                   rows={3}
                   placeholder="Housing, cost, or booking guidance for participants — leave blank if not offered."
                   {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Optional listing-card cover image. */}
+        <FormField
+          name="card_image_path"
+          control={form.control}
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <BipCardImageField
+                  value={field.value ?? ''}
+                  onChange={field.onChange}
                 />
               </FormControl>
               <FormMessage />

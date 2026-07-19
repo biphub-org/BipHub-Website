@@ -58,7 +58,8 @@ export function draftToBipDetail(
     learning_outcomes: draft.learning_outcomes ?? null,
     virtual_component_description: draft.virtual_component_description ?? null,
     virtual_timing: draft.virtual_timing ?? null,
-    virtual_session_date: draft.virtual_session_date ?? null,
+    virtual_session_dates:
+      draft.virtual_session_dates?.filter(Boolean) ?? null,
     virtual_sessions_count: null,
     virtual_duration_notes: null,
     physical_start_date: draft.physical_start_date ?? null,
@@ -74,6 +75,7 @@ export function draftToBipDetail(
     how_to_apply_value: howToApplyValue,
     contact_name: draft.contact_name ?? null,
     contact_email: draft.contact_email ?? null,
+    contact_phone: draft.contact_phone ?? null,
     application_deadline: draft.application_deadline ?? null,
     green_travel: false,
     inclusion_support: false,
@@ -82,6 +84,7 @@ export function draftToBipDetail(
     created_at: ctx.createdAt,
     subject_areas: draft.subject_areas ?? [],
     accommodation_notes: draft.accommodation_notes ?? null,
+    card_image_path: draft.card_image_path ?? null,
     partner_institutions_only: draft.partner_institutions_only ?? false,
     host_university: host
       ? {

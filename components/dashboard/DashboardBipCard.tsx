@@ -24,20 +24,10 @@ import { WithdrawBipDialog } from '@/components/dashboard/WithdrawBipDialog'
 import { reviseRejectedBipAction } from '@/lib/actions/bip-revise'
 import type { CoordinatorBip } from '@/lib/queries/coordinatorBips'
 import { cn } from '@/lib/utils/cn'
-
-const DATE_FORMAT = new Intl.DateTimeFormat('en-GB', {
-  day: 'numeric',
-  month: 'short',
-  year: 'numeric',
-})
+import { formatLongDate } from '@/lib/utils/dates'
 
 function formatDate(iso: string | null): string {
-  if (!iso) return '—'
-  try {
-    return DATE_FORMAT.format(new Date(iso))
-  } catch {
-    return '—'
-  }
+  return formatLongDate(iso) ?? '—'
 }
 
 interface Props {

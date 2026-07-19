@@ -33,7 +33,7 @@ export default async function NewBipPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('university_id, university:university_id ( id, name, country )')
+    .select('university_id, university:university_id ( id, name, country, erasmus_code )')
     .eq('id', claims.sub)
     .maybeSingle()
 

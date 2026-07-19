@@ -241,7 +241,12 @@ export type AdminBipForEdit = {
   id: string
   data: BipDraftData
   updatedAt: string
-  hostUniversity: { id: string; name: string; country: string } | null
+  hostUniversity: {
+    id: string
+    name: string
+    country: string
+    erasmus_code: string | null
+  } | null
   status: BipStatus
   title: string
   coordinatorName: string
@@ -281,13 +286,14 @@ export async function getAdminBipForEdit(
     .select(`
       id, slug, status, updated_at,
       title, external_bip_id, target_group, subject_areas, description, learning_outcomes,
-      virtual_component_description, virtual_timing, virtual_session_date, host_city,
+      virtual_component_description, virtual_timing, virtual_session_dates, host_city,
       physical_start_date, physical_end_date, application_deadline,
       ects_credits, max_participants, study_levels,
       language_of_instruction, language_level_min,
       fees, eligibility_notes,
-      how_to_apply_type, how_to_apply_value, contact_name, contact_email,
-      host_university:host_university_id ( id, name, country ),
+      how_to_apply_type, how_to_apply_value, contact_name, contact_email, contact_phone,
+      card_image_path,
+      host_university:host_university_id ( id, name, country, erasmus_code ),
       coordinator:profiles!created_by ( full_name ),
       partners:bip_partner_universities (
         id, university_id, partner_name_raw, partner_country_raw, partner_erasmus_code_raw,
@@ -302,7 +308,12 @@ export async function getAdminBipForEdit(
   const status = data.status as BipStatus
   const isUrl = data.how_to_apply_type === 'url'
 
-  type EmbeddedUni = { id: string; name: string; country: string } | null
+  type EmbeddedUni = {
+    id: string
+    name: string
+    country: string
+    erasmus_code: string | null
+  } | null
   const hostUniversity: EmbeddedUni = Array.isArray(data.host_university)
     ? (data.host_university[0] ?? null)
     : ((data.host_university as EmbeddedUni) ?? null)
@@ -341,7 +352,7 @@ export async function getAdminBipForEdit(
       data.virtual_component_description ?? undefined,
     virtual_timing:
       (data.virtual_timing as BipDraftData['virtual_timing']) ?? undefined,
-    virtual_session_date: data.virtual_session_date ?? undefined,
+    virtual_session_dates: data.virtual_session_dates ?? undefined,
     host_city: data.host_city ?? undefined,
     physical_start_date: data.physical_start_date ?? undefined,
     physical_end_date: data.physical_end_date ?? undefined,
@@ -364,6 +375,8 @@ export async function getAdminBipForEdit(
       : undefined,
     contact_name: data.contact_name ?? undefined,
     contact_email: !isUrl ? (data.contact_email ?? undefined) : undefined,
+    contact_phone: !isUrl ? (data.contact_phone ?? undefined) : undefined,
+    card_image_path: data.card_image_path ?? undefined,
     partner_universities: partnerRows.map((p) => {
       const uniRel = Array.isArray(p.university)
         ? (p.university[0] ?? null)

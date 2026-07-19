@@ -34,17 +34,13 @@ import {
 import { RejectBipModal } from './RejectBipModal'
 import { STATUS_BADGE_CLASSES, STATUS_LABELS } from '@/lib/utils/status'
 import { cn } from '@/lib/utils/cn'
+import { formatLongDate } from '@/lib/utils/dates'
 import type { AdminBip } from '@/lib/queries/adminBips'
 
 // ── Edit badge (T-08-18): literal class string — no template literals (Tailwind v4 / CLAUDE.md)
 const EDIT_BADGE_CLASSES =
   'inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold bg-eu-blue-50 text-eu-blue border-eu-blue-light'
 
-const UPDATED_FORMAT = new Intl.DateTimeFormat('en-GB', {
-  day: 'numeric',
-  month: 'short',
-  year: 'numeric',
-})
 
 interface AdminBipRowProps {
   bip: AdminBip
@@ -81,7 +77,7 @@ export function AdminBipRow({ bip, kind }: AdminBipRowProps) {
         <span className={EDIT_BADGE_CLASSES}>Edit</span>
       )}
       <span className="hidden text-xs text-muted md:inline">
-        Updated {UPDATED_FORMAT.format(new Date(bip.updated_at))}
+        Updated {formatLongDate(bip.updated_at)}
       </span>
       <DropdownMenu>
         <DropdownMenuTrigger

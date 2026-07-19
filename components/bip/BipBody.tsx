@@ -4,6 +4,7 @@ import type { BipDetail } from '@/lib/queries/bipDetail'
 import { CountryFlag } from '@/components/ui/country-flag'
 import { cn } from '@/lib/utils/cn'
 import { attachmentPublicUrl } from '@/lib/utils/attachments'
+import { formatLongDateRange, formatLongDates } from '@/lib/utils/dates'
 
 /**
  * BipBody — RSC. Stacked content sections for the BIP detail page.
@@ -53,13 +54,16 @@ export function BipBody({ bip }: { bip: BipDetail }) {
   const partners = bip.partners ?? []
 
   // Date range display for physical mobility
-  const mobilityDates =
-    bip.physical_start_date && bip.physical_end_date
-      ? `${bip.physical_start_date}–${bip.physical_end_date}`
-      : bip.physical_start_date ?? null
+  const mobilityDates = formatLongDateRange(
+    bip.physical_start_date,
+    bip.physical_end_date,
+  )
 
   // Optional uploaded media/documents (item #18)
   const attachments = bip.attachments ?? []
+
+  // Virtual session dates, formatted as "10th January 2026"
+  const virtualSessionDates = formatLongDates(bip.virtual_session_dates)
 
   return (
     <div className="divide-y divide-border break-words">
@@ -95,9 +99,12 @@ export function BipBody({ bip }: { bip: BipDetail }) {
               Timing: {bip.virtual_timing}
             </p>
           )}
-          {bip.virtual_session_date && (
+          {virtualSessionDates && (
             <p className="text-sm text-muted">
-              Session date: {bip.virtual_session_date}
+              {bip.virtual_session_dates && bip.virtual_session_dates.length > 1
+                ? 'Session dates: '
+                : 'Session date: '}
+              {virtualSessionDates}
             </p>
           )}
         </Section>
@@ -271,6 +278,17 @@ export function BipBody({ bip }: { bip: BipDetail }) {
             >
               {bip.contact_email}
             </a>
+            {bip.contact_phone && (
+              <>
+                {' · '}
+                <a
+                  href={`tel:${bip.contact_phone.replace(/\s+/g, '')}`}
+                  className="text-eu-blue hover:underline"
+                >
+                  {bip.contact_phone}
+                </a>
+              </>
+            )}
           </p>
         ) : (
           <p className="text-base text-muted">

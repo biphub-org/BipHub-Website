@@ -23,6 +23,7 @@ import {
   Preview,
 } from '@react-email/components'
 import { EMAIL_TOKENS as T } from '../tokens'
+import { formatLongDate } from '@/lib/utils/dates'
 
 export interface AdminNotificationEmailProps {
   bipTitle: string
@@ -39,13 +40,12 @@ function formatTimestamp(iso: string): string {
   try {
     const d = new Date(iso)
     if (Number.isNaN(d.getTime())) return iso
-    return d.toLocaleString('en-GB', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
+    const longDate = formatLongDate(iso) ?? iso
+    const time = d.toLocaleTimeString('en-GB', {
       hour: '2-digit',
       minute: '2-digit',
     })
+    return `${longDate}, ${time}`
   } catch {
     return iso
   }

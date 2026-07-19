@@ -74,7 +74,25 @@ export async function saveDraftAction(
   // ("invalid input syntax for type date: \"\""), failing the save from any
   // step once a blank date is present. Coerce `'' → null` so partial drafts
   // persist; every affected column is nullable, so null is always valid.
-  const persistableRaw = { ...rest, ...howToApply }
+  // virtual_session_dates is a date[] column — the wizard sends the whole list
+  // including empty-string placeholders for un-filled rows. Drop the blanks; an
+  // all-blank list collapses to null (nullable column) so partial drafts save.
+  const rawDates = rest.virtual_session_dates
+  const cleanedDates = Array.isArray(rawDates)
+    ? rawDates.map((d) => (typeof d === 'string' ? d.trim() : d)).filter(Boolean)
+    : rawDates
+  const withDates =
+    rawDates !== undefined
+      ? {
+          ...rest,
+          virtual_session_dates:
+            Array.isArray(cleanedDates) && cleanedDates.length === 0
+              ? null
+              : cleanedDates,
+        }
+      : rest
+
+  const persistableRaw = { ...withDates, ...howToApply }
   const persistable = Object.fromEntries(
     Object.entries(persistableRaw).map(([k, v]) => [k, v === '' ? null : v]),
   ) as typeof persistableRaw

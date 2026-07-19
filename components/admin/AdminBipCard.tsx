@@ -21,17 +21,12 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { STATUS_BADGE_CLASSES, STATUS_LABELS } from '@/lib/utils/status'
 import { cn } from '@/lib/utils/cn'
+import { formatLongDateRange } from '@/lib/utils/dates'
 import type { AdminBip } from '@/lib/queries/adminBips'
 
 // ── Edit badge (T-08-18): literal class string — no template literals (Tailwind v4 / CLAUDE.md)
 const EDIT_BADGE_CLASSES =
   'inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold bg-eu-blue-50 text-eu-blue border-eu-blue-light'
-
-const DATE_RANGE_FORMAT = new Intl.DateTimeFormat('en-GB', {
-  day: 'numeric',
-  month: 'short',
-  year: 'numeric',
-})
 
 function daysAgo(iso: string): number {
   const ms = Date.now() - new Date(iso).getTime()
@@ -40,13 +35,7 @@ function daysAgo(iso: string): number {
 
 function formatRange(start: string | null, end: string | null): string {
   if (!start || !end) return 'Dates TBD'
-  try {
-    const s = DATE_RANGE_FORMAT.format(new Date(start))
-    const e = DATE_RANGE_FORMAT.format(new Date(end))
-    return `${s} – ${e}`
-  } catch {
-    return 'Dates TBD'
-  }
+  return formatLongDateRange(start, end) ?? 'Dates TBD'
 }
 
 export type { AdminBip }

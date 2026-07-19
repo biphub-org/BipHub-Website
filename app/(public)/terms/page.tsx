@@ -31,7 +31,7 @@ export default function TermsPage() {
         <h1 className="text-[clamp(32px,4vw,44px)] font-bold tracking-tight text-ink">
           Terms of service
         </h1>
-        <p className="mt-3 text-sm text-muted">Last updated: 2026-05-15</p>
+        <p className="mt-3 text-sm text-muted">Last updated: 15th May 2026</p>
       </header>
 
       <section>

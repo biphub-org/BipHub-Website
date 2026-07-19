@@ -34,7 +34,7 @@ type RawBipEditContentRow = {
   learning_outcomes: string | null
   virtual_component_description: string | null
   virtual_timing: string | null
-  virtual_session_date: string | null
+  virtual_session_dates: string[] | null
   host_city: string | null
   physical_start_date: string | null
   physical_end_date: string | null
@@ -50,8 +50,10 @@ type RawBipEditContentRow = {
   how_to_apply_value: string | null
   contact_name: string | null
   contact_email: string | null
+  contact_phone: string | null
   partner_institutions: unknown
   accommodation_notes: string | null
+  card_image_path: string | null
   partner_institutions_only: boolean | null
 }
 
@@ -127,7 +129,7 @@ function mapEditRowToBipDraftData(row: RawBipEditContentRow): BipDraftData {
     virtual_component_description: row.virtual_component_description ?? undefined,
     virtual_timing:
       (row.virtual_timing as BipDraftData['virtual_timing']) ?? undefined,
-    virtual_session_date: row.virtual_session_date ?? undefined,
+    virtual_session_dates: row.virtual_session_dates ?? undefined,
     host_city: row.host_city ?? undefined,
     physical_start_date: row.physical_start_date ?? undefined,
     physical_end_date: row.physical_end_date ?? undefined,
@@ -146,8 +148,10 @@ function mapEditRowToBipDraftData(row: RawBipEditContentRow): BipDraftData {
     how_to_apply_url: isUrl ? (row.how_to_apply_value ?? undefined) : undefined,
     contact_name: row.contact_name ?? undefined,
     contact_email: !isUrl ? (row.contact_email ?? undefined) : undefined,
+    contact_phone: !isUrl ? (row.contact_phone ?? undefined) : undefined,
     partner_universities: mapPartnerInstitutions(row.partner_institutions),
     accommodation_notes: row.accommodation_notes ?? undefined,
+    card_image_path: row.card_image_path ?? undefined,
     partner_institutions_only: row.partner_institutions_only ?? false,
   }
 }

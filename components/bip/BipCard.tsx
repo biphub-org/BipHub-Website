@@ -34,6 +34,8 @@ import { getCountryName } from '@/lib/countries'
 import { ISCED_FIELD_BY_ID } from '@/lib/isced'
 import { CountryFlag } from '@/components/ui/country-flag'
 import { cn } from '@/lib/utils/cn'
+import { formatLongDate, formatLongDateRange } from '@/lib/utils/dates'
+import { attachmentPublicUrl } from '@/lib/utils/attachments'
 
 /** 3 gradient variants for the card header — keyed by bip.id mod 3 */
 const GRADIENT_VARIANTS = [
@@ -48,6 +50,9 @@ interface BipCardProps {
 
 export function BipCard({ bip }: BipCardProps) {
   const gradientClass = GRADIENT_VARIANTS[hashId(bip.id) % 3]
+  const cardImageUrl = bip.card_image_path
+    ? attachmentPublicUrl(bip.card_image_path)
+    : null
   const country = bip.host_university?.country ?? ''
   const countryName = country ? getCountryName(country) : ''
   const fieldLabels = (bip.subject_areas ?? []).map(
@@ -77,8 +82,21 @@ export function BipCard({ bip }: BipCardProps) {
         href={`/bip/${bip.slug}`}
         className="flex flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eu-blue focus-visible:ring-offset-2"
       >
-        {/* === Gradient header === */}
-        <div className={cn('relative h-[140px] flex-shrink-0', gradientClass)}>
+        {/* === Header: uploaded card image, or gradient fallback === */}
+        <div
+          className={cn(
+            'relative h-[140px] flex-shrink-0',
+            !cardImageUrl && gradientClass,
+          )}
+        >
+          {cardImageUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={cardImageUrl}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          )}
           {/* Country flag pill — top-left */}
           {country && (
             <span
@@ -201,33 +219,14 @@ function MetaItem({
   )
 }
 
-/** Format deadline as "15 Jan 2026" or similar short form */
+/** Format deadline as "15th January 2026" */
 function formatDeadline(dateStr: string): string {
-  try {
-    const date = new Date(dateStr)
-    return date.toLocaleDateString('en-GB', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-    })
-  } catch {
-    return dateStr
-  }
+  return formatLongDate(dateStr) ?? dateStr
 }
 
 /** Format a date range for the meta row */
 function formatDateRange(start: string | null, end: string | null): string {
-  const fmt = (d: string) => {
-    try {
-      return new Date(d).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })
-    } catch {
-      return d
-    }
-  }
-  if (start && end) return `${fmt(start)} – ${fmt(end)}`
-  if (start) return fmt(start)
-  if (end) return fmt(end)
-  return ''
+  return formatLongDateRange(start, end) ?? ''
 }
 
 /** Stable numeric hash of a UUID string for gradient variant selection */

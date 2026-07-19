@@ -48,12 +48,30 @@ export const step1Schema = z.object({
 export type Step1Values = z.infer<typeof step1Schema>
 
 // Step 2 — Programme details.
-const STUDY_LEVELS = ['bachelor', 'master', 'phd', 'vocational'] as const
+const STUDY_LEVELS = ['vocational', 'bachelor', 'master', 'phd', 'none'] as const
 // Matches supabase/migrations/00003_bips_full_schema.sql virtual_timing CHECK
 // exactly (SUBM-12). The legacy 'concurrent' value silently failed the DB
 // CHECK on save and must never reappear here.
 const VIRTUAL_TIMINGS = ['before', 'during', 'after', 'before_and_after', 'mixed'] as const
 const LANGUAGE_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'none'] as const
+
+// Virtual-session dates: a required first date plus any number of optional
+// additional dates. The list arrives from the wizard with empty-string
+// placeholders for un-filled rows; trim + drop them, then require at least one
+// valid YYYY-MM-DD value. Output is a clean string[] for both the DB (date[])
+// and the detail-page renderer.
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
+const virtualSessionDatesSchema = z
+  .array(z.string())
+  .optional()
+  .default([])
+  .transform((arr) => arr.map((s) => s.trim()).filter(Boolean))
+  .refine((arr) => arr.length >= 1, {
+    message: 'Add at least one virtual session date.',
+  })
+  .refine((arr) => arr.every((d) => ISO_DATE.test(d)), {
+    message: 'Use YYYY-MM-DD for each virtual session date.',
+  })
 
 export const step2Schema = z
   .object({
@@ -62,16 +80,9 @@ export const step2Schema = z
       .trim()
       .min(20, 'Describe the virtual component briefly.')
       .max(2000),
-    virtual_timing: z.enum(VIRTUAL_TIMINGS, {
-      errorMap: () => ({ message: 'Choose when the virtual component runs.' }),
-    }),
-    // Optional single date for the virtual session (replaces the old
-    // sessions-count + duration-notes pair).
-    virtual_session_date: z
-      .string()
-      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD.')
-      .optional()
-      .or(z.literal('')),
+    virtual_timing: z.enum(VIRTUAL_TIMINGS).optional(),
+    // One or more virtual-session dates. First required, rest optional.
+    virtual_session_dates: virtualSessionDatesSchema,
     host_city: z.string().trim().min(2, 'Please enter the host city.').max(120),
     physical_start_date: z
       .string()
@@ -143,9 +154,15 @@ export const step4Schema = z
       .email('Use a valid email address.')
       .optional()
       .or(z.literal('')),
-    fees: z.string().trim().max(2000).optional().default(''),
+    contact_phone: z.string().trim().max(40).optional().or(z.literal('')),
+    fees: z
+      .string()
+      .trim()
+      .min(1, 'Fee information is required. If the programme is free, write “No fees”.')
+      .max(2000),
     eligibility_notes: z.string().trim().max(2000).optional().default(''),
     accommodation_notes: z.string().trim().max(1000).optional().or(z.literal('')),
+    card_image_path: z.string().trim().max(300).optional().or(z.literal('')),
   })
   .refine(
     (data) => {
@@ -176,12 +193,8 @@ export const fullBipSchema = z
     learning_outcomes: step1Schema.shape.learning_outcomes,
     // Step 2 — re-declare without per-step `.refine`s; they live below.
     virtual_component_description: z.string().trim().min(20).max(2000),
-    virtual_timing: z.enum(VIRTUAL_TIMINGS),
-    virtual_session_date: z
-      .string()
-      .regex(/^\d{4}-\d{2}-\d{2}$/)
-      .optional()
-      .or(z.literal('')),
+    virtual_timing: z.enum(VIRTUAL_TIMINGS).optional(),
+    virtual_session_dates: virtualSessionDatesSchema,
     host_city: z.string().trim().min(2).max(120),
     physical_start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     physical_end_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -198,9 +211,15 @@ export const fullBipSchema = z
     how_to_apply_url: z.string().url().optional().or(z.literal('')),
     contact_name: z.string().trim().min(2).max(120).optional().or(z.literal('')),
     contact_email: z.string().email().optional().or(z.literal('')),
-    fees: z.string().trim().max(2000).optional().default(''),
+    contact_phone: z.string().trim().max(40).optional().or(z.literal('')),
+    fees: z
+      .string()
+      .trim()
+      .min(1, 'Fee information is required. If the programme is free, write “No fees”.')
+      .max(2000),
     eligibility_notes: z.string().trim().max(2000).optional().default(''),
     accommodation_notes: z.string().trim().max(1000).optional().or(z.literal('')),
+    card_image_path: z.string().trim().max(300).optional().or(z.literal('')),
   })
   .refine((d) => d.physical_start_date < d.physical_end_date, {
     message: 'Physical mobility end date must be after the start date.',

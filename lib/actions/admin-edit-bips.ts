@@ -58,7 +58,7 @@ type RawEditRow = {
   learning_outcomes: string | null
   virtual_component_description: string | null
   virtual_timing: string | null
-  virtual_session_date: string | null
+  virtual_session_dates: string[] | null
   host_city: string | null
   physical_start_date: string | null
   physical_end_date: string | null
@@ -74,8 +74,10 @@ type RawEditRow = {
   how_to_apply_value: string | null
   contact_name: string | null
   contact_email: string | null
+  contact_phone: string | null
   partner_institutions: unknown
   accommodation_notes: string | null
+  card_image_path: string | null
   partner_institutions_only: boolean | null
 }
 
@@ -106,7 +108,7 @@ function buildMergePayload(editRow: RawEditRow) {
     learning_outcomes: editRow.learning_outcomes,
     virtual_component_description: editRow.virtual_component_description,
     virtual_timing: editRow.virtual_timing,
-    virtual_session_date: editRow.virtual_session_date,
+    virtual_session_dates: editRow.virtual_session_dates,
     host_city: editRow.host_city,
     physical_start_date: editRow.physical_start_date,
     physical_end_date: editRow.physical_end_date,
@@ -122,7 +124,9 @@ function buildMergePayload(editRow: RawEditRow) {
     how_to_apply_value: editRow.how_to_apply_value,
     contact_name: editRow.contact_name,
     contact_email: editRow.contact_email,
+    contact_phone: editRow.contact_phone,
     accommodation_notes: editRow.accommodation_notes,
+    card_image_path: editRow.card_image_path,
     partner_institutions_only: editRow.partner_institutions_only ?? false,
     updated_at: new Date().toISOString(),
     // NOTE: slug intentionally omitted (D-10 / EDIT-09)

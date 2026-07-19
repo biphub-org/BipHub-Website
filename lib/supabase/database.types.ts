@@ -89,8 +89,10 @@ export type Database = {
           admin_note: string | null
           application_deadline: string | null
           bip_id: string
+          card_image_path: string | null
           contact_email: string | null
           contact_name: string | null
+          contact_phone: string | null
           created_at: string
           created_by: string | null
           description: string | null
@@ -122,6 +124,7 @@ export type Database = {
           virtual_component_description: string | null
           virtual_duration_notes: string | null
           virtual_session_date: string | null
+          virtual_session_dates: string[] | null
           virtual_sessions_count: number | null
           virtual_timing: string | null
         }
@@ -130,8 +133,10 @@ export type Database = {
           admin_note?: string | null
           application_deadline?: string | null
           bip_id: string
+          card_image_path?: string | null
           contact_email?: string | null
           contact_name?: string | null
+          contact_phone?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -163,6 +168,7 @@ export type Database = {
           virtual_component_description?: string | null
           virtual_duration_notes?: string | null
           virtual_session_date?: string | null
+          virtual_session_dates?: string[] | null
           virtual_sessions_count?: number | null
           virtual_timing?: string | null
         }
@@ -171,8 +177,10 @@ export type Database = {
           admin_note?: string | null
           application_deadline?: string | null
           bip_id?: string
+          card_image_path?: string | null
           contact_email?: string | null
           contact_name?: string | null
+          contact_phone?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -204,6 +212,7 @@ export type Database = {
           virtual_component_description?: string | null
           virtual_duration_notes?: string | null
           virtual_session_date?: string | null
+          virtual_session_dates?: string[] | null
           virtual_sessions_count?: number | null
           virtual_timing?: string | null
         }
@@ -314,8 +323,10 @@ export type Database = {
         Row: {
           accommodation_notes: string | null
           application_deadline: string | null
+          card_image_path: string | null
           contact_email: string | null
           contact_name: string | null
+          contact_phone: string | null
           created_at: string
           created_by: string | null
           description: string | null
@@ -352,14 +363,17 @@ export type Database = {
           virtual_component_description: string | null
           virtual_duration_notes: string | null
           virtual_session_date: string | null
+          virtual_session_dates: string[] | null
           virtual_sessions_count: number | null
           virtual_timing: string | null
         }
         Insert: {
           accommodation_notes?: string | null
           application_deadline?: string | null
+          card_image_path?: string | null
           contact_email?: string | null
           contact_name?: string | null
+          contact_phone?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -396,14 +410,17 @@ export type Database = {
           virtual_component_description?: string | null
           virtual_duration_notes?: string | null
           virtual_session_date?: string | null
+          virtual_session_dates?: string[] | null
           virtual_sessions_count?: number | null
           virtual_timing?: string | null
         }
         Update: {
           accommodation_notes?: string | null
           application_deadline?: string | null
+          card_image_path?: string | null
           contact_email?: string | null
           contact_name?: string | null
+          contact_phone?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -440,6 +457,7 @@ export type Database = {
           virtual_component_description?: string | null
           virtual_duration_notes?: string | null
           virtual_session_date?: string | null
+          virtual_session_dates?: string[] | null
           virtual_sessions_count?: number | null
           virtual_timing?: string | null
         }

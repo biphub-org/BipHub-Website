@@ -26,19 +26,21 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { DatePicker } from '@/components/ui/date-picker'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useBipDraft } from '@/lib/store/bip-draft'
 import { step2Schema, type Step2Values } from '@/lib/schemas/bip-wizard'
 
 const STUDY_LEVEL_OPTIONS: Array<{
-  value: 'bachelor' | 'master' | 'phd' | 'vocational'
+  value: 'vocational' | 'bachelor' | 'master' | 'phd' | 'none'
   label: string
 }> = [
-  { value: 'bachelor', label: 'Bachelor · EQF 6' },
-  { value: 'master', label: 'Master · EQF 7' },
-  { value: 'phd', label: 'Doctorate · EQF 8' },
-  { value: 'vocational', label: 'Vocational Training · EQF 5' },
+  { value: 'vocational', label: 'Vocational Training · EQF level 5' },
+  { value: 'bachelor', label: 'Bachelor · EQF level 6' },
+  { value: 'master', label: 'Master · EQF level 7' },
+  { value: 'phd', label: 'Doctorate · EQF level 8' },
+  { value: 'none', label: 'None (Staff)' },
 ]
 
 const LANGUAGE_LEVEL_OPTIONS: Array<{
@@ -67,7 +69,6 @@ export function WizardStep2ProgramDetails({ onContinue, onAutoSave }: Props) {
     resolver: zodResolver(step2Schema),
     defaultValues: {
       virtual_component_description: draft.virtual_component_description ?? '',
-      virtual_timing: (draft.virtual_timing ?? 'before') as Step2Values['virtual_timing'],
       host_city: draft.host_city ?? '',
       physical_start_date: draft.physical_start_date ?? '',
       physical_end_date: draft.physical_end_date ?? '',
@@ -77,7 +78,10 @@ export function WizardStep2ProgramDetails({ onContinue, onAutoSave }: Props) {
       study_levels: (draft.study_levels ?? []) as Step2Values['study_levels'],
       language_of_instruction: draft.language_of_instruction ?? 'en',
       language_level_min: (draft.language_level_min ?? 'B1') as Step2Values['language_level_min'],
-      virtual_session_date: draft.virtual_session_date ?? '',
+      virtual_session_dates:
+        draft.virtual_session_dates && draft.virtual_session_dates.length > 0
+          ? draft.virtual_session_dates
+          : [''],
     },
     mode: 'onBlur',
   })
@@ -119,43 +123,63 @@ export function WizardStep2ProgramDetails({ onContinue, onAutoSave }: Props) {
         />
 
         <FormField
-          name="virtual_timing"
+          name="virtual_session_dates"
           control={form.control}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>When does the virtual component run?</FormLabel>
-              <FormControl>
-                <select
-                  className="block w-full rounded-md border border-border bg-white px-3 py-2 text-sm"
-                  value={field.value}
-                  onChange={(e) => field.onChange(e.target.value)}
-                  onBlur={field.onBlur}
+          render={({ field }) => {
+            const dates = field.value.length > 0 ? field.value : ['']
+            const setAt = (index: number, value: string) => {
+              const next = [...dates]
+              next[index] = value
+              field.onChange(next)
+            }
+            const addDate = () => field.onChange([...dates, ''])
+            const removeAt = (index: number) =>
+              field.onChange(dates.filter((_, i) => i !== index))
+            return (
+              <FormItem>
+                <FormLabel>Virtual Session Dates</FormLabel>
+                <div className="space-y-2">
+                  {dates.map((value, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <FormControl>
+                        <DatePicker
+                          value={value}
+                          onChange={(next) => setAt(index, next)}
+                          onBlur={field.onBlur}
+                          aria-label={
+                            index === 0
+                              ? 'Virtual session date (required)'
+                              : `Additional virtual session date ${index + 1}`
+                          }
+                        />
+                      </FormControl>
+                      {index === 0 ? (
+                        <span className="whitespace-nowrap text-xs text-muted">
+                          Required
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => removeAt(index)}
+                          className="whitespace-nowrap rounded-md px-2 py-1 text-xs font-medium text-muted hover:text-eu-blue"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={addDate}
+                  className="mt-1 inline-flex items-center gap-1 text-sm font-semibold text-eu-blue hover:underline"
                 >
-                  <option value="before">Before physical mobility</option>
-                  <option value="during">During physical mobility</option>
-                  <option value="after">After physical mobility</option>
-                  <option value="before_and_after">Before and after physical mobility</option>
-                  <option value="mixed">Mixed / throughout</option>
-                </select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          name="virtual_session_date"
-          control={form.control}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Virtual Session Date</FormLabel>
-              <FormControl>
-                <Input type="date" {...field} />
-              </FormControl>
-              <FormDescription>Optional — the date the virtual session runs.</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
+                  + Add another date
+                </button>
+                <FormMessage />
+              </FormItem>
+            )
+          }}
         />
 
         <FormField
@@ -180,7 +204,12 @@ export function WizardStep2ProgramDetails({ onContinue, onAutoSave }: Props) {
               <FormItem>
                 <FormLabel>Physical Mobility Start Date</FormLabel>
                 <FormControl>
-                  <Input type="date" {...field} />
+                  <DatePicker
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    aria-label="Physical mobility start date"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -193,7 +222,12 @@ export function WizardStep2ProgramDetails({ onContinue, onAutoSave }: Props) {
               <FormItem>
                 <FormLabel>Physical Mobility End Date</FormLabel>
                 <FormControl>
-                  <Input type="date" {...field} />
+                  <DatePicker
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    aria-label="Physical mobility end date"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -208,7 +242,12 @@ export function WizardStep2ProgramDetails({ onContinue, onAutoSave }: Props) {
             <FormItem>
               <FormLabel>Application deadline</FormLabel>
               <FormControl>
-                <Input type="date" {...field} />
+                <DatePicker
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  aria-label="Application deadline"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

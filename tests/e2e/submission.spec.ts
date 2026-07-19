@@ -24,6 +24,25 @@ function addDays(days: number): string {
   return d.toISOString().slice(0, 10)
 }
 
+/**
+ * Select a date in the custom <DatePicker> (a button that opens a
+ * react-day-picker calendar in a Base UI popover — it replaced the old
+ * <input type="date">). Drives the month/year <select> dropdowns, then clicks
+ * the day cell, which carries data-day="M/D/YYYY" (en-US default locale).
+ */
+async function pickDate(
+  page: Page,
+  triggerName: RegExp,
+  iso: string,
+): Promise<void> {
+  const [year, month, day] = iso.split('-').map(Number)
+  await page.getByRole('button', { name: triggerName }).click()
+  const popover = page.locator('[data-slot="popover-content"]')
+  await popover.locator('select').nth(0).selectOption(String(month - 1))
+  await popover.locator('select').nth(1).selectOption(String(year))
+  await popover.locator(`[data-day="${month}/${day}/${year}"]`).click()
+}
+
 const E2E_TITLE = 'E2E Test BIP — Renewable Energy in the Alps'
 
 /**
@@ -128,25 +147,21 @@ test.describe('submission wizard', () => {
 
     // ----- Step 2: Programme details -----
     await page
-      // scope to the textarea — /virtual component/i also matches the
-      // "When does the virtual component happen?" <select> (virtual_timing)
       .getByRole('textbox', { name: /virtual component/i })
       .fill(
         'Four online lectures (90 min each) across the 4 weeks before physical mobility plus a group project handover.',
       )
-    // virtual_timing: exercise a non-'before' option to prove the corrected
-    // 5-value DB CHECK enum accepts a value other than the wizard default
-    // (SUBM-12 — the removed 'concurrent' value used to silently fail here).
-    await page
-      .getByLabel(/when does the virtual component run/i)
-      .selectOption('mixed')
-    // virtual_session_date — optional single date (replaces sessions count + duration).
-    await page.getByLabel(/virtual session date/i).fill(addDays(80))
+    // virtual_session_dates — first date required, plus an optional extra date
+    // added via the "Add another date" button. Dates are entered through the
+    // custom <DatePicker> calendar popover (pickDate), not a native input.
+    await pickDate(page, /virtual session date \(required\)/i, addDays(80))
+    await page.getByRole('button', { name: /add another date/i }).click()
+    await pickDate(page, /additional virtual session date 2/i, addDays(87))
     await page.getByLabel(/host city/i).fill('Munich')
     // Future-relative dates. physical_end after physical_start.
-    await page.getByLabel(/physical mobility start date/i).fill(addDays(90))
-    await page.getByLabel(/physical mobility end date/i).fill(addDays(100))
-    await page.getByLabel(/application deadline/i).fill(addDays(60))
+    await pickDate(page, /physical mobility start date/i, addDays(90))
+    await pickDate(page, /physical mobility end date/i, addDays(100))
+    await pickDate(page, /application deadline/i, addDays(60))
     await page.getByLabel(/ects credits/i).fill('4')
     // max_participants — ceiling is now 100 (item 9).
     await page.getByLabel(/maximum number of participants/i).fill('20')
@@ -199,6 +214,10 @@ test.describe('submission wizard', () => {
     await page
       .getByRole('textbox', { name: /application url/i })
       .fill('https://tum.example/bips/renewable-alps')
+    // fees: required Step 4 field (must be filled or submit fails validation).
+    await page
+      .getByLabel(/^fees$/i)
+      .fill('No participation fees; students cover their own travel and accommodation.')
     // accommodation_notes: optional Step 4 field exercised for create-path coverage (SUBM-10).
     await page
       .getByLabel(/accommodation notes/i)

@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { getBipBySlug, getAllPublishedSlugs } from '@/lib/queries/bipDetail'
 import { getCountryName } from '@/lib/countries'
+import { formatLongDate, formatLongDateRange } from '@/lib/utils/dates'
 import { BipHeader } from '@/components/bip/BipHeader'
 import { BipBody } from '@/components/bip/BipBody'
 import { BipSidebar } from '@/components/bip/BipSidebar'
@@ -61,10 +62,11 @@ export async function generateMetadata({
 
   const host = bip.host_university
   const countryName = host?.country ? getCountryName(host.country) : ''
-  const startDate = bip.physical_start_date ?? ''
-  const endDate = bip.physical_end_date ?? ''
-  const dateRange = startDate && endDate ? `${startDate}–${endDate}` : startDate
-  const deadlineText = bip.application_deadline ? `Apply by ${bip.application_deadline}.` : ''
+  const dateRange =
+    formatLongDateRange(bip.physical_start_date, bip.physical_end_date) ?? ''
+  const deadlineText = bip.application_deadline
+    ? `Apply by ${formatLongDate(bip.application_deadline)}.`
+    : ''
 
   const descriptionFull = [
     `${bip.title} at ${host?.name ?? ''}`,

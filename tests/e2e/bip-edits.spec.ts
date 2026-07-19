@@ -103,6 +103,25 @@ async function assertAuditRow(
  * BIP with fully valid data for every field, so the prefilled RHF defaults
  * pass each step's schema without any input.
  */
+/**
+ * Select a date in the custom <DatePicker> (a button that opens a
+ * react-day-picker calendar in a Base UI popover — it replaced the old
+ * <input type="date">). Drives the month/year <select> dropdowns, then clicks
+ * the day cell, which carries data-day="M/D/YYYY" (en-US default locale).
+ */
+async function pickDate(
+  page: Page,
+  triggerName: RegExp,
+  iso: string,
+): Promise<void> {
+  const [year, month, day] = iso.split('-').map(Number)
+  await page.getByRole('button', { name: triggerName }).click()
+  const popover = page.locator('[data-slot="popover-content"]')
+  await popover.locator('select').nth(0).selectOption(String(month - 1))
+  await popover.locator('select').nth(1).selectOption(String(year))
+  await popover.locator(`[data-day="${month}/${day}/${year}"]`).click()
+}
+
 async function driveEditWizardToStep5(
   page: Page,
   bipId: string,
@@ -124,12 +143,20 @@ async function driveEditWizardToStep5(
   await page.getByRole('button', { name: /save.*continue/i }).click()
 
   await expect(page.getByText(/step\s*2\s*of\s*5/i)).toBeVisible({ timeout: 10_000 })
+  // virtual_session_dates: first date is required (v1.2). The seeded edit-target
+  // BIP predates the column (null), so pick a date before advancing.
+  await pickDate(page, /virtual session date \(required\)/i, '2027-05-15')
   await page.getByRole('button', { name: /save.*continue/i }).click()
 
   await expect(page.getByText(/step\s*3\s*of\s*5/i)).toBeVisible({ timeout: 10_000 })
   await page.getByRole('button', { name: /save.*continue/i }).click()
 
   await expect(page.getByText(/step\s*4\s*of\s*5/i)).toBeVisible({ timeout: 10_000 })
+  // fees is required (v1.2). The seeded edit-target BIP predates the column
+  // (null), so fill it before advancing.
+  await page
+    .getByLabel(/^fees$/i)
+    .fill('No participation fees; sending institution covers travel.')
   await page.getByRole('button', { name: /save.*continue/i }).click()
 
   await expect(page.getByText(/step\s*5\s*of\s*5/i)).toBeVisible({ timeout: 10_000 })
@@ -322,7 +349,7 @@ test.describe('bip edit flow', () => {
    * Grep key: "field round trip"
    *
    * Drives the edit wizard changing the builder round-trip fields —
-   * virtual_session_date, accommodation_notes,
+   * virtual_session_dates, accommodation_notes,
    * partner_institutions_only — to NEW values distinct from the seeded
    * e2e-edit-target-bip fixture (supabase/seed.e2e.sql, Plan 09-08), submits
    * the edit, has the admin approve it, then reads the LIVE `bips` row back
@@ -361,13 +388,15 @@ test.describe('bip edit flow', () => {
         await coordPage.getByLabel(/target group/i).selectOption('students_staff')
         await coordPage.getByRole('button', { name: /save.*continue/i }).click()
 
-        // ----- Step 2: virtual_session_date -----
+        // ----- Step 2: virtual_session_dates (required first date) -----
         await expect(coordPage.getByText(/step\s*2\s*of\s*5/i)).toBeVisible({
           timeout: 10_000,
         })
-        await coordPage
-          .getByLabel(/virtual session date/i)
-          .fill(NEW_VIRTUAL_SESSION_DATE)
+        await pickDate(
+          coordPage,
+          /virtual session date \(required\)/i,
+          NEW_VIRTUAL_SESSION_DATE,
+        )
         await coordPage.getByRole('button', { name: /save.*continue/i }).click()
 
         // ----- Step 3: partner_institutions_only -----
@@ -389,10 +418,15 @@ test.describe('bip edit flow', () => {
         await expect(partnerOnlyCheckbox).not.toBeChecked()
         await coordPage.getByRole('button', { name: /save.*continue/i }).click()
 
-        // ----- Step 4: accommodation_notes -----
+        // ----- Step 4: fees (required) + accommodation_notes -----
         await expect(coordPage.getByText(/step\s*4\s*of\s*5/i)).toBeVisible({
           timeout: 10_000,
         })
+        // fees is required (must be non-empty or the edit submit fails validation).
+        // The seeded edit-target BIP predates the fees column, so fill it here.
+        await coordPage
+          .getByLabel(/^fees$/i)
+          .fill('No participation fees; sending institution covers travel.')
         await coordPage
           .getByLabel(/accommodation notes/i)
           .fill(NEW_ACCOMMODATION_NOTES)
@@ -438,7 +472,7 @@ test.describe('bip edit flow', () => {
       const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
       const resp = await page.request.get(
         `${supabaseUrl}/rest/v1/bips?id=eq.${E2E_BIP_ID}` +
-          '&select=virtual_session_date,accommodation_notes,partner_institutions_only',
+          '&select=virtual_session_dates,accommodation_notes,partner_institutions_only',
         {
           headers: {
             apikey: serviceRoleKey,
@@ -453,9 +487,9 @@ test.describe('bip edit flow', () => {
 
       // One assertion per field — the binding SUBM-14 proof.
       expect(
-        liveRow.virtual_session_date,
-        'virtual_session_date did not persist on the live bips row',
-      ).toBe(NEW_VIRTUAL_SESSION_DATE)
+        liveRow.virtual_session_dates,
+        'virtual_session_dates did not persist on the live bips row',
+      ).toEqual([NEW_VIRTUAL_SESSION_DATE])
       expect(
         liveRow.accommodation_notes,
         'accommodation_notes did not persist on the live bips row',

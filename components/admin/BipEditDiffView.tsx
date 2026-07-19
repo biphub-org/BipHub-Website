@@ -24,6 +24,7 @@ import type { BipDetail } from '@/lib/queries/bipDetail'
 import type { BipEditDetail } from '@/lib/queries/bipEdits'
 import type { BipDraftData } from '@/lib/store/bip-draft'
 import { ISCED_FIELD_BY_ID } from '@/lib/isced'
+import { formatLongDate, formatLongDates } from '@/lib/utils/dates'
 
 // ── Field definition ──────────────────────────────────────────────────────────
 
@@ -40,6 +41,14 @@ type FieldDef = {
 function fmtBool(v: boolean | null | undefined): string | null {
   if (v === null || v === undefined) return null
   return v ? 'Yes' : 'No'
+}
+
+/** Show just the uploaded file name from a card-image storage path. */
+function fmtImageName(path: string | null | undefined): string | null {
+  if (!path) return null
+  const name = path.split('/').pop() ?? path
+  // Strip the leading "<uuid>-" prefix added at upload time.
+  return name.replace(/^[0-9a-f-]{36}-/i, '')
 }
 
 function fmtStudyLevels(levels: string[] | readonly string[] | null | undefined): string | null {
@@ -157,18 +166,18 @@ const FIELDS: FieldDef[] = [
   },
   {
     label: 'Physical start date',
-    getLive: (b) => b.physical_start_date,
-    getProposed: (d) => d.physical_start_date ?? null,
+    getLive: (b) => formatLongDate(b.physical_start_date),
+    getProposed: (d) => formatLongDate(d.physical_start_date),
   },
   {
     label: 'Physical end date',
-    getLive: (b) => b.physical_end_date,
-    getProposed: (d) => d.physical_end_date ?? null,
+    getLive: (b) => formatLongDate(b.physical_end_date),
+    getProposed: (d) => formatLongDate(d.physical_end_date),
   },
   {
     label: 'Application deadline',
-    getLive: (b) => b.application_deadline,
-    getProposed: (d) => d.application_deadline ?? null,
+    getLive: (b) => formatLongDate(b.application_deadline),
+    getProposed: (d) => formatLongDate(d.application_deadline),
   },
   {
     label: 'Virtual component',
@@ -181,9 +190,9 @@ const FIELDS: FieldDef[] = [
     getProposed: (d) => d.virtual_timing ?? null,
   },
   {
-    label: 'Virtual session date',
-    getLive: (b) => b.virtual_session_date,
-    getProposed: (d) => d.virtual_session_date ?? null,
+    label: 'Virtual session dates',
+    getLive: (b) => formatLongDates(b.virtual_session_dates),
+    getProposed: (d) => formatLongDates(d.virtual_session_dates),
   },
   {
     label: 'Accommodation',
@@ -219,6 +228,16 @@ const FIELDS: FieldDef[] = [
     label: 'Contact email',
     getLive: (b) => b.contact_email,
     getProposed: (d) => d.contact_email ?? null,
+  },
+  {
+    label: 'Contact phone',
+    getLive: (b) => b.contact_phone,
+    getProposed: (d) => d.contact_phone ?? null,
+  },
+  {
+    label: 'Card image',
+    getLive: (b) => fmtImageName(b.card_image_path),
+    getProposed: (d) => fmtImageName(d.card_image_path),
   },
   {
     label: 'Partner institutions',

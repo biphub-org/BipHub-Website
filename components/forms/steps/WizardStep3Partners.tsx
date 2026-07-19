@@ -26,7 +26,12 @@ import { step3Schema, type Step3Values } from '@/lib/schemas/bip-wizard'
 import type { UniversitySearchResult } from '@/lib/actions/universities'
 
 interface Props {
-  hostUniversity: { id: string; name: string; country: string }
+  hostUniversity: {
+    id: string
+    name: string
+    country: string
+    erasmus_code?: string | null
+  }
   initialUniversities: UniversitySearchResult[]
   onContinue: (values: Step3Values) => void
 }
@@ -101,9 +106,16 @@ export function WizardStep3Partners({
     >
       <div>
         <div className="mb-2 text-sm font-semibold text-ink">Host university</div>
-        <div className="rounded-md border border-border bg-bg-soft px-3 py-2 text-sm text-ink">
-          {hostUniversity.name}{' '}
-          <span className="text-muted">({hostUniversity.country})</span>
+        <div className="flex items-center justify-between gap-3 rounded-md border border-border bg-bg-soft px-3 py-2 text-sm text-ink">
+          <span className="font-medium">
+            {hostUniversity.name}
+            {hostUniversity.erasmus_code && (
+              <span className="ml-2 text-xs text-muted">
+                {hostUniversity.erasmus_code}
+              </span>
+            )}
+          </span>
+          <span className="shrink-0 text-muted">{hostUniversity.country}</span>
         </div>
         <p className="mt-1 text-xs text-muted">
           Locked to your profile&apos;s university. Update it on{' '}

@@ -55,7 +55,12 @@ interface Props {
   /** Edit mode: pre-populated from DB by Plan 02-07's edit page. New mode: undefined. */
   initialBip?: { id: string; data: BipDraftData; updatedAt: string }
   /** Coordinator's profile-locked host university (Plan 02-04 guarantees non-null). */
-  hostUniversity: { id: string; name: string; country: string }
+  hostUniversity: {
+    id: string
+    name: string
+    country: string
+    erasmus_code?: string | null
+  }
   /** Pre-fetched university list seeded into Step 3's combobox. */
   initialUniversities: UniversitySearchResult[]
   /**

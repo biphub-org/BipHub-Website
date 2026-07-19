@@ -41,7 +41,7 @@ export default function PrivacyPage() {
         <h1 className="text-[clamp(32px,4vw,44px)] font-bold tracking-tight text-ink">
           Privacy policy
         </h1>
-        <p className="mt-3 text-sm text-muted">Last updated: 2026-06-15</p>
+        <p className="mt-3 text-sm text-muted">Last updated: 15th June 2026</p>
       </header>
 
       {/* Section 1 — Data Controller */}

@@ -6,7 +6,8 @@
  *   - max_participants ceiling is 100 (floor loosened to 1).
  *   - study_levels accepts 'vocational' (EQF 5).
  *   - Step 1 requires external_bip_id (Official Erasmus+ BIP code) + target_group.
- *   - virtual_session_date / fees are optional.
+ *   - virtual_session_dates requires a first date; extra dates are optional.
+ *   - fees are optional.
  */
 import { describe, it, expect } from 'vitest'
 import { step1Schema, step2Schema, fullBipSchema } from '@/lib/schemas/bip-wizard'
@@ -34,6 +35,7 @@ const validStep1Base = {
 const validStep2Base = {
   virtual_component_description: 'A collaborative online component covering key theory.',
   virtual_timing: 'before' as const,
+  virtual_session_dates: ['2026-08-15'],
   host_city: 'Budapest',
   physical_start_date: '2026-09-01',
   physical_end_date: '2026-09-10',
@@ -50,6 +52,7 @@ const validFullBase = {
   ...validStep1Base,
   virtual_component_description: 'A collaborative online component covering key theory.',
   virtual_timing: 'before' as const,
+  virtual_session_dates: ['2026-08-15'],
   host_city: 'Budapest',
   physical_start_date: '2026-09-01',
   physical_end_date: '2026-09-10',
@@ -61,6 +64,7 @@ const validFullBase = {
   language_level_min: 'B1' as const,
   how_to_apply_type: 'url' as const,
   how_to_apply_url: 'https://example.edu/apply',
+  fees: 'No participation fees; students cover travel and accommodation.',
 }
 
 describe('step1Schema — BIP ID + target group', () => {
@@ -113,16 +117,54 @@ describe('step2Schema — study levels (item 10)', () => {
     const result = step2Schema.safeParse({ ...validStep2Base, study_levels: ['vocational'] })
     expect(result.success).toBe(true)
   })
-})
 
-describe('step2Schema — virtual_session_date is optional', () => {
-  it('accepts an omitted virtual_session_date', () => {
-    expect(step2Schema.safeParse(validStep2Base).success).toBe(true)
+  it("accepts 'none' (staff mobility, no study level)", () => {
+    const result = step2Schema.safeParse({ ...validStep2Base, study_levels: ['none'] })
+    expect(result.success).toBe(true)
   })
 
-  it('accepts a valid virtual_session_date', () => {
-    const result = step2Schema.safeParse({ ...validStep2Base, virtual_session_date: '2026-08-15' })
+  it('rejects an unknown study level', () => {
+    const result = step2Schema.safeParse({ ...validStep2Base, study_levels: ['postdoc'] })
+    expect(result.success).toBe(false)
+  })
+})
+
+describe('step2Schema — virtual_session_dates (required first, rest optional)', () => {
+  it('requires at least one date', () => {
+    const result = step2Schema.safeParse({ ...validStep2Base, virtual_session_dates: [] })
+    expect(result.success).toBe(false)
+  })
+
+  it('treats an all-blank list as missing', () => {
+    const result = step2Schema.safeParse({ ...validStep2Base, virtual_session_dates: ['', ''] })
+    expect(result.success).toBe(false)
+  })
+
+  it('accepts a single date', () => {
+    const result = step2Schema.safeParse({
+      ...validStep2Base,
+      virtual_session_dates: ['2026-08-15'],
+    })
     expect(result.success).toBe(true)
+  })
+
+  it('accepts multiple dates and drops blank placeholders', () => {
+    const result = step2Schema.safeParse({
+      ...validStep2Base,
+      virtual_session_dates: ['2026-08-15', '', '2026-09-02'],
+    })
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.virtual_session_dates).toEqual(['2026-08-15', '2026-09-02'])
+    }
+  })
+
+  it('rejects a malformed date', () => {
+    const result = step2Schema.safeParse({
+      ...validStep2Base,
+      virtual_session_dates: ['15/08/2026'],
+    })
+    expect(result.success).toBe(false)
   })
 })
 
@@ -163,6 +205,37 @@ describe('fullBipSchema — new fields', () => {
       fees: 'No participation fee; travel covered by the sending institution.',
       accommodation_notes: 'Dormitory housing arranged by the host university.',
       partner_institutions_only: true,
+    })
+    expect(result.success).toBe(true)
+  })
+})
+
+describe('fullBipSchema — fees now required', () => {
+  it('rejects a missing fees field', () => {
+    const { fees: _drop, ...noFees } = validFullBase
+    void _drop
+    expect(fullBipSchema.safeParse(noFees).success).toBe(false)
+  })
+
+  it('rejects an empty/whitespace fees value', () => {
+    expect(fullBipSchema.safeParse({ ...validFullBase, fees: '' }).success).toBe(false)
+    expect(fullBipSchema.safeParse({ ...validFullBase, fees: '   ' }).success).toBe(false)
+  })
+
+  it('accepts a "No fees" value', () => {
+    expect(fullBipSchema.safeParse({ ...validFullBase, fees: 'No fees' }).success).toBe(true)
+  })
+})
+
+describe('fullBipSchema — contact_phone is optional', () => {
+  it('accepts an omitted contact_phone', () => {
+    expect(fullBipSchema.safeParse(validFullBase).success).toBe(true)
+  })
+
+  it('accepts a provided contact_phone', () => {
+    const result = fullBipSchema.safeParse({
+      ...validFullBase,
+      contact_phone: '+32 16 32 40 10',
     })
     expect(result.success).toBe(true)
   })

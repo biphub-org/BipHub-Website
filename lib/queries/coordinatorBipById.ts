@@ -38,7 +38,12 @@ export type CoordinatorBipForEdit = {
   id: string
   data: BipDraftData
   updatedAt: string
-  hostUniversity: { id: string; name: string; country: string } | null
+  hostUniversity: {
+    id: string
+    name: string
+    country: string
+    erasmus_code: string | null
+  } | null
   status: 'draft' | 'pending' | 'approved' | 'rejected' | 'changes_requested'
   /** The open bip_edits row, if any (Phase 8). */
   openEdit?: {
@@ -62,14 +67,14 @@ export async function getCoordinatorBipById(
     .select(`
       id, slug, status, updated_at,
       title, external_bip_id, target_group, subject_areas, description, learning_outcomes,
-      virtual_component_description, virtual_timing, virtual_session_date, host_city,
+      virtual_component_description, virtual_timing, virtual_session_dates, host_city,
       physical_start_date, physical_end_date, application_deadline,
       ects_credits, max_participants, study_levels,
       language_of_instruction, language_level_min,
       fees, eligibility_notes,
-      how_to_apply_type, how_to_apply_value, contact_name, contact_email,
-      accommodation_notes, partner_institutions_only,
-      host_university:host_university_id ( id, name, country ),
+      how_to_apply_type, how_to_apply_value, contact_name, contact_email, contact_phone,
+      accommodation_notes, partner_institutions_only, card_image_path,
+      host_university:host_university_id ( id, name, country, erasmus_code ),
       partners:bip_partner_universities (
         id, university_id, partner_name_raw, partner_country_raw, partner_erasmus_code_raw,
         university:university_id ( id, name, country, erasmus_code )
@@ -91,7 +96,12 @@ export async function getCoordinatorBipById(
 
   // PostgREST may return embedded relations either as a single object or a
   // single-element array depending on the FK shape — normalize both shapes.
-  type EmbeddedUni = { id: string; name: string; country: string } | null
+  type EmbeddedUni = {
+    id: string
+    name: string
+    country: string
+    erasmus_code: string | null
+  } | null
   const hostUniversity: EmbeddedUni = Array.isArray(data.host_university)
     ? (data.host_university[0] ?? null)
     : ((data.host_university as EmbeddedUni) ?? null)
@@ -121,7 +131,7 @@ export async function getCoordinatorBipById(
       data.virtual_component_description ?? undefined,
     virtual_timing:
       (data.virtual_timing as BipDraftData['virtual_timing']) ?? undefined,
-    virtual_session_date: data.virtual_session_date ?? undefined,
+    virtual_session_dates: data.virtual_session_dates ?? undefined,
     host_city: data.host_city ?? undefined,
     physical_start_date: data.physical_start_date ?? undefined,
     physical_end_date: data.physical_end_date ?? undefined,
@@ -145,7 +155,9 @@ export async function getCoordinatorBipById(
     contact_email: !isUrl
       ? (data.contact_email ?? undefined)
       : undefined,
+    contact_phone: !isUrl ? (data.contact_phone ?? undefined) : undefined,
     accommodation_notes: data.accommodation_notes ?? undefined,
+    card_image_path: data.card_image_path ?? undefined,
     partner_institutions_only: data.partner_institutions_only ?? false,
     partner_universities: partnerRows.map((p) => {
       const uniRel = Array.isArray(p.university)

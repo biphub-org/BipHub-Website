@@ -37,8 +37,8 @@ function buildContentPayload(data: {
   description: string
   learning_outcomes: string
   virtual_component_description: string
-  virtual_timing: string
-  virtual_session_date?: string
+  virtual_timing?: string
+  virtual_session_dates?: string[]
   host_city: string
   physical_start_date: string
   physical_end_date: string
@@ -54,7 +54,9 @@ function buildContentPayload(data: {
   how_to_apply_url?: string
   contact_name?: string
   contact_email?: string
+  contact_phone?: string
   accommodation_notes?: string
+  card_image_path?: string
   partner_institutions_only?: boolean
 }) {
   return {
@@ -70,8 +72,11 @@ function buildContentPayload(data: {
     description: data.description,
     learning_outcomes: data.learning_outcomes,
     virtual_component_description: data.virtual_component_description,
-    virtual_timing: data.virtual_timing,
-    virtual_session_date: data.virtual_session_date || null,
+    virtual_timing: data.virtual_timing ?? null,
+    virtual_session_dates:
+      data.virtual_session_dates && data.virtual_session_dates.length > 0
+        ? data.virtual_session_dates
+        : null,
     host_city: data.host_city,
     physical_start_date: data.physical_start_date,
     physical_end_date: data.physical_end_date,
@@ -90,7 +95,9 @@ function buildContentPayload(data: {
         : (data.contact_email ?? null),
     contact_name: data.contact_name || null,
     contact_email: data.contact_email || null,
+    contact_phone: data.contact_phone || null,
     accommodation_notes: data.accommodation_notes || null,
+    card_image_path: data.card_image_path || null,
     partner_institutions_only: data.partner_institutions_only ?? false,
     // NOTE: slug intentionally omitted (D-10 / EDIT-09)
   }
