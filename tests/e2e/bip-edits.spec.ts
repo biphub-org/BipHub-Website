@@ -107,7 +107,16 @@ async function assertAuditRow(
  * Select a date in the custom <DatePicker> (a button that opens a
  * react-day-picker calendar in a Base UI popover — it replaced the old
  * <input type="date">). Drives the month/year <select> dropdowns, then clicks
- * the day cell, which carries data-day="M/D/YYYY" (en-US default locale).
+ * the day cell.
+ *
+ * Hardened against the same two flakes as submission.spec.ts's copy:
+ *   1. Locale — the cell's data-day is rendered client-side as
+ *      `day.date.toLocaleDateString(undefined)` (components/ui/calendar.tsx),
+ *      i.e. the BROWSER's locale, not a fixed M/D/YYYY. Compute the expected
+ *      string the same way in-page. (playwright.config also pins locale/TZ.)
+ *   2. Render race — each <select> change re-renders the calendar and a change
+ *      event can be dropped under React batching, leaving the wrong month shown.
+ *      Wrap open→select→click in expect.toPass so it self-heals.
  */
 async function pickDate(
   page: Page,
@@ -115,11 +124,23 @@ async function pickDate(
   iso: string,
 ): Promise<void> {
   const [year, month, day] = iso.split('-').map(Number)
-  await page.getByRole('button', { name: triggerName }).click()
+  const trigger = page.getByRole('button', { name: triggerName })
   const popover = page.locator('[data-slot="popover-content"]')
-  await popover.locator('select').nth(0).selectOption(String(month - 1))
-  await popover.locator('select').nth(1).selectOption(String(year))
-  await popover.locator(`[data-day="${month}/${day}/${year}"]`).click()
+  const expectedDataDay = await page.evaluate(
+    ({ y, m, d }) => new Date(y, m - 1, d).toLocaleDateString(),
+    { y: year, m: month, d: day },
+  )
+
+  await expect(async () => {
+    if (!(await popover.isVisible())) await trigger.click()
+    await expect(popover).toBeVisible()
+    await popover.locator('select').nth(0).selectOption(String(month - 1))
+    await popover.locator('select').nth(1).selectOption(String(year))
+    const dayCell = popover.locator(`[data-day="${expectedDataDay}"]`)
+    await expect(dayCell).toBeVisible({ timeout: 2_000 })
+    await dayCell.click()
+    await expect(popover).toBeHidden({ timeout: 2_000 })
+  }).toPass({ timeout: 15_000 })
 }
 
 async function driveEditWizardToStep5(
@@ -220,11 +241,10 @@ test.describe('bip edit flow', () => {
         // Submit edit
         await coordPage.getByRole('button', { name: /submit edit for review/i }).click()
 
-        // Assert success toast (State A → State B transition)
+        // Assert success toast (State A → State B transition). Match a short
+        // stable substring, not the full sentence (copy edits shouldn't break it).
         await expect(
-          coordPage.getByText(
-            "Edit submitted for review. The public page stays live while it's being reviewed.",
-          ),
+          coordPage.getByText(/edit submitted for review/i),
         ).toBeVisible({ timeout: 10_000 })
 
         // State B: disabled "Edit in review" button appears
@@ -548,7 +568,9 @@ test.describe('bip edit flow', () => {
     // The required-note field: short note keeps confirm disabled
     const reasonField = page.getByLabel(/reason/i)
     await reasonField.fill('short')
-    const rejectConfirm = page.getByRole('button', { name: /^reject edit$/i }).last()
+    const rejectConfirm = page
+      .getByRole('dialog')
+      .getByRole('button', { name: /^reject edit$/i })
     await expect(rejectConfirm).toBeDisabled()
 
     // ≥ 10 chars enables the confirm
@@ -613,7 +635,9 @@ test.describe('bip edit flow', () => {
       )
 
       // Confirm
-      const requestConfirm = page.getByRole('button', { name: /^request changes$/i }).last()
+      const requestConfirm = page
+        .getByRole('dialog')
+        .getByRole('button', { name: /^request changes$/i })
       await expect(requestConfirm).toBeEnabled()
       await requestConfirm.click()
 
@@ -699,7 +723,9 @@ test.describe('bip edit flow', () => {
       )
 
       // Confirm
-      const requestConfirm = page.getByRole('button', { name: /^request changes$/i }).last()
+      const requestConfirm = page
+        .getByRole('dialog')
+        .getByRole('button', { name: /^request changes$/i })
       await expect(requestConfirm).toBeEnabled()
       await requestConfirm.click()
 

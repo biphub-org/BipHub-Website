@@ -59,6 +59,15 @@ export default defineConfig({
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'off',
+    // Pin locale + timezone so any client-rendered date/number/currency string
+    // (react-day-picker's data-day, the map's "Germany: N BIPs" count label,
+    // formatLongDate output, etc.) is DETERMINISTIC. Without this the browser
+    // falls back to the CI runner's system locale/TZ, which silently changes
+    // those formats and breaks selectors that match them. en-US + UTC matches
+    // what the runner was implicitly providing (and what addDays' toISOString
+    // assumes), so this locks in current behaviour rather than changing it.
+    locale: 'en-US',
+    timezoneId: 'UTC',
   },
 
   projects: [

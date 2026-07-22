@@ -210,10 +210,10 @@ test.describe('auth flow', () => {
     await expect(page.getByRole('dialog')).toBeVisible()
     await expect(page.getByText(/this action is irreversible/i)).toBeVisible()
 
-    // Confirm button (inside dialog) is the LAST one matching /^Delete account$/.
+    // Confirm button, scoped to the dialog (not "last match in DOM order").
     const confirm = page
+      .getByRole('dialog')
       .getByRole('button', { name: /^delete account$/i })
-      .last()
     await expect(confirm).toBeDisabled()
 
     // Typed-email confirmation: wrong → disabled; correct → enabled.

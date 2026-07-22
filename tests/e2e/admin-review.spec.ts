@@ -45,10 +45,10 @@ test.describe('admin review', () => {
     await page
       .getByLabel(/note/i)
       .fill('Approved — strong KA131 fit. Welcome aboard.')
-    // The dialog confirm is the LAST element matching /approve bip/i.
+    // Confirm inside the modal (scoped to the dialog, not "last match in DOM").
     await page
+      .getByRole('dialog')
       .getByRole('button', { name: /^approve bip$/i })
-      .last()
       .click()
 
     // approveBipAction redirects to next pending or /admin.
@@ -91,10 +91,10 @@ test.describe('admin review', () => {
     // Min-10-char gate: short reason keeps confirm disabled.
     const reasonField = page.getByLabel(/reason/i)
     await reasonField.fill('short')
-    // The confirm button (last match) reflects the form-valid state.
+    // The confirm button (scoped to the dialog) reflects the form-valid state.
     const rejectConfirm = page
+      .getByRole('dialog')
       .getByRole('button', { name: /^reject bip$/i })
-      .last()
     await expect(rejectConfirm).toBeDisabled()
 
     // ≥ 10 chars enables the button.

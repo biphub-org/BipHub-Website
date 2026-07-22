@@ -503,17 +503,19 @@ test.describe('saved bips', () => {
     await expect(deleteBtn).toBeVisible({ timeout: 10_000 })
     await deleteBtn.click()
 
-    // The dialog should now be open — look for the confirmation input (email textbox)
-    const emailInput = page.getByRole('textbox')
+    // The dialog should now be open — look for the confirmation input (email
+    // textbox), scoped to the dialog so a stray page textbox can't match.
+    const dialog = page.getByRole('dialog')
+    const emailInput = dialog.getByRole('textbox')
     await expect(emailInput).toBeVisible({ timeout: 5_000 })
 
     // Type the throwaway email to confirm deletion
     await emailInput.fill(throwawayEmail)
 
-    // Click the destructive confirm button — the submit button inside the dialog form.
-    // There are now 3 buttons visible (trigger still in DOM, Cancel, Delete account submit).
-    // The submit is the LAST "Delete account" button (inside the form, not the trigger).
-    const confirmBtn = page.getByRole('button', { name: /^delete account$/i }).last()
+    // Click the destructive confirm button — the submit inside the dialog form.
+    // Scope to the dialog so the still-mounted trigger button can't be matched
+    // (was ".last()", which relied on DOM order of two same-named buttons).
+    const confirmBtn = dialog.getByRole('button', { name: /^delete account$/i })
     await expect(confirmBtn).toBeVisible({ timeout: 5_000 })
     await expect(confirmBtn).toBeEnabled({ timeout: 5_000 })
     await confirmBtn.click()

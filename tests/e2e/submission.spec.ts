@@ -294,11 +294,11 @@ test.describe('submission wizard', () => {
       hasText: /E2E Withdraw Target/i,
     })
     await withdrawCard.getByRole('button', { name: /withdraw/i }).click()
-    // Dialog opens with a confirm button.
-    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5_000 })
-    await page
+    // Dialog opens with a confirm button — scope to it (not "last match").
+    const withdrawDialog = page.getByRole('dialog')
+    await expect(withdrawDialog).toBeVisible({ timeout: 5_000 })
+    await withdrawDialog
       .getByRole('button', { name: /withdraw|confirm|yes/i })
-      .last()
       .click()
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 10_000 })
   })
