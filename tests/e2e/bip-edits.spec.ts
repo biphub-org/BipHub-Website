@@ -403,17 +403,17 @@ test.describe('bip edit flow', () => {
         await expect(coordPage.getByText(/step\s*3\s*of\s*5/i)).toBeVisible({
           timeout: 10_000,
         })
-        const partnerOnlyCheckbox = coordPage.getByRole('checkbox', {
-          name: /open only to partner-institution participants/i,
-        })
+        // Targeted by data-testid (not visible copy) — its accessible name is
+        // a full sentence that copy edits keep breaking.
+        const partnerOnlyCheckbox = coordPage.getByTestId(
+          'partner-institutions-only',
+        )
         // Seed value is true — assert the prefilled state, then uncheck it.
         await expect(partnerOnlyCheckbox).toBeChecked()
         try {
           await partnerOnlyCheckbox.uncheck()
         } catch {
-          await coordPage
-            .getByText(/open only to partner-institution participants/i)
-            .click()
+          await partnerOnlyCheckbox.click()
         }
         await expect(partnerOnlyCheckbox).not.toBeChecked()
         await coordPage.getByRole('button', { name: /save.*continue/i }).click()

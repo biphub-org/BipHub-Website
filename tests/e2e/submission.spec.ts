@@ -195,15 +195,13 @@ test.describe('submission wizard', () => {
       await page.keyboard.press('Escape')
     }
     // partner_institutions_only: tick the create-path checkbox (SUBM-11).
-    const partnerOnlyCheckbox = page.getByRole('checkbox', {
-      name: /open only to partner-institution participants/i,
-    })
+    // Targeted by data-testid (not visible copy) — its accessible name is a
+    // full sentence that copy edits keep breaking.
+    const partnerOnlyCheckbox = page.getByTestId('partner-institutions-only')
     try {
       await partnerOnlyCheckbox.check()
     } catch {
-      await page
-        .getByText(/open only to partner-institution participants/i)
-        .click()
+      await partnerOnlyCheckbox.click()
     }
     await advance(page, 3)
 

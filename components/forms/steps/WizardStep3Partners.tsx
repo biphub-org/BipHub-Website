@@ -179,6 +179,10 @@ export function WizardStep3Partners({
 
       <label className="flex items-start gap-3 rounded-md border border-border bg-white px-4 py-3 text-sm text-ink">
         <Checkbox
+          // Stable e2e hook: this checkbox's only accessible name is the
+          // descriptive sentence beside it, so text-based selectors break on
+          // any copy tweak (see .planning/KNOWN-BUGS.md participants rename).
+          data-testid="partner-institutions-only"
           checked={partnerOnly}
           onCheckedChange={(next) => {
             const boolNext = Boolean(next)
