@@ -404,7 +404,7 @@ test.describe('bip edit flow', () => {
           timeout: 10_000,
         })
         const partnerOnlyCheckbox = coordPage.getByRole('checkbox', {
-          name: /open only to partner-institution students/i,
+          name: /open only to partner-institution participants/i,
         })
         // Seed value is true — assert the prefilled state, then uncheck it.
         await expect(partnerOnlyCheckbox).toBeChecked()
@@ -412,7 +412,7 @@ test.describe('bip edit flow', () => {
           await partnerOnlyCheckbox.uncheck()
         } catch {
           await coordPage
-            .getByText(/open only to partner-institution students/i)
+            .getByText(/open only to partner-institution participants/i)
             .click()
         }
         await expect(partnerOnlyCheckbox).not.toBeChecked()

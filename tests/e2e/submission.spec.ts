@@ -196,13 +196,13 @@ test.describe('submission wizard', () => {
     }
     // partner_institutions_only: tick the create-path checkbox (SUBM-11).
     const partnerOnlyCheckbox = page.getByRole('checkbox', {
-      name: /open only to partner-institution students/i,
+      name: /open only to partner-institution participants/i,
     })
     try {
       await partnerOnlyCheckbox.check()
     } catch {
       await page
-        .getByText(/open only to partner-institution students/i)
+        .getByText(/open only to partner-institution participants/i)
         .click()
     }
     await advance(page, 3)
