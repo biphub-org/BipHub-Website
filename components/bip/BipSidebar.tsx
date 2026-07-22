@@ -87,6 +87,13 @@ export function BipSidebar({
               <dt className="text-muted">ECTS</dt>
               <dd className="text-ink font-semibold">{bip.ects_credits ?? '–'}</dd>
             </div>
+            {/* DETL-15 participant capacity */}
+            {bip.max_participants != null && (
+              <div className="flex justify-between gap-4">
+                <dt className="text-muted">Participants</dt>
+                <dd className="text-ink font-semibold">Up to {bip.max_participants}</dd>
+              </div>
+            )}
             <div className="flex justify-between gap-4">
               <dt className="text-muted">Dates</dt>
               <dd className="text-ink text-right">{datesLine}</dd>

@@ -74,13 +74,13 @@ export function WizardStep4ApplicationInfo({ onContinue, onAutoSave }: Props) {
         onSubmit={form.handleSubmit(onContinue)}
         className="space-y-5"
       >
-        {/* How students/staff apply — first section (item 15). */}
+        {/* How participants apply — first section (item 15). */}
         <FormField
           name="how_to_apply_type"
           control={form.control}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>How do students/staff apply?</FormLabel>
+              <FormLabel>How do participants apply?</FormLabel>
               <FormControl>
                 <div className="flex gap-4 text-sm text-ink">
                   <label className="flex items-center gap-2">
@@ -189,7 +189,7 @@ export function WizardStep4ApplicationInfo({ onContinue, onAutoSave }: Props) {
           )}
         </LazyMotion>
 
-        {/* Fees — placed right below "How do students/staff apply" (item 17). */}
+        {/* Fees — placed right below "How do participants apply" (item 17). */}
         <FormField
           name="fees"
           control={form.control}

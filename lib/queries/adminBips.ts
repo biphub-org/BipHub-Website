@@ -290,7 +290,7 @@ export async function getAdminBipForEdit(
       physical_start_date, physical_end_date, application_deadline,
       ects_credits, max_participants, study_levels,
       language_of_instruction, language_level_min,
-      fees, eligibility_notes,
+      fees, eligibility_notes, accommodation_notes, partner_institutions_only,
       how_to_apply_type, how_to_apply_value, contact_name, contact_email, contact_phone,
       card_image_path,
       host_university:host_university_id ( id, name, country, erasmus_code ),
@@ -377,6 +377,8 @@ export async function getAdminBipForEdit(
     contact_email: !isUrl ? (data.contact_email ?? undefined) : undefined,
     contact_phone: !isUrl ? (data.contact_phone ?? undefined) : undefined,
     card_image_path: data.card_image_path ?? undefined,
+    accommodation_notes: data.accommodation_notes ?? undefined,
+    partner_institutions_only: data.partner_institutions_only ?? undefined,
     partner_universities: partnerRows.map((p) => {
       const uniRel = Array.isArray(p.university)
         ? (p.university[0] ?? null)

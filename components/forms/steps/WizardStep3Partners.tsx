@@ -187,10 +187,10 @@ export function WizardStep3Partners({
           }}
         />
         <span>
-          <span className="font-medium">Open only to partner-institution students</span>
+          <span className="font-medium">Open only to partner-institution participants</span>
           <span className="mt-1 block text-xs text-muted">
-            Restrict this BIP to students from the host and partner universities listed above,
-            rather than any Erasmus-eligible student.
+            Restrict this BIP to participants from the host and partner universities listed above,
+            rather than any Erasmus-eligible participant.
           </span>
         </span>
       </label>

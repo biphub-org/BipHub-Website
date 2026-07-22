@@ -66,6 +66,7 @@ export function draftToBipDetail(
     physical_end_date: draft.physical_end_date ?? null,
     host_city: draft.host_city ?? null,
     ects_credits: draft.ects_credits ?? null,
+    max_participants: draft.max_participants ?? null,
     language_of_instruction: draft.language_of_instruction ?? null,
     language_level_min: draft.language_level_min ?? null,
     study_levels: draft.study_levels ?? [],

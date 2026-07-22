@@ -29,6 +29,7 @@ export type BipDetail = {
   physical_end_date: string | null
   host_city: string | null
   ects_credits: number | null
+  max_participants: number | null
   language_of_instruction: string | null
   language_level_min: string | null
   study_levels: string[]
@@ -94,7 +95,7 @@ export async function getBipBySlug(slug: string): Promise<BipDetail | null> {
       virtual_component_description, virtual_timing, virtual_session_dates,
       virtual_sessions_count, virtual_duration_notes,
       physical_start_date, physical_end_date, host_city,
-      ects_credits, language_of_instruction, language_level_min,
+      ects_credits, max_participants, language_of_instruction, language_level_min,
       study_levels, fees, eligibility_notes,
       how_to_apply_type, how_to_apply_value,
       contact_name, contact_email, contact_phone, application_deadline,
@@ -148,7 +149,7 @@ export async function getBipById(id: string): Promise<BipDetail | null> {
       virtual_component_description, virtual_timing, virtual_session_dates,
       virtual_sessions_count, virtual_duration_notes,
       physical_start_date, physical_end_date, host_city,
-      ects_credits, language_of_instruction, language_level_min,
+      ects_credits, max_participants, language_of_instruction, language_level_min,
       study_levels, fees, eligibility_notes,
       how_to_apply_type, how_to_apply_value,
       contact_name, contact_email, contact_phone, application_deadline,

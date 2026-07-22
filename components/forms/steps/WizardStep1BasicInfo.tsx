@@ -189,7 +189,7 @@ export function WizardStep1BasicInfo({ onContinue, onAutoSave }: Props) {
               <FormControl>
                 <Textarea
                   rows={4}
-                  placeholder="Describe the BIP: what students/staff will study, the academic context, and what makes this programme unique."
+                  placeholder="Describe the BIP: what participants will study, the academic context, and what makes this programme unique."
                   {...field}
                 />
               </FormControl>
@@ -208,7 +208,7 @@ export function WizardStep1BasicInfo({ onContinue, onAutoSave }: Props) {
                 <Textarea rows={3} {...field} />
               </FormControl>
               <FormDescription>
-                What will students/staff be able to do or know after completing this BIP?
+                What will participants be able to do or know after completing this BIP?
               </FormDescription>
               <FormMessage />
             </FormItem>

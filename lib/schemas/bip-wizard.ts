@@ -92,12 +92,12 @@ export const step2Schema = z
     ects_credits: z.coerce
       .number()
       .int()
-      .min(1, 'ECTS credits must be at least 1.')
+      .min(0, 'ECTS credits cannot be negative.')
       .max(30, 'ECTS credits must be at most 30.'),
     max_participants: z.coerce
       .number()
       .int()
-      .min(1, 'There must be at least 1 participant.')
+      .min(10, 'There must be at least 10 participants (Erasmus+ minimum).')
       .max(100, 'The maximum is 100 participants.'),
     study_levels: z
       .array(z.enum(STUDY_LEVELS))
@@ -199,8 +199,8 @@ export const fullBipSchema = z
     physical_start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     physical_end_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     application_deadline: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-    ects_credits: z.coerce.number().int().min(1).max(30),
-    max_participants: z.coerce.number().int().min(1).max(100),
+    ects_credits: z.coerce.number().int().min(0).max(30),
+    max_participants: z.coerce.number().int().min(10).max(100),
     study_levels: z.array(z.enum(STUDY_LEVELS)).min(1),
     language_of_instruction: z.string().min(2).max(10),
     language_level_min: z.enum(LANGUAGE_LEVELS),

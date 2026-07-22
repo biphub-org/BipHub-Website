@@ -66,7 +66,21 @@ export function BipBody({ bip }: { bip: BipDetail }) {
   const virtualSessionDates = formatLongDates(bip.virtual_session_dates)
 
   return (
-    <div className="divide-y divide-border break-words">
+    <div className="break-words">
+      {/* DETL-12 — partner-institutions-only flag (matches the /bips card badge) */}
+      {bip.partner_institutions_only && (
+        <div className="mb-8 rounded-md border border-status-pending bg-status-pending-bg px-4 py-3">
+          <p className="text-sm font-semibold text-status-pending">
+            Open to partner institutions only
+          </p>
+          <p className="mt-1 text-sm leading-relaxed text-ink-2">
+            This programme accepts applicants from the host and its listed partner universities
+            only — not the wider Erasmus+ network. Check with your home coordinator before applying.
+          </p>
+        </div>
+      )}
+
+      <div className="divide-y divide-border">
 
       {/* 1. About this programme */}
       {bip.description && (
@@ -191,6 +205,15 @@ export function BipBody({ bip }: { bip: BipDetail }) {
         </Section>
       )}
 
+      {/* Accommodation (DETL-13) — only when the coordinator provided notes */}
+      {bip.accommodation_notes && (
+        <Section title="Accommodation">
+          <p className="text-base text-ink-2 leading-relaxed whitespace-pre-line">
+            {bip.accommodation_notes}
+          </p>
+        </Section>
+      )}
+
       {/* Materials — uploaded visuals/documents (item #18) */}
       {attachments.length > 0 && (
         <Section title="Materials">
@@ -253,6 +276,28 @@ export function BipBody({ bip }: { bip: BipDetail }) {
         </Section>
       )}
 
+      {/* Funding & support (DETL-14) — sending-institution framing */}
+      {(bip.green_travel || bip.inclusion_support) && (
+        <Section title="Funding & support">
+          <ul className="space-y-2 text-base text-ink-2 leading-relaxed">
+            {bip.green_travel && (
+              <li>
+                <span className="font-semibold text-ink">Green travel.</span> Students choosing
+                low-emission transport may claim an additional Erasmus+ green-travel top-up from
+                their sending institution.
+              </li>
+            )}
+            {bip.inclusion_support && (
+              <li>
+                <span className="font-semibold text-ink">Inclusion support.</span> Participants with
+                fewer opportunities may qualify for extra inclusion funding, arranged through their
+                sending institution.
+              </li>
+            )}
+          </ul>
+        </Section>
+      )}
+
       {/* 7. How to apply (DETL-07) */}
       <Section title="How to apply">
         {bip.how_to_apply_type === 'url' && bip.how_to_apply_value ? (
@@ -297,6 +342,7 @@ export function BipBody({ bip }: { bip: BipDetail }) {
         )}
       </Section>
 
+      </div>
     </div>
   )
 }
