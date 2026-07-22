@@ -12,8 +12,8 @@
  *
  * Dates are computed relative to Date.now() so the spec does not drift past
  * application_deadline / physical_start validation thresholds as time passes.
- * Step 2 uses <Input type="date"> — Pattern B from the plan; we `.fill('YYYY-MM-DD')`
- * directly rather than driving a calendar popover.
+ * Step 2 dates use the custom <DatePicker> (calendar popover) — driven via the
+ * `pickDate` helper below, which is locale- and render-race-hardened.
  */
 import { test, expect, type Page } from '@playwright/test'
 
@@ -28,7 +28,20 @@ function addDays(days: number): string {
  * Select a date in the custom <DatePicker> (a button that opens a
  * react-day-picker calendar in a Base UI popover — it replaced the old
  * <input type="date">). Drives the month/year <select> dropdowns, then clicks
- * the day cell, which carries data-day="M/D/YYYY" (en-US default locale).
+ * the day cell.
+ *
+ * Two things make the naive "select month, select year, click data-day" flaky,
+ * so this helper is hardened against both:
+ *   1. Locale — the cell's data-day is rendered client-side as
+ *      `day.date.toLocaleDateString(undefined)` (components/ui/calendar.tsx),
+ *      i.e. the BROWSER's default locale, NOT a fixed M/D/YYYY. We compute the
+ *      expected string the exact same way in-page so the runner locale can't
+ *      break the match.
+ *   2. Render race — each <select> change makes react-day-picker re-render, and
+ *      a change event can be dropped under React batching, leaving the calendar
+ *      on the wrong month so the target day never appears (30s click timeout).
+ *      Wrapping open→select→click in expect.toPass re-drives the dropdowns until
+ *      the target day is actually shown and the pick registers (popover closes).
  */
 async function pickDate(
   page: Page,
@@ -36,11 +49,25 @@ async function pickDate(
   iso: string,
 ): Promise<void> {
   const [year, month, day] = iso.split('-').map(Number)
-  await page.getByRole('button', { name: triggerName }).click()
+  const trigger = page.getByRole('button', { name: triggerName })
   const popover = page.locator('[data-slot="popover-content"]')
-  await popover.locator('select').nth(0).selectOption(String(month - 1))
-  await popover.locator('select').nth(1).selectOption(String(year))
-  await popover.locator(`[data-day="${month}/${day}/${year}"]`).click()
+  // Match components/ui/calendar.tsx: data-day={day.date.toLocaleDateString(undefined)}.
+  const expectedDataDay = await page.evaluate(
+    ({ y, m, d }) => new Date(y, m - 1, d).toLocaleDateString(),
+    { y: year, m: month, d: day },
+  )
+
+  await expect(async () => {
+    if (!(await popover.isVisible())) await trigger.click()
+    await expect(popover).toBeVisible()
+    await popover.locator('select').nth(0).selectOption(String(month - 1))
+    await popover.locator('select').nth(1).selectOption(String(year))
+    const dayCell = popover.locator(`[data-day="${expectedDataDay}"]`)
+    await expect(dayCell).toBeVisible({ timeout: 2_000 })
+    await dayCell.click()
+    // onSelect closes the popover — confirm the pick actually registered.
+    await expect(popover).toBeHidden({ timeout: 2_000 })
+  }).toPass({ timeout: 15_000 })
 }
 
 const E2E_TITLE = 'E2E Test BIP — Renewable Energy in the Alps'
