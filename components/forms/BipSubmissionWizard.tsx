@@ -33,7 +33,7 @@
  * Animations: only `motion/react` + `LazyMotion` (CLAUDE.md never-do).
  */
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useDebouncedCallback } from 'use-debounce'
 import { toast } from 'sonner'
@@ -121,7 +121,7 @@ const STEPS = [
   {
     id: 1,
     title: 'Basic information',
-    subtitle: 'The core details that help students find and understand your BIP.',
+    subtitle: 'The core details that help participants find and understand your BIP.',
   },
   {
     id: 2,
@@ -136,13 +136,13 @@ const STEPS = [
   {
     id: 4,
     title: 'Application information',
-    subtitle: 'How students apply and any eligibility requirements.',
+    subtitle: 'How participants apply and any eligibility requirements.',
   },
   {
     id: 5,
     title: 'Preview & submit',
     subtitle:
-      'Review how your BIP will appear to students before submitting for review.',
+      'Review how your BIP will appear to participants before submitting for review.',
   },
 ] as const
 
@@ -166,7 +166,6 @@ export function BipSubmissionWizard({
     bipId,
     currentStep,
     draft,
-    lastKnownUpdatedAt,
     hydrated,
     hydrate,
     hydrateFromServer,
@@ -179,6 +178,16 @@ export function BipSubmissionWizard({
   } = useBipDraft()
 
   const [conflictOpen, setConflictOpen] = useState(false)
+
+  // Single-flight lock for optimistic draft saves. Every performSave() chains
+  // onto this promise so two saves never run concurrently against the same
+  // `updated_at`. Without it, a "Save & continue" save overlapping the 1.5s
+  // debounced auto-save sends an identical stale `updated_at`; the loser
+  // matches 0 rows and raises a *false* "Draft updated in another tab" dialog
+  // (single user, single tab — see .planning/KNOWN-BUGS.md).
+  const saveChainRef = useRef<Promise<{ ok: boolean }>>(
+    Promise.resolve({ ok: true }),
+  )
 
   // (a) Hydration:
   //   - admin mode (Plan 03-07): hydrate from server only; NEVER read
@@ -220,48 +229,63 @@ export function BipSubmissionWizard({
   }, [persistToLocalStorage, mode])
 
   // (c) Persist Server Action result back into the store.
+  //
+  // Saves are SERIALIZED through `saveChainRef`: each call waits for the
+  // previous save to settle before issuing its own UPDATE. This is what
+  // prevents the false-conflict dialog — a queued save reads the freshest
+  // `updated_at` (the one the save ahead of it just wrote) via
+  // `useBipDraft.getState()` instead of a stale closure value, so a same-tab
+  // overlap resolves to a redundant no-op write rather than a 0-row "conflict".
   const performSave = useCallback(
-    async (payload: Partial<BipDraftData>) => {
-      setSaveStatus('saving')
-      const result = await saveDraftAction(payload, bipId, lastKnownUpdatedAt)
-      if ('error' in result) {
-        if (result.error === 'conflict') {
+    (payload: Partial<BipDraftData>) => {
+      const run = saveChainRef.current.then(async () => {
+        setSaveStatus('saving')
+        // Read the lock values fresh at execution time (NOT closure-captured):
+        // a save queued behind another must use the id/updated_at that the
+        // prior save persisted, otherwise it re-races on a stale value.
+        const { bipId: currentBipId, lastKnownUpdatedAt: currentUpdatedAt } =
+          useBipDraft.getState()
+        const result = await saveDraftAction(
+          payload,
+          currentBipId,
+          currentUpdatedAt,
+        )
+        if ('error' in result) {
+          if (result.error === 'conflict') {
+            setSaveStatus('failed')
+            setConflictOpen(true)
+            return { ok: false as const }
+          }
+          if (result.error === 'auth') {
+            // Belt-and-suspenders for the onAuthStateChange known issue.
+            persistToLocalStorage()
+            toast.warning(
+              'Your session has expired. Your draft has been saved locally — sign in again to continue.',
+              { duration: 5000 },
+            )
+            setTimeout(() => {
+              window.location.href = '/login'
+            }, 1500)
+            return { ok: false as const }
+          }
           setSaveStatus('failed')
-          setConflictOpen(true)
-          return { ok: false as const }
-        }
-        if (result.error === 'auth') {
-          // Belt-and-suspenders for the onAuthStateChange known issue.
-          persistToLocalStorage()
-          toast.warning(
-            'Your session has expired. Your draft has been saved locally — sign in again to continue.',
+          toast.error(
+            'Failed to save draft. Your changes are preserved — tap Retry to try again.',
             { duration: 5000 },
           )
-          setTimeout(() => {
-            window.location.href = '/login'
-          }, 1500)
           return { ok: false as const }
         }
-        setSaveStatus('failed')
-        toast.error(
-          'Failed to save draft. Your changes are preserved — tap Retry to try again.',
-          { duration: 5000 },
-        )
-        return { ok: false as const }
-      }
-      setBipId(result.bipId)
-      setLastKnownUpdatedAt(result.updatedAt)
-      setSaveStatus('idle')
-      return { ok: true as const }
+        setBipId(result.bipId)
+        setLastKnownUpdatedAt(result.updatedAt)
+        setSaveStatus('idle')
+        return { ok: true as const }
+      })
+      // Keep the chain alive after a rejected/failed link so later saves still
+      // run; swallow here (the .then above already surfaces UI state).
+      saveChainRef.current = run.catch(() => ({ ok: false as const }))
+      return run
     },
-    [
-      bipId,
-      lastKnownUpdatedAt,
-      setBipId,
-      setLastKnownUpdatedAt,
-      setSaveStatus,
-      persistToLocalStorage,
-    ],
+    [setBipId, setLastKnownUpdatedAt, setSaveStatus, persistToLocalStorage],
   )
 
   // (d) 1.5s debounced auto-save on field blur (SUBM-02 / D-02).
@@ -297,6 +321,10 @@ export function BipSubmissionWizard({
       handleStepChange(Math.min(currentStep + 1, 5))
       return
     }
+    // Drop any auto-save the last field-blur scheduled: this explicit save
+    // persists the full merged draft, so a debounced save firing right after
+    // would only re-race the same `updated_at` (false-conflict source).
+    debouncedAutoSave.cancel()
     const result = await performSave({ ...draft, ...stepData })
     if (result.ok) handleStepChange(Math.min(currentStep + 1, 5))
   }
@@ -390,7 +418,14 @@ export function BipSubmissionWizard({
             // "Saved" for content that hasn't been persisted yet (BUG-001).
             <div className="w-[140px]" aria-hidden />
           ) : (
-            <SaveStatusIndicator onRetry={() => void performSave(draft)} />
+            <SaveStatusIndicator
+              onRetry={() => {
+                // Cancel any pending auto-save so the retry is the only
+                // in-flight save — avoids re-racing the same updated_at.
+                debouncedAutoSave.cancel()
+                void performSave(draft)
+              }}
+            />
           )}
         </div>
 

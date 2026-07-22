@@ -78,7 +78,10 @@ export function TwoTabConflictDialog({ open, onReload, onOverwrite }: Props) {
             type="button"
             onClick={onOverwrite}
             variant="ghost"
-            className="w-full text-status-rejected hover:bg-status-rejected/5"
+            // red-700 (#b91c1c ≈ 5.9:1 on white) instead of status-rejected
+            // (#dc2626 ≈ 4.5:1, only just clears AA) so the destructive label
+            // stays comfortably legible now the grey footer band is gone.
+            className="w-full text-red-700 hover:bg-red-50 hover:text-red-800"
           >
             Overwrite with this version
           </Button>
