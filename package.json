@@ -43,6 +43,7 @@
     "react": "19.2.6",
     "react-day-picker": "^10.0.0",
     "react-dom": "19.2.6",
+    "react-easy-crop": "^6.2.2",
     "react-email": "^6.1.1",
     "react-hook-form": "^7.75.0",
     "resend": "^6.12.3",
