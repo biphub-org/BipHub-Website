@@ -104,21 +104,40 @@ function canonCode(raw) {
   return /[A-Z]/.test(c) && /[0-9]/.test(c) ? c : ''
 }
 
-/** Title-case ONLY all-caps names; leave already-mixed-case names untouched so
+/** Title-case an ALL-CAPS string; leave already-mixed-case strings untouched so
  *  the source's nicely-entered (and accented) names survive verbatim. */
-function displayName(legal) {
-  const s = (legal || '').trim()
-  if (!s) return s
-  // Has any lowercase letter → already human-cased; keep as-is.
-  if (/\p{Ll}/u.test(s)) return s
+function titleCaseIfUpper(s) {
+  if (!s || /\p{Ll}/u.test(s)) return s
   const cased = s
     .toLowerCase()
     .replace(/([\p{L}])([\p{L}'’.-]*)/gu, (_m, first, rest) => first.toUpperCase() + rest)
-  // Re-lower the small connector words unless they lead the name.
   return cased
     .split(' ')
     .map((w, i) => (i > 0 && SMALL_WORDS.has(w.toLowerCase()) ? w.toLowerCase() : w))
     .join(' ')
+}
+
+/** Uppercase dotted initialisms (I.e.s. -> I.E.S., C.i.f.p. -> C.I.F.P.). Safe:
+ *  a dotted run is always an initialism, never a pronounceable word. Single
+ *  initials ("M.") and abbreviations without internal dots ("St.") are left. */
+function fixDottedAcronyms(s) {
+  return s.replace(/\b[A-Za-z](?:\.[A-Za-z])+\.?/g, (m) => m.toUpperCase())
+}
+
+/** Full display-name pipeline from a raw ECHE legal name. */
+function displayName(legal) {
+  let s = (legal || '').trim()
+  if (!s) return s
+  s = stripLegalForm(s) // before casing, so "X ALL CAPS GmbH" still title-cases
+  s = cleanupName(s) // lead-quote / separator / quote-strip / legal-form again
+  s = titleCaseIfUpper(s)
+  s = fixDottedAcronyms(s)
+  // A separator/quote split can leave an unclosed "(" or a dangling separator —
+  // drop the unbalanced tail and any trailing punctuation.
+  if ((s.match(/\(/g) || []).length > (s.match(/\)/g) || []).length) {
+    s = s.replace(/\s*\([^)]*$/, '')
+  }
+  return s.replace(/[\s,\-–/|]+$/, '').trim()
 }
 
 /** Tidy a display name that carried the full legal name. In order, for names
@@ -142,7 +161,37 @@ function cleanupName(name) {
       if (sep && sep[1].trim().length >= 8) s = sep[1]
     }
   }
-  return s.replace(/["“”«»]/g, ' ').replace(/\s+/g, ' ').trim()
+  s = s.replace(/["“”«»]/g, ' ').replace(/\s+/g, ' ').trim()
+  return stripLegalForm(s)
+}
+
+// Whole-token corporate/legal-entity forms, removed only from the very END and
+// only after a comma or space. Trailing parenthetical acronyms — (INSAS), (KUG)
+// — are intentionally kept: they aid identification, they aren't legal noise.
+const LEGAL_FORMS = [
+  'g?GmbH', 'GesmbH', 'Ges\\.m\\.b\\.H\\.', 'Gesellschaft m\\.?b\\.?H\\.?', 'mbH',
+  's\\.?\\s?r\\.?\\s?o\\.?', 'spol\\.\\s?s\\s?r\\.?\\s?o\\.?',
+  'o\\.?p\\.?s\\.?', 'z\\.?\\s?[úu]\\.?', 'a\\.?\\s?s\\.?',
+  'S\\.?r\\.?l\\.?', 'Sp\\.?\\s?z\\s?o\\.?o\\.?', 'Sp\\.?k\\.?',
+  'Ltd\\.?', 'Limited', 'Unlimited Company', 'Company Limited by Guarantee',
+  'S\\.?p\\.?A\\.?', 'd\\.?o\\.?o\\.?', 'onlus', 'e\\.?V\\.?',
+  'a\\.?s\\.?b\\.?l\\.?', 'asbl', 'vzw', 'B\\.?V\\.?', 'S?CRL', 'S\\.?\\s?Coop\\.?',
+  'gemeinnützige', 'gemeinnutzige',
+  // Spanish/Italian dotted corporate forms (S.L.U., S.C.C.L., S.A., S.L., …):
+  // requires the dots, so it never matches a word merely starting with S.
+  'S(?:\\.\\s?[A-Za-z]){1,4}\\.?',
+  'Oy', // Finnish "Ltd" — trails the Finnish universities of applied sciences
+]
+const LEGAL_RE = new RegExp('[,\\s]+(?:' + LEGAL_FORMS.join('|') + ')\\s*$', 'i')
+
+function stripLegalForm(name) {
+  let s = name.trim()
+  let prev
+  do {
+    prev = s
+    s = s.replace(LEGAL_RE, '').replace(/[,\s]+$/, '').trim()
+  } while (s !== prev && s.length > 6)
+  return s
 }
 
 function normalizeWebsite(url) {
@@ -183,10 +232,10 @@ async function main() {
     seen.add(code)
     const country = COUNTRY_REMAP[r.countryCodeIso] || r.countryCodeIso || r.country
     rows.push({
-      name: CURATED_NAMES[code] || cleanupName(displayName(r.organisationLegalName)),
+      name: CURATED_NAMES[code] || displayName(r.organisationLegalName),
       legal_name: (r.organisationLegalName || '').trim() || null,
       country,
-      city: displayName(r.city) || null,
+      city: titleCaseIfUpper((r.city || '').trim()) || null,
       erasmus_code: code,
       oid: (r.oid || '').trim() || null,
       website_url: normalizeWebsite(r.webpage),
