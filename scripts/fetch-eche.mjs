@@ -57,6 +57,10 @@ const CURATED_NAMES = {
   'B LEUVEN01': 'KU Leuven',
   'A WIEN02': 'TU Wien',
   'DK LYNGBY01': 'Technical University of Denmark',
+  // Famous universities whose ECHE legal name is unusable as a display name and
+  // that no automated rule can safely shorten (comma-joined legal phrasing).
+  'IRLDUBLIN01': 'Trinity College Dublin',
+  'IRLDUBLIN02': 'University College Dublin',
 }
 
 // Réunion is a French overseas region; the API tags it 'RE' but its Erasmus
@@ -102,13 +106,27 @@ function displayName(legal) {
     .join(' ')
 }
 
-/** Tidy a display name that carried the full legal name: a long name leading
- *  with a quoted trading name collapses to that trade name; otherwise embedded
- *  quote characters become spaces. legal_name keeps the untouched original. */
+/** Tidy a display name that carried the full legal name. In order, for names
+ *  longer than 60 chars only:
+ *    1. a leading quoted trading name  -> that trade name
+ *    2. a clear " - " / " / " / " | " separator -> the part before it (splits a
+ *       trade name from a legal-form suffix, or a bilingual "native / English")
+ *  then always strip stray quote characters and collapse whitespace.
+ *
+ *  Deliberately NOT comma-splitting: in many names the comma joins parts of ONE
+ *  name (e.g. "Universitatea de Medicina, Farmacie, Stiinte..."), so truncating
+ *  at the first comma produces a WRONG name. legal_name keeps the full original.
+ */
 function cleanupName(name) {
-  const s = (name || '').trim()
-  const lead = s.match(/^["“”«»]([^"“”«»]{3,})["“”«»]/)
-  if (lead && s.length > 60) return lead[1].replace(/\s+/g, ' ').trim()
+  let s = (name || '').trim()
+  if (s.length > 60) {
+    const lead = s.match(/^["“”«»]([^"“”«»]{3,})["“”«»]/)
+    if (lead) s = lead[1]
+    else {
+      const sep = s.match(/^(.{8,}?)\s[-/|–]\s/)
+      if (sep && sep[1].trim().length >= 8) s = sep[1]
+    }
+  }
   return s.replace(/["“”«»]/g, ' ').replace(/\s+/g, ' ').trim()
 }
 
