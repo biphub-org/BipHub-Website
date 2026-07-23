@@ -15,6 +15,10 @@ import {
   CalendarDays,
   MapPin,
   Clock,
+  Leaf,
+  HeartHandshake,
+  Mail,
+  Phone,
   type LucideIcon,
 } from 'lucide-react'
 import { getCountryName } from '@/lib/countries'
@@ -22,7 +26,11 @@ import type { BipDetail } from '@/lib/queries/bipDetail'
 import { CountryFlag } from '@/components/ui/country-flag'
 import { cn } from '@/lib/utils/cn'
 import { BipGallery } from '@/components/bip/BipGallery'
-import { formatLongDateRange, formatLongDates } from '@/lib/utils/dates'
+import {
+  formatLongDate,
+  formatLongDateRange,
+  formatLongDates,
+} from '@/lib/utils/dates'
 
 /**
  * BipBody — RSC. Stacked content sections for the BIP detail page.
@@ -83,6 +91,50 @@ function durationDays(start: string | null, end: string | null): number | null {
   return Math.round(ms / 86_400_000) + 1
 }
 
+/** One funding option — icon chip, title, and a single bounded line. */
+function SupportCard({
+  icon: Icon,
+  title,
+  body,
+}: {
+  icon: LucideIcon
+  title: string
+  body: string
+}) {
+  return (
+    <div className="rounded-xl border border-border bg-white p-5 shadow-[0_4px_16px_rgba(10,23,53,0.06)]">
+      <span className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-eu-blue-50 text-eu-blue">
+        <Icon size={20} strokeWidth={1.8} aria-hidden="true" />
+      </span>
+      <h3 className="text-[15px] font-semibold tracking-tight text-ink">
+        {title}
+      </h3>
+      <p className="mt-1 text-sm leading-relaxed text-ink-2">{body}</p>
+    </div>
+  )
+}
+
+/** A contact method in the apply block — pill-shaped so it reads as an action. */
+function ContactLink({
+  icon: Icon,
+  href,
+  label,
+}: {
+  icon: LucideIcon
+  href: string
+  label: string
+}) {
+  return (
+    <a
+      href={href}
+      className="inline-flex items-center gap-2 rounded-pill border border-eu-blue/25 bg-white px-4 py-2 text-sm font-semibold text-eu-blue transition-colors hover:border-eu-blue/50 hover:bg-eu-blue-50"
+    >
+      <Icon size={15} strokeWidth={1.9} aria-hidden="true" />
+      {label}
+    </a>
+  )
+}
+
 /** One bounded fact row inside a format tile — icon + short text. */
 function TileFact({ icon: Icon, children }: { icon: LucideIcon; children: React.ReactNode }) {
   return (
@@ -106,6 +158,9 @@ export function BipBody({ bip }: { bip: BipDetail }) {
     bip.physical_end_date,
   )
   const attachments = bip.attachments ?? []
+  const applicationDeadline = bip.application_deadline
+    ? formatLongDate(bip.application_deadline)
+    : null
   const virtualSessionDates = formatLongDates(bip.virtual_session_dates)
 
   const hasVirtual =
@@ -330,76 +385,119 @@ export function BipBody({ bip }: { bip: BipDetail }) {
         {/* 8. Fees */}
         {bip.fees && (
           <Section title="Fees" icon={Wallet}>
-            <p className="text-base text-ink-2 leading-relaxed whitespace-pre-line">
-              {bip.fees}
-            </p>
+            <div className="rounded-xl border border-border bg-bg-soft p-5">
+              <p className="text-base leading-relaxed text-ink-2 whitespace-pre-line">
+                {bip.fees}
+              </p>
+            </div>
           </Section>
         )}
 
-        {/* 9. Funding & support (DETL-14) — sending-institution framing */}
+        {/* 9. Funding & support (DETL-14) — sending-institution framing.
+             Same bounded-content rule as the format tiles: each card holds a
+             title + one short line, so the pair stays balanced. The shared
+             "claim it from your sending institution" caveat sits below both
+             rather than being repeated inside each. */}
         {(bip.green_travel || bip.inclusion_support) && (
           <Section title="Funding & support" icon={HandCoins}>
-            <ul className="space-y-2 text-base text-ink-2 leading-relaxed">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {bip.green_travel && (
-                <li>
-                  <span className="font-semibold text-ink">Green travel.</span> Students choosing
-                  low-emission transport may claim an additional Erasmus+ green-travel top-up from
-                  their sending institution.
-                </li>
+                <SupportCard
+                  icon={Leaf}
+                  title="Green travel top-up"
+                  body="Extra Erasmus+ funding for reaching the BIP by low-emission transport."
+                />
               )}
               {bip.inclusion_support && (
-                <li>
-                  <span className="font-semibold text-ink">Inclusion support.</span> Participants with
-                  fewer opportunities may qualify for extra inclusion funding, arranged through their
-                  sending institution.
-                </li>
+                <SupportCard
+                  icon={HeartHandshake}
+                  title="Inclusion support"
+                  body="Additional funding for participants with fewer opportunities."
+                />
               )}
-            </ul>
+            </div>
+            <p className="mt-3 text-sm text-muted">
+              Both are arranged and paid by your sending institution — not by the
+              host university.
+            </p>
           </Section>
         )}
 
-        {/* 10. How to apply (DETL-07) */}
+        {/* 10. How to apply (DETL-07) — the page's closing CTA, so it carries
+             more weight than a section of prose: a tinted block that states
+             where applications go, repeats the deadline, and then acts. */}
         <Section title="How to apply" icon={Send}>
-          {bip.how_to_apply_type === 'url' && bip.how_to_apply_value ? (
-            <Link
-              href={bip.how_to_apply_value}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={cn(
-                'inline-flex items-center gap-1 px-5 py-3 rounded-pill font-semibold text-base',
-                'bg-eu-blue text-white hover:bg-eu-blue-dark transition-colors',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eu-blue focus-visible:ring-offset-2',
-              )}
-            >
-              Apply via host university →
-            </Link>
-          ) : bip.how_to_apply_type === 'contact' && bip.contact_email ? (
-            <p className="text-base text-ink-2 leading-relaxed">
-              Contact:{' '}
-              {bip.contact_name && <span>{bip.contact_name} </span>}
-              <a
-                href={`mailto:${bip.contact_email}`}
-                className="text-eu-blue hover:underline"
-              >
-                {bip.contact_email}
-              </a>
-              {bip.contact_phone && (
-                <>
-                  {' · '}
-                  <a
-                    href={`tel:${bip.contact_phone.replace(/\s+/g, '')}`}
-                    className="text-eu-blue hover:underline"
-                  >
-                    {bip.contact_phone}
-                  </a>
-                </>
-              )}
-            </p>
-          ) : (
-            <p className="text-base text-muted">
-              Application details coming soon. Check back nearer the deadline.
-            </p>
-          )}
+          <div className="rounded-xl border border-eu-blue-100 bg-eu-blue-50 p-6">
+            {bip.how_to_apply_type === 'url' && bip.how_to_apply_value ? (
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-base font-semibold text-ink">
+                    Applications are handled by the host university.
+                  </p>
+                  {applicationDeadline && (
+                    <p className="mt-1 flex items-center gap-2 text-sm text-ink-2">
+                      <CalendarDays
+                        size={15}
+                        strokeWidth={1.8}
+                        className="shrink-0 text-muted"
+                        aria-hidden="true"
+                      />
+                      Apply by {applicationDeadline}
+                    </p>
+                  )}
+                </div>
+                <Link
+                  href={bip.how_to_apply_value}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={cn(
+                    'inline-flex shrink-0 items-center gap-1 rounded-pill px-5 py-3 text-base font-semibold',
+                    'bg-eu-blue text-white transition-colors hover:bg-eu-blue-dark',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eu-blue focus-visible:ring-offset-2',
+                  )}
+                >
+                  Apply via host university →
+                </Link>
+              </div>
+            ) : bip.how_to_apply_type === 'contact' && bip.contact_email ? (
+              <div>
+                <p className="text-base font-semibold text-ink">
+                  Apply by contacting the programme coordinator
+                  {bip.contact_name ? `, ${bip.contact_name}` : ''}.
+                </p>
+                {applicationDeadline && (
+                  <p className="mt-1 flex items-center gap-2 text-sm text-ink-2">
+                    <CalendarDays
+                      size={15}
+                      strokeWidth={1.8}
+                      className="shrink-0 text-muted"
+                      aria-hidden="true"
+                    />
+                    Apply by {applicationDeadline}
+                  </p>
+                )}
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <ContactLink
+                    icon={Mail}
+                    href={`mailto:${bip.contact_email}`}
+                    label={bip.contact_email}
+                  />
+                  {bip.contact_phone && (
+                    <ContactLink
+                      icon={Phone}
+                      href={`tel:${bip.contact_phone.replace(/\s+/g, '')}`}
+                      label={bip.contact_phone}
+                    />
+                  )}
+                </div>
+              </div>
+            ) : (
+              <p className="text-base text-ink-2">
+                Application details are coming soon — check back nearer the
+                deadline.
+              </p>
+            )}
+          </div>
         </Section>
       </div>
     </div>

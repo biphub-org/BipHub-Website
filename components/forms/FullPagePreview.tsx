@@ -24,6 +24,7 @@ import { Button } from '@/components/ui/button'
 import { BipHeader } from '@/components/bip/BipHeader'
 import { BipCover } from '@/components/bip/BipCover'
 import { BipBody } from '@/components/bip/BipBody'
+import { BipKeyFacts } from '@/components/bip/BipKeyFacts'
 import { BipSidebar } from '@/components/bip/BipSidebar'
 import type { BipDetail } from '@/lib/queries/bipDetail'
 
@@ -53,6 +54,11 @@ export function FullPagePreview({ bip }: { bip: BipDetail }) {
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_340px] lg:gap-12">
             <div>
               <BipHeader bip={bip} />
+              {/* Mirrors the live page: key facts move inline below lg. */}
+              <BipKeyFacts
+                bip={bip}
+                className="mb-8 rounded-lg border border-border bg-white p-5 shadow-sm lg:hidden"
+              />
               <BipBody bip={bip} />
             </div>
             <BipSidebar bip={bip} />

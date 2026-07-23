@@ -6,6 +6,7 @@ import { formatLongDate, formatLongDateRange } from '@/lib/utils/dates'
 import { BipHeader } from '@/components/bip/BipHeader'
 import { BipCover } from '@/components/bip/BipCover'
 import { BipBody } from '@/components/bip/BipBody'
+import { BipKeyFacts } from '@/components/bip/BipKeyFacts'
 import { BipSidebar } from '@/components/bip/BipSidebar'
 import { BipMobileApplyBar } from '@/components/bip/BipMobileApplyBar'
 import { BipSaveButton } from '@/components/bip/BipSaveButton'
@@ -146,6 +147,13 @@ export default async function BipDetailPage({
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-8 lg:gap-12">
           <div>
             <BipHeader bip={bip} />
+            {/* Key facts inline below lg — the sidebar that normally carries
+                them is hidden on mobile, and the mobile bar shows only the
+                deadline + actions. */}
+            <BipKeyFacts
+              bip={bip}
+              className="mb-8 rounded-lg border border-border bg-white p-5 shadow-sm lg:hidden"
+            />
             <BipBody bip={bip} />
           </div>
           <BipSidebar bip={bip} saveButton={saveButton} />
