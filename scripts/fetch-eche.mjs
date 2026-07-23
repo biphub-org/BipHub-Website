@@ -71,6 +71,11 @@ const CURATED_NAMES = {
   'HU BUDAPES46': 'Andrássy University Budapest',
   'NL EDE01': 'Christelijke Hogeschool Ede',
   'D BOCHUM04': 'Evangelische Hochschule Rheinland-Westfalen-Lippe',
+  // Institutions the ECHE list stored only as their legal-association acronym
+  // (no expansion) — identified from the accompanying website.
+  'F LYON23': 'emlyon business school', // AESCRA, em-lyon.com
+  'F POITIER12': 'IRTS Poitou-Charentes', // ARFISS, irts-poitou-charentes.org
+  'F BESANCO14': 'ISBA Besançon', // I.S.B.A. — Institut Supérieur des Beaux-Arts
 }
 
 // Réunion is a French overseas region; the API tags it 'RE' but its Erasmus
