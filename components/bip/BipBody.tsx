@@ -43,7 +43,8 @@ import {
  *   1. About this programme  (description)
  *   2. What you'll learn     (learning_outcomes, bulleted list)
  *   3. Programme format      (virtual + physical, blue/gold card split)
- *   4. Partner universities  (registered FK + free-text raw with "(unverified)")
+ *   4. Universities involved (host card first, then registered FK partners and
+ *                            free-text raw ones marked "unverified")
  *   5. Who can apply         (eligibility_notes + study_levels chips)
  *   6. Accommodation
  *   7. Materials             (uploaded visuals/documents)
@@ -89,6 +90,64 @@ function durationDays(start: string | null, end: string | null): number | null {
   const ms = new Date(end).getTime() - new Date(start).getTime()
   if (Number.isNaN(ms) || ms < 0) return null
   return Math.round(ms / 86_400_000) + 1
+}
+
+/**
+ * One university in the consortium. The host is flagged so students can tell
+ * where the on-site week happens; a free-text partner the coordinator typed in
+ * rather than picking from the registry is marked unverified (D-14).
+ */
+function UniversityCard({
+  name,
+  countryCode,
+  erasmusCode,
+  role,
+  unverified,
+}: {
+  name: string
+  countryCode: string | null
+  erasmusCode: string | null | undefined
+  role: 'Host' | 'Partner'
+  unverified?: boolean
+}) {
+  const countryName = countryCode ? getCountryName(countryCode) : null
+  const isHost = role === 'Host'
+
+  return (
+    <li
+      className={cn(
+        'flex items-start gap-3 rounded-xl border p-4',
+        isHost
+          ? 'border-eu-gold/50 bg-eu-gold-soft/30'
+          : 'border-border bg-white',
+      )}
+    >
+      {countryCode ? (
+        <CountryFlag code={countryCode} width={22} />
+      ) : (
+        <Building2 size={20} strokeWidth={1.7} className="text-muted" aria-hidden="true" />
+      )}
+      <div className="min-w-0">
+        <p className="text-sm font-semibold leading-snug text-ink">{name}</p>
+        <p className="mt-0.5 text-xs text-muted">
+          {[countryName, erasmusCode].filter(Boolean).join(' · ')}
+        </p>
+        <span
+          className={cn(
+            'mt-2 inline-flex rounded-pill px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider',
+            isHost ? 'bg-eu-gold text-ink' : 'bg-eu-blue-50 text-eu-blue',
+          )}
+        >
+          {role}
+        </span>
+        {unverified && (
+          <span className="ml-1.5 inline-flex rounded-pill bg-bg-soft px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted">
+            Unverified
+          </span>
+        )}
+      </div>
+    </li>
+  )
 }
 
 /** One funding option — icon chip, title, and a single bounded line. */
@@ -153,6 +212,7 @@ export function BipBody({ bip }: { bip: BipDetail }) {
 
   const studyLevels = bip.study_levels ?? []
   const partners = bip.partners ?? []
+  const host = bip.host_university
   const mobilityDates = formatLongDateRange(
     bip.physical_start_date,
     bip.physical_end_date,
@@ -295,50 +355,51 @@ export function BipBody({ bip }: { bip: BipDetail }) {
           </Section>
         )}
 
-        {/* 4. Partner universities (DETL-03, D-14) */}
+        {/* 4. Partner universities (DETL-03, D-14).
+             The host leads the list — a consortium reads as "who is running
+             this", and the host was otherwise only in the page header. Cards
+             rather than chips: a university name is too long to sit in a pill
+             alongside its country and Erasmus code without wrapping badly. */}
         {partners.length > 0 && (
-          <Section title="Partner universities" icon={Users}>
-            <div className="flex flex-wrap gap-2">
+          <Section title="Universities involved" icon={Users}>
+            <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {host && (
+                <UniversityCard
+                  name={host.name}
+                  countryCode={host.country}
+                  erasmusCode={host.erasmus_code}
+                  role="Host"
+                />
+              )}
               {partners.map((partner) => {
                 if (partner.university) {
-                  const code = partner.university.country
-                  const partnerCountry = code ? getCountryName(code) : null
                   return (
-                    <span
+                    <UniversityCard
                       key={partner.id}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-pill bg-eu-blue-50 text-eu-blue text-sm font-semibold"
-                    >
-                      {code && <CountryFlag code={code} width={16} />}
-                      {partner.university.name}
-                      {partnerCountry && ` (${partnerCountry})`}
-                      {partner.university.erasmus_code && (
-                        <span className="text-xs font-normal text-muted ml-0.5">
-                          · {partner.university.erasmus_code}
-                        </span>
-                      )}
-                    </span>
+                      name={partner.university.name}
+                      countryCode={partner.university.country}
+                      erasmusCode={partner.university.erasmus_code}
+                      role="Partner"
+                    />
                   )
                 }
 
                 if (partner.partner_name_raw) {
-                  const code = partner.partner_country_raw
-                  const rawCountry = code ? getCountryName(code) : null
                   return (
-                    <span
+                    <UniversityCard
                       key={partner.id}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-pill bg-eu-blue-50 text-eu-blue text-sm font-semibold"
-                    >
-                      {code && <CountryFlag code={code} width={16} />}
-                      {partner.partner_name_raw}
-                      {rawCountry && ` (${rawCountry})`}
-                      <span className="text-xs font-normal text-muted ml-0.5">(unverified)</span>
-                    </span>
+                      name={partner.partner_name_raw}
+                      countryCode={partner.partner_country_raw}
+                      erasmusCode={partner.partner_erasmus_code_raw}
+                      role="Partner"
+                      unverified
+                    />
                   )
                 }
 
                 return null
               })}
-            </div>
+            </ul>
           </Section>
         )}
 
