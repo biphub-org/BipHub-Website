@@ -61,6 +61,16 @@ const CURATED_NAMES = {
   // that no automated rule can safely shorten (comma-joined legal phrasing).
   'IRLDUBLIN01': 'Trinity College Dublin',
   'IRLDUBLIN02': 'University College Dublin',
+  // Recognizable institutions whose long legal name was hand-verified to a
+  // well-established short name (the rest of the long tail is left verbatim —
+  // those long names are the institutions' actual names).
+  'BA SARAJEV03': 'International Burch University',
+  'CZ PRAHA21': 'Jan Amos Komenský University Prague',
+  'D DRESDEN07': 'Evangelische Hochschule Dresden',
+  'F LILLE11': 'Université Catholique de Lille',
+  'HU BUDAPES46': 'Andrássy University Budapest',
+  'NL EDE01': 'Christelijke Hogeschool Ede',
+  'D BOCHUM04': 'Evangelische Hochschule Rheinland-Westfalen-Lippe',
 }
 
 // Réunion is a French overseas region; the API tags it 'RE' but its Erasmus
