@@ -78,6 +78,30 @@ const CURATED_NAMES = {
   'F BESANCO14': 'ISBA Besançon', // I.S.B.A. — Institut Supérieur des Beaux-Arts
 }
 
+// Institutions whose whole name is an initialism the title-caser wrongly
+// lower-cased (ESSCA -> "Essca"). Restored to their real uppercase form. Only
+// clear initialisms are here; pronounceable brands stored all-caps by the
+// source (Odisee, Audencia, Rubika, Holden, …) are deliberately left title-cased.
+const ACRONYM_NAMES = {
+  'F ROUEN28': 'ADSCI', 'MT MALTA08': 'AEA', 'F FORT FR10': 'AMEP',
+  'F LYON127': 'ARFRIPS', 'CY NICOSIA40': 'AUB', 'E SEVILLA94': 'CEPA',
+  'F PARIS335': 'CESI', 'E SANTAND35': 'CESINEC', 'A WIEN78': 'CEU',
+  'F BAGNOLET03': 'CFPTS', 'E CIUDA R18': 'CIFASA', 'F CHAMBER14': 'CIFEP',
+  'F LA ROCH18': 'CIPECMA', 'F PAU18': 'CNPC-CFA', 'F PARIS383': 'CQFD',
+  'F PARIS463': 'DDLM', 'F LYON135': 'ECEMA', 'F PERPIGN23': 'ECPM',
+  'F VERSAIL05': 'ENSAV', 'F NANTES24': 'ENSEC', 'F ROUEN07': 'ESIGELEC',
+  'F PARIS413': 'ESMOD', 'F ANGERS10': 'ESSCA', 'F BOURGES13': 'ESTACOM',
+  'F PARIS068': 'ESTP', 'F LILLE45': 'ESTS', 'F PARIS160': 'ETSUP',
+  'I FORLI01': 'FUSP', 'F ARGENT08': 'GARAC', 'F NANTES96': 'GIPAFOC',
+  'F BORDEAU68': 'ICFA', 'F LA ROCH12': 'ICSSA', 'F PARIS373': 'IDAA',
+  'F PARIS429': 'ILERI', 'B NAMUR13': 'IMEP', 'F ANNECY04': 'IPAC',
+  'F EVRY13': 'IRFASE', 'F LYON17': 'ISARA', 'F PARIS432': 'ISEM',
+  'F NICE46': 'ISIM', 'F PARIS431': 'ISIMI', 'F VERSAIL22': 'ISIPCA',
+  'F ST ETIE34': 'ISTP', 'I BRESCIA05': 'LABA', 'F CRETEIL14': 'LÉA-CFI',
+  'F MONTPEL13': 'MBS', 'F AMIENS30': 'OGESSCA', 'F LAROCHE01': 'OGICES',
+  'F STRASBO52': 'ORT',
+}
+
 // Réunion is a French overseas region; the API tags it 'RE' but its Erasmus
 // codes are French and the app's country list treats it as France.
 const COUNTRY_REMAP = { RE: 'FR' }
@@ -232,7 +256,10 @@ async function main() {
     seen.add(code)
     const country = COUNTRY_REMAP[r.countryCodeIso] || r.countryCodeIso || r.country
     rows.push({
-      name: CURATED_NAMES[code] || displayName(r.organisationLegalName),
+      name:
+        CURATED_NAMES[code] ||
+        ACRONYM_NAMES[code] ||
+        displayName(r.organisationLegalName),
       legal_name: (r.organisationLegalName || '').trim() || null,
       country,
       city: titleCaseIfUpper((r.city || '').trim()) || null,
