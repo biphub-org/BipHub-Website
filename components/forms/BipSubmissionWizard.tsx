@@ -34,7 +34,6 @@
  */
 
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { useRouter } from 'next/navigation'
 import { useDebouncedCallback } from 'use-debounce'
 import { toast } from 'sonner'
 import { LazyMotion, domAnimation, m } from 'motion/react'
@@ -161,7 +160,6 @@ export function BipSubmissionWizard({
   // must gate it. The RSC edit page passes omitSlug={true} when editing an
   // approved BIP; the server action also excludes slug from every payload.
   void omitSlug
-  const router = useRouter()
   const {
     bipId,
     currentStep,
@@ -256,6 +254,14 @@ export function BipSubmissionWizard({
             setConflictOpen(true)
             return { ok: false as const }
           }
+          // Not a two-tab collision — the row is gone or its status forbids an
+          // in-place update. Showing the conflict dialog here would tell the
+          // coordinator to reload or overwrite, neither of which can help.
+          if (result.error === 'forbidden') {
+            setSaveStatus('failed')
+            toast.error(result.message, { duration: 5000 })
+            return { ok: false as const }
+          }
           if (result.error === 'auth') {
             // Belt-and-suspenders for the onAuthStateChange known issue.
             persistToLocalStorage()
@@ -330,11 +336,15 @@ export function BipSubmissionWizard({
   }
 
   // (f) Conflict resolution handlers (Plan 02-07's dialog calls these).
+  // A full reload, not router.refresh(): "Reload" means "discard mine, take
+  // theirs", and a soft refresh deliberately preserves the client store — which
+  // now also skips re-seeding for the same record id (see hydrateFromServer's
+  // once-per-record guard), so the stale lock would survive and the next save
+  // would conflict again.
   const handleReload = useCallback(() => {
     setConflictOpen(false)
-    if (bipId) router.refresh()
-    else window.location.reload()
-  }, [bipId, router])
+    window.location.reload()
+  }, [])
 
   const handleOverwrite = useCallback(async () => {
     setConflictOpen(false)

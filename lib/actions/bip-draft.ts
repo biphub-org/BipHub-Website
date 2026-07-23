@@ -29,6 +29,11 @@ import type { BipDraftData } from '@/lib/store/bip-draft'
 export type SaveDraftResult =
   | { success: true; bipId: string; updatedAt: string }
   | { error: 'conflict' }
+  // The row exists and the lock still matches, but the UPDATE matched 0 rows —
+  // i.e. RLS filtered it (a status this coordinator may not edit in place).
+  // Distinct from 'conflict' so the wizard stops showing a two-tab dialog for
+  // what is actually a permission/status problem (BUG-001 presented this way).
+  | { error: 'forbidden'; message: string }
   | { error: 'auth' }
   | { error: 'unknown'; message: string }
 
@@ -97,7 +102,24 @@ export async function saveDraftAction(
     Object.entries(persistableRaw).map(([k, v]) => [k, v === '' ? null : v]),
   ) as typeof persistableRaw
 
-  if (bipId && lastKnownUpdatedAt) {
+  // An existing draft must NEVER fall through to the INSERT branch — that
+  // creates a duplicate row and orphans the original. The lock can legitimately
+  // be missing here (a localStorage entry written before it was persisted), so
+  // recover it from the row itself rather than inserting.
+  let lockValue = lastKnownUpdatedAt
+  if (bipId && !lockValue) {
+    const { data: current } = await supabase
+      .from('bips')
+      .select('updated_at')
+      .eq('id', bipId)
+      .eq('created_by', userId)
+      .maybeSingle()
+    // No row (deleted, or not ours) → genuinely nothing to update; fall through
+    // to INSERT so the coordinator does not lose the draft they are typing.
+    if (current?.updated_at) lockValue = current.updated_at
+  }
+
+  if (bipId && lockValue) {
     // UPDATE with optimistic locking — only succeeds if updated_at matches.
     const now = new Date().toISOString()
     const { data, error } = await supabase
@@ -105,7 +127,7 @@ export async function saveDraftAction(
       .update({ ...persistable, updated_at: now })
       .eq('id', bipId)
       .eq('created_by', userId)
-      .eq('updated_at', lastKnownUpdatedAt)
+      .eq('updated_at', lockValue)
       .select('id, updated_at')
       .maybeSingle()
 
@@ -113,8 +135,36 @@ export async function saveDraftAction(
       console.error('[saveDraftAction] update error:', error.message)
       return { error: 'unknown', message: error.message }
     }
-    // 0 rows matched the lock → another tab beat us to the update.
-    if (!data) return { error: 'conflict' }
+
+    // 0 rows matched. That is NOT automatically a two-tab conflict: an UPDATE
+    // filtered by RLS (a status this coordinator cannot edit in place) returns
+    // 0 rows too. Probe the row to tell the two apart before blaming a
+    // phantom second tab.
+    if (!data) {
+      const { data: probe } = await supabase
+        .from('bips')
+        .select('updated_at')
+        .eq('id', bipId)
+        .eq('created_by', userId)
+        .maybeSingle()
+
+      if (!probe) {
+        return {
+          error: 'forbidden',
+          message: 'This draft is no longer available on your account.',
+        }
+      }
+      // Timestamp moved on → a real concurrent write.
+      if (new Date(probe.updated_at).getTime() !== new Date(lockValue).getTime()) {
+        return { error: 'conflict' }
+      }
+      // Row still there, lock still current → the UPDATE itself was refused.
+      return {
+        error: 'forbidden',
+        message:
+          'This BIP can no longer be edited directly in its current status.',
+      }
+    }
 
     return { success: true, bipId: data.id, updatedAt: data.updated_at }
   }

@@ -112,10 +112,15 @@ export const useBipDraft = create<BipDraftStore>((set, get) => ({
       const parsed = JSON.parse(raw) as {
         draft?: BipDraftData
         bipId?: string | null
+        lastKnownUpdatedAt?: string | null
       }
       set({
         draft: parsed.draft ?? {},
         bipId: parsed.bipId ?? null,
+        // Restored alongside bipId: saveDraftAction only takes its locked-UPDATE
+        // path when BOTH are present, so a bipId without its lock silently fell
+        // through to INSERT and created a duplicate draft on every reload.
+        lastKnownUpdatedAt: parsed.lastKnownUpdatedAt ?? null,
         hydrated: true,
       })
     } catch {
@@ -125,21 +130,34 @@ export const useBipDraft = create<BipDraftStore>((set, get) => ({
   },
 
   // Edit-mode entry point (Plan 02-07): pre-populates from a server-fetched record.
-  hydrateFromServer: (record) =>
+  //
+  // Idempotent per record, mirroring hydrate()'s once-guard. The caller's effect
+  // keys on an `initialBip` object literal built in the RSC's JSX, so it gets a
+  // fresh identity on every render of that route — router.refresh(), a client
+  // nav back, or a dev Fast Refresh all re-run it. Without this guard each of
+  // those rolled `draft` and `lastKnownUpdatedAt` back to the page-load
+  // snapshot: unsaved edits vanished, and the stale lock made the very next
+  // auto-save match 0 rows and raise a false "updated in another tab" dialog.
+  //
+  // A DIFFERENT record id still re-seeds — that is a genuinely different BIP.
+  hydrateFromServer: (record) => {
+    const { hydrated, bipId } = get()
+    if (hydrated && bipId === record.id) return
     set({
       bipId: record.id,
       draft: record.data,
       lastKnownUpdatedAt: record.updatedAt,
       hydrated: true,
-    }),
+    })
+  },
 
   persistToLocalStorage: () => {
     if (typeof window === 'undefined') return
-    const { draft, bipId } = get()
+    const { draft, bipId, lastKnownUpdatedAt } = get()
     try {
       window.localStorage.setItem(
         DRAFT_STORAGE_KEY,
-        JSON.stringify({ draft, bipId }),
+        JSON.stringify({ draft, bipId, lastKnownUpdatedAt }),
       )
     } catch {
       // Quota exceeded or storage access blocked — best-effort (SUBM-07).
