@@ -53,6 +53,8 @@ type RawBipEditContentRow = {
   contact_phone: string | null
   partner_institutions: unknown
   accommodation_notes: string | null
+  green_travel: boolean | null
+  inclusion_support: boolean | null
   card_image_path: string | null
   partner_institutions_only: boolean | null
 }
@@ -151,6 +153,8 @@ function mapEditRowToBipDraftData(row: RawBipEditContentRow): BipDraftData {
     contact_phone: !isUrl ? (row.contact_phone ?? undefined) : undefined,
     partner_universities: mapPartnerInstitutions(row.partner_institutions),
     accommodation_notes: row.accommodation_notes ?? undefined,
+    green_travel: row.green_travel ?? false,
+    inclusion_support: row.inclusion_support ?? false,
     card_image_path: row.card_image_path ?? undefined,
     partner_institutions_only: row.partner_institutions_only ?? false,
   }

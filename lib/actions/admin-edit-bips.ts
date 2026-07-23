@@ -77,6 +77,8 @@ type RawEditRow = {
   contact_phone: string | null
   partner_institutions: unknown
   accommodation_notes: string | null
+  green_travel: boolean | null
+  inclusion_support: boolean | null
   card_image_path: string | null
   partner_institutions_only: boolean | null
 }
@@ -126,6 +128,8 @@ function buildMergePayload(editRow: RawEditRow) {
     contact_email: editRow.contact_email,
     contact_phone: editRow.contact_phone,
     accommodation_notes: editRow.accommodation_notes,
+    green_travel: editRow.green_travel ?? false,
+    inclusion_support: editRow.inclusion_support ?? false,
     card_image_path: editRow.card_image_path,
     partner_institutions_only: editRow.partner_institutions_only ?? false,
     updated_at: new Date().toISOString(),

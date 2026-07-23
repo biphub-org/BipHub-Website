@@ -19,5 +19,6 @@ export const BIP_EDIT_CONTENT_COLUMNS = `
   how_to_apply_type, how_to_apply_value, contact_name, contact_email, contact_phone,
   card_image_path,
   partner_institutions,
-  accommodation_notes, partner_institutions_only
+  accommodation_notes, partner_institutions_only,
+  green_travel, inclusion_support
 ` as const

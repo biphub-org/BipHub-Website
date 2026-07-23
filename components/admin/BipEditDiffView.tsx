@@ -205,6 +205,16 @@ const FIELDS: FieldDef[] = [
     getProposed: (d) => fmtBool(d.partner_institutions_only),
   },
   {
+    label: 'Green-travel top-up',
+    getLive: (b) => fmtBool(b.green_travel),
+    getProposed: (d) => fmtBool(d.green_travel),
+  },
+  {
+    label: 'Inclusion support',
+    getLive: (b) => fmtBool(b.inclusion_support),
+    getProposed: (d) => fmtBool(d.inclusion_support),
+  },
+  {
     label: 'Fees',
     getLive: (b) => b.fees,
     getProposed: (d) => d.fees ?? null,

@@ -56,6 +56,8 @@ function buildContentPayload(data: {
   contact_email?: string
   contact_phone?: string
   accommodation_notes?: string
+  green_travel?: boolean
+  inclusion_support?: boolean
   card_image_path?: string
   partner_institutions_only?: boolean
 }) {
@@ -97,6 +99,8 @@ function buildContentPayload(data: {
     contact_email: data.contact_email || null,
     contact_phone: data.contact_phone || null,
     accommodation_notes: data.accommodation_notes || null,
+    green_travel: data.green_travel ?? false,
+    inclusion_support: data.inclusion_support ?? false,
     card_image_path: data.card_image_path || null,
     partner_institutions_only: data.partner_institutions_only ?? false,
     // NOTE: slug intentionally omitted (D-10 / EDIT-09)

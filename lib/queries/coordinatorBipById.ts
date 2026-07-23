@@ -74,6 +74,7 @@ export async function getCoordinatorBipById(
       fees, eligibility_notes,
       how_to_apply_type, how_to_apply_value, contact_name, contact_email, contact_phone,
       accommodation_notes, partner_institutions_only, card_image_path,
+      green_travel, inclusion_support,
       host_university:host_university_id ( id, name, country, erasmus_code ),
       partners:bip_partner_universities (
         id, university_id, partner_name_raw, partner_country_raw, partner_erasmus_code_raw,
@@ -157,6 +158,8 @@ export async function getCoordinatorBipById(
       : undefined,
     contact_phone: !isUrl ? (data.contact_phone ?? undefined) : undefined,
     accommodation_notes: data.accommodation_notes ?? undefined,
+    green_travel: data.green_travel ?? false,
+    inclusion_support: data.inclusion_support ?? false,
     card_image_path: data.card_image_path ?? undefined,
     partner_institutions_only: data.partner_institutions_only ?? false,
     partner_universities: partnerRows.map((p) => {

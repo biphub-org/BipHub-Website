@@ -25,6 +25,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { useBipDraft } from '@/lib/store/bip-draft'
@@ -35,6 +36,35 @@ import { BipCardImageField } from '@/components/forms/BipCardImageField'
 interface Props {
   onContinue: (values: Step4Values) => void
   onAutoSave: (payload: Partial<Step4Values>) => void
+}
+
+/** Checkbox + title + explanation, matching the Step 3 partner-only control. */
+function SupportCheckbox({
+  testId,
+  checked,
+  onChange,
+  title,
+  description,
+}: {
+  testId: string
+  checked: boolean
+  onChange: (next: boolean) => void
+  title: string
+  description: string
+}) {
+  return (
+    <label className="flex items-start gap-3 rounded-md border border-border bg-white px-4 py-3 text-sm text-ink">
+      <Checkbox
+        data-testid={testId}
+        checked={checked}
+        onCheckedChange={(next) => onChange(Boolean(next))}
+      />
+      <span>
+        <span className="font-medium">{title}</span>
+        <span className="mt-1 block text-xs text-muted">{description}</span>
+      </span>
+    </label>
+  )
 }
 
 export function WizardStep4ApplicationInfo({ onContinue, onAutoSave }: Props) {
@@ -52,6 +82,8 @@ export function WizardStep4ApplicationInfo({ onContinue, onAutoSave }: Props) {
       fees: draft.fees ?? '',
       eligibility_notes: draft.eligibility_notes ?? '',
       accommodation_notes: draft.accommodation_notes ?? '',
+      green_travel: draft.green_travel ?? false,
+      inclusion_support: draft.inclusion_support ?? false,
       card_image_path: draft.card_image_path ?? '',
     },
     mode: 'onBlur',
@@ -243,6 +275,57 @@ export function WizardStep4ApplicationInfo({ onContinue, onAutoSave }: Props) {
             </FormItem>
           )}
         />
+
+        {/* Funding & support — Erasmus+ grant top-ups. These are claimed from
+            the participant's SENDING institution, so the wording asks whether
+            they apply rather than implying the host pays them. */}
+        <fieldset className="space-y-2">
+          <legend className="text-sm font-medium text-ink">
+            Funding & support (optional)
+          </legend>
+          <p className="text-xs text-muted">
+            Tick these if participants can claim the Erasmus+ top-ups from their
+            sending institution. Each one you tick appears as a card on the
+            published BIP page.
+          </p>
+          <FormField
+            name="green_travel"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <SupportCheckbox
+                    // Stable e2e hook — the accessible name is descriptive copy.
+                    testId="green-travel"
+                    checked={Boolean(field.value)}
+                    onChange={field.onChange}
+                    title="Green-travel top-up available"
+                    description="Participants reaching the BIP by low-emission transport can claim extra Erasmus+ funding."
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            name="inclusion_support"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <SupportCheckbox
+                    testId="inclusion-support"
+                    checked={Boolean(field.value)}
+                    onChange={field.onChange}
+                    title="Inclusion support available"
+                    description="Participants with fewer opportunities can claim additional inclusion funding."
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </fieldset>
 
         {/* Optional listing-card cover image. */}
         <FormField

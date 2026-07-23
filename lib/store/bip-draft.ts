@@ -60,6 +60,8 @@ export type BipDraftData = {
   fees?: string
   eligibility_notes?: string
   accommodation_notes?: string
+  green_travel?: boolean
+  inclusion_support?: boolean
   card_image_path?: string
 }
 

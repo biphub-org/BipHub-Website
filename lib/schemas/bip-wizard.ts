@@ -162,6 +162,10 @@ export const step4Schema = z
       .max(2000),
     eligibility_notes: z.string().trim().max(2000).optional().default(''),
     accommodation_notes: z.string().trim().max(1000).optional().or(z.literal('')),
+    // Erasmus+ grant top-ups the participant claims from their SENDING
+    // institution. Re-surfaced in the builder after 00024 retired them.
+    green_travel: z.boolean().optional().default(false),
+    inclusion_support: z.boolean().optional().default(false),
     card_image_path: z.string().trim().max(300).optional().or(z.literal('')),
   })
   .refine(
@@ -219,6 +223,8 @@ export const fullBipSchema = z
       .max(2000),
     eligibility_notes: z.string().trim().max(2000).optional().default(''),
     accommodation_notes: z.string().trim().max(1000).optional().or(z.literal('')),
+    green_travel: z.boolean().optional().default(false),
+    inclusion_support: z.boolean().optional().default(false),
     card_image_path: z.string().trim().max(300).optional().or(z.literal('')),
   })
   .refine((d) => d.physical_start_date < d.physical_end_date, {

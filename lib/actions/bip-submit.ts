@@ -171,6 +171,8 @@ export async function submitBipAction(
     contact_email: parsed.data.contact_email || null,
     contact_phone: parsed.data.contact_phone || null,
     accommodation_notes: parsed.data.accommodation_notes || null,
+    green_travel: parsed.data.green_travel ?? false,
+    inclusion_support: parsed.data.inclusion_support ?? false,
     card_image_path: parsed.data.card_image_path || null,
     partner_institutions_only: parsed.data.partner_institutions_only ?? false,
     slug: safeSlug,
