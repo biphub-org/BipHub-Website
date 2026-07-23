@@ -27,9 +27,11 @@ import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useBipDraft } from '@/lib/store/bip-draft'
 import { draftToBipDetail } from '@/components/forms/wizardAdapter'
+import { usePreviewAttachments } from '@/components/forms/usePreviewAttachments'
 import { submitBipAction } from '@/lib/actions/bip-submit'
 import { BipBody } from '@/components/bip/BipBody'
 import { BipSidebar } from '@/components/bip/BipSidebar'
+import { FullPagePreview } from '@/components/forms/FullPagePreview'
 
 interface Props {
   hostUniversity: { id: string; name: string; country: string }
@@ -41,13 +43,17 @@ export function WizardStep5Preview({ hostUniversity }: Props) {
   const [serverError, setServerError] = useState<string | null>(null)
   const [isSubmitting, startSubmit] = useTransition()
 
-  const previewBip = draftToBipDetail(draft, {
-    hostUniversity,
-    bipId,
-    slug: null,
-    status: 'pending',
-    createdAt: new Date().toISOString(),
-  })
+  const attachments = usePreviewAttachments(bipId)
+  const previewBip = {
+    ...draftToBipDetail(draft, {
+      hostUniversity,
+      bipId,
+      slug: null,
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+    }),
+    attachments,
+  }
 
   function handleSubmit() {
     if (!bipId) {
@@ -79,9 +85,12 @@ export function WizardStep5Preview({ hostUniversity }: Props) {
   return (
     <div className="space-y-6">
       {/* Preview banner — UI-SPEC line 300-307 */}
-      <div className="rounded-md border border-eu-blue/20 bg-eu-blue/5 px-4 py-3 text-sm text-eu-blue">
-        This is a preview of your BIP. It won&apos;t be visible publicly until
-        reviewed and approved by the BipHub team.
+      <div className="flex flex-col gap-3 rounded-md border border-eu-blue/20 bg-eu-blue/5 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm text-eu-blue">
+          This is a preview of your BIP. It won&apos;t be visible publicly until
+          reviewed and approved by the BipHub team.
+        </p>
+        <FullPagePreview bip={previewBip} />
       </div>
 
       {serverError && (

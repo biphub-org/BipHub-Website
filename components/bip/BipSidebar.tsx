@@ -1,5 +1,15 @@
 'use client'
 
+import {
+  Award,
+  CalendarDays,
+  Languages,
+  MapPin,
+  Signal,
+  UserRound,
+  Users,
+  type LucideIcon,
+} from 'lucide-react'
 import type { BipDetail } from '@/lib/queries/bipDetail'
 import { DeadlineBadge } from '@/components/bip/DeadlineBadge'
 import { BipApplyCta } from '@/components/bip/BipApplyCta'
@@ -31,6 +41,68 @@ import { formatLongDateRange } from '@/lib/utils/dates'
  */
 export type BipSidebarMode = 'public' | 'admin-review'
 
+type StatTileProps = {
+  icon: LucideIcon
+  value: string
+  label: string
+}
+
+/**
+ * A single glanceable fact. The value carries the weight (large, bold); the
+ * label sits under it as a quiet eyebrow. Long values (e.g. a spelled-out
+ * language) step down a size so they never wrap inside the 340px column.
+ */
+function StatTile({
+  icon: Icon,
+  value,
+  label,
+  span,
+}: StatTileProps & { span?: boolean }) {
+  return (
+    <div
+      className={`rounded-lg bg-bg-soft px-3 py-3 ${span ? 'col-span-2' : ''}`}
+    >
+      <Icon
+        size={15}
+        strokeWidth={1.9}
+        className="text-eu-blue"
+        aria-hidden="true"
+      />
+      <p
+        className={`mt-1.5 font-bold leading-none tracking-tight text-ink ${
+          value.length > 4 ? 'text-lg' : 'text-2xl'
+        }`}
+      >
+        {value}
+      </p>
+      <p className="mt-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted">
+        {label}
+      </p>
+    </div>
+  )
+}
+
+/** A fact whose value is prose-shaped (a date range, a city) — icon + row. */
+function FactRow({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: LucideIcon
+  label: string
+  value: string
+}) {
+  return (
+    <div className="flex items-start justify-between gap-3 text-sm">
+      <dt className="flex shrink-0 items-center gap-2 text-muted">
+        <Icon size={15} strokeWidth={1.8} aria-hidden="true" />
+        {label}
+      </dt>
+      <dd className="text-right font-medium text-ink">{value}</dd>
+    </div>
+  )
+}
+
 export function BipSidebar({
   bip,
   mode = 'public',
@@ -56,6 +128,33 @@ export function BipSidebar({
     students_staff: 'Students/Staff',
   }
 
+  // Only facts that read as a glanceable value get a tile. Anything missing is
+  // dropped rather than rendered as '–' — an empty tile is visual noise.
+  const stats: StatTileProps[] = [
+    bip.ects_credits != null && {
+      icon: Award,
+      value: String(bip.ects_credits),
+      label: 'ECTS credits',
+    },
+    // DETL-15 participant capacity
+    bip.max_participants != null && {
+      icon: Users,
+      value: String(bip.max_participants),
+      label: 'Max places',
+    },
+    bip.language_of_instruction && {
+      icon: Languages,
+      value: bip.language_of_instruction.toUpperCase(),
+      label: 'Language',
+    },
+    // DETL-05 CEFR language level
+    bip.language_level_min && {
+      icon: Signal,
+      value: bip.language_level_min,
+      label: 'Min level',
+    },
+  ].filter(Boolean) as StatTileProps[]
+
   return (
     <aside
       aria-label="Key facts"
@@ -79,54 +178,40 @@ export function BipSidebar({
           </div>
         )}
 
-        {/* Key facts list */}
+        {/* Key facts — short numeric/code values become scannable stat tiles;
+            longer text values (dates, city, audience) stay as icon-led rows,
+            since a date range can't be read at a glance as a numeral. */}
         <div className="mt-6 pt-6 border-t border-border">
-          <h2 className="text-sm font-bold text-ink mb-3">Key facts</h2>
-          <dl className="space-y-3 text-sm">
-            <div className="flex justify-between gap-4">
-              <dt className="text-muted">ECTS</dt>
-              <dd className="text-ink font-semibold">{bip.ects_credits ?? '–'}</dd>
+          <h2 className="mb-3 text-sm font-bold text-ink">Key facts</h2>
+
+          {stats.length > 0 && (
+            <div className="grid grid-cols-2 gap-2">
+              {stats.map((stat, i) => (
+                <StatTile
+                  key={stat.label}
+                  {...stat}
+                  // An odd count would leave a half-width gap — let the last
+                  // tile span the row instead.
+                  span={stats.length % 2 === 1 && i === stats.length - 1}
+                />
+              ))}
             </div>
-            {/* DETL-15 participant capacity */}
-            {bip.max_participants != null && (
-              <div className="flex justify-between gap-4">
-                <dt className="text-muted">Participants</dt>
-                <dd className="text-ink font-semibold">Up to {bip.max_participants}</dd>
-              </div>
-            )}
-            <div className="flex justify-between gap-4">
-              <dt className="text-muted">Dates</dt>
-              <dd className="text-ink text-right">{datesLine}</dd>
-            </div>
-            <div className="flex justify-between gap-4">
-              <dt className="text-muted">Language</dt>
-              <dd className="text-ink font-semibold">
-                {bip.language_of_instruction
-                  ? bip.language_of_instruction.toUpperCase()
-                  : '–'}
-              </dd>
-            </div>
+          )}
+
+          <dl className={stats.length > 0 ? 'mt-4 space-y-2.5' : 'space-y-2.5'}>
+            <FactRow icon={CalendarDays} label="Dates" value={datesLine} />
+            <FactRow
+              icon={MapPin}
+              label="City"
+              value={bip.host_city ?? host?.city ?? '–'}
+            />
             {bip.target_group && (
-              <div className="flex justify-between gap-4">
-                <dt className="text-muted">Open to</dt>
-                <dd className="text-ink font-semibold text-right">
-                  {targetGroupLabel[bip.target_group] ?? bip.target_group}
-                </dd>
-              </div>
+              <FactRow
+                icon={UserRound}
+                label="Open to"
+                value={targetGroupLabel[bip.target_group] ?? bip.target_group}
+              />
             )}
-            {/* DETL-05 CEFR language level */}
-            <div className="flex justify-between gap-4">
-              <dt className="text-muted">Min level</dt>
-              <dd className="text-ink font-semibold">
-                {bip.language_level_min ?? '–'}
-              </dd>
-            </div>
-            <div className="flex justify-between gap-4">
-              <dt className="text-muted">City</dt>
-              <dd className="text-ink text-right">
-                {bip.host_city ?? host?.city ?? '–'}
-              </dd>
-            </div>
           </dl>
         </div>
 

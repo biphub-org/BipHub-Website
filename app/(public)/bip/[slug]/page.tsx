@@ -4,6 +4,7 @@ import { getBipBySlug, getAllPublishedSlugs } from '@/lib/queries/bipDetail'
 import { getCountryName } from '@/lib/countries'
 import { formatLongDate, formatLongDateRange } from '@/lib/utils/dates'
 import { BipHeader } from '@/components/bip/BipHeader'
+import { BipCover } from '@/components/bip/BipCover'
 import { BipBody } from '@/components/bip/BipBody'
 import { BipSidebar } from '@/components/bip/BipSidebar'
 import { BipMobileApplyBar } from '@/components/bip/BipMobileApplyBar'
@@ -138,6 +139,9 @@ export default async function BipDetailPage({
           <IconChevronLeft size={16} aria-hidden="true" />
           All BIPs
         </Link>
+
+        {/* Hero cover image (full-width, above the two-column layout) */}
+        <BipCover bip={bip} />
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-8 lg:gap-12">
           <div>

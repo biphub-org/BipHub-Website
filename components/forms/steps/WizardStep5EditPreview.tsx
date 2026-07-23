@@ -29,9 +29,11 @@ import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useBipDraft } from '@/lib/store/bip-draft'
 import { draftToBipDetail } from '@/components/forms/wizardAdapter'
+import { usePreviewAttachments } from '@/components/forms/usePreviewAttachments'
 import { submitEditAction, resubmitEditAction, resubmitPendingBipAction } from '@/lib/actions/bip-edits'
 import { BipBody } from '@/components/bip/BipBody'
 import { BipSidebar } from '@/components/bip/BipSidebar'
+import { FullPagePreview } from '@/components/forms/FullPagePreview'
 
 export type EditPreviewState = 'state-a' | 'state-b' | 'state-c' | 'd06a'
 
@@ -53,13 +55,17 @@ export function WizardStep5EditPreview({
   const [serverError, setServerError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
-  const previewBip = draftToBipDetail(draft, {
-    hostUniversity,
-    bipId,
-    slug: null,
-    status: 'approved',
-    createdAt: new Date().toISOString(),
-  })
+  const attachments = usePreviewAttachments(bipId)
+  const previewBip = {
+    ...draftToBipDetail(draft, {
+      hostUniversity,
+      bipId,
+      slug: null,
+      status: 'approved',
+      createdAt: new Date().toISOString(),
+    }),
+    attachments,
+  }
 
   function handleSubmitEdit() {
     setServerError(null)
@@ -120,9 +126,12 @@ export function WizardStep5EditPreview({
   return (
     <div className="space-y-6">
       {/* Preview banner */}
-      <div className="rounded-md border border-eu-blue/20 bg-eu-blue/5 px-4 py-3 text-sm text-eu-blue">
-        This is a preview of your proposed changes. The public page stays
-        unchanged until an admin approves this edit.
+      <div className="flex flex-col gap-3 rounded-md border border-eu-blue/20 bg-eu-blue/5 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm text-eu-blue">
+          This is a preview of your proposed changes. The public page stays
+          unchanged until an admin approves this edit.
+        </p>
+        <FullPagePreview bip={previewBip} />
       </div>
 
       {serverError && (
