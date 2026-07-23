@@ -16,12 +16,13 @@ const NAME_OVERRIDES: Record<string, string> = {
 /**
  * Countries selectable in BipHub — ISO 3166-1 alpha-2 codes (uppercase).
  *
- * 39 countries total:
- *   Erasmus+ programme countries (33):
+ * 40 countries total:
+ *   Erasmus+ programme countries (34):
  *     EU-27: AT, BE, BG, HR, CY, CZ, DK, EE, FI, FR, DE, GR, HU, IE, IT, LV,
  *            LT, LU, MT, NL, PL, PT, RO, SK, SI, ES, SE
  *     EEA + associated: IS (Iceland), LI (Liechtenstein), NO (Norway)
- *     Candidate countries: MK (North Macedonia), RS (Serbia), TR (Türkiye)
+ *     Candidate countries: MK (North Macedonia), RS (Serbia), TR (Türkiye),
+ *                          ME (Montenegro)
  *   Additional partner / neighbourhood countries (6, added 2026-07):
  *     GB (United Kingdom), UA (Ukraine), MD (Moldova), AL (Albania),
  *     XK (Kosovo), BA (Bosnia and Herzegovina)
@@ -47,7 +48,7 @@ export const ERASMUS_COUNTRIES: ReadonlyArray<{
     'AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IE',
     'IT','LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE',
     'IS','LI','NO',
-    'MK','RS','TR',
+    'MK','RS','TR','ME',
     // Additional partner / neighbourhood countries (2026-07)
     'GB','UA','MD','AL','XK','BA',
   ] as const
@@ -69,7 +70,7 @@ export function getCountryName(code: string): string {
 }
 
 /**
- * Returns true if the code is one of the 39 countries selectable in BipHub.
+ * Returns true if the code is one of the 40 countries selectable in BipHub.
  */
 export function isErasmusCountry(code: string): code is ErasmusCountryCode {
   return ERASMUS_COUNTRY_CODES.includes(code.toUpperCase() as ErasmusCountryCode)

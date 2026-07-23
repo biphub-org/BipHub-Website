@@ -15,25 +15,16 @@ delete from public.bip_partner_universities
 
 delete from public.bips where is_seed = true;
 
-delete from public.universities
-  where erasmus_code in (
-    'D MUNCHEN02', 'D BERLIN02', 'D HEIDELB01', 'D AACHEN01',
-    'NL DELFT01',  'NL UTRECHT01', 'NL WAGENIN01',
-    'I MILANO02',  'I MILANO01',
-    'F PARIS004',
-    'E MADRID05',
-    'PL LODZ01',
-    'SF ESPOO12',
-    'S STOCKHO10',
-    'CZ PRAHA07',
-    'P LISBOA01',
-    'B LEUVEN01',
-    'A WIEN02',
-    'DK LYNGBY01'
-  );
+-- NOTE: universities are NO LONGER deleted here. They are official reference
+-- data owned by the ECHE catalog (migration 00035) and may be FK-referenced by
+-- real (non-seed) BIPs, so deleting them would either error (on delete
+-- restrict) or orphan real data. The insert below upserts instead.
 
 -- ----------------------------------------------------------------------------
--- Step 1: Insert ~13 host universities (real Erasmus codes, real cities)
+-- Step 1: Ensure the ~19 demo host universities exist (idempotent upsert).
+--   These codes are part of the ECHE catalog, so on a migrated DB the rows
+--   already exist; ON CONFLICT DO UPDATE makes RETURNING yield their ids either
+--   way. The self-assignment keeps the catalog's richer name/source untouched.
 -- ----------------------------------------------------------------------------
 with seeded_unis as (
   insert into public.universities (name, country, city, erasmus_code, website_url)
@@ -47,7 +38,7 @@ with seeded_unis as (
     ('Wageningen University & Research',  'NL', 'Wageningen',   'NL WAGENIN01', 'https://www.wur.nl'),
     ('Università Bocconi',                'IT', 'Milano',       'I MILANO02',   'https://www.unibocconi.it'),
     ('Politecnico di Milano',             'IT', 'Milano',       'I MILANO01',   'https://www.polimi.it'),
-    ('Sorbonne Université',               'FR', 'Paris',        'F PARIS004',   'https://www.sorbonne-universite.fr'),
+    ('Sorbonne Université',               'FR', 'Paris',        'F PARIS468',   'https://www.sorbonne-universite.fr'),
     ('Universidad Politécnica de Madrid', 'ES', 'Madrid',       'E MADRID05',   'https://www.upm.es'),
     ('Uniwersytet Łódzki',                'PL', 'Łódź',         'PL LODZ01',    'https://www.uni.lodz.pl'),
     ('Aalto University',                  'FI', 'Espoo',        'SF ESPOO12',   'https://www.aalto.fi'),
@@ -57,6 +48,7 @@ with seeded_unis as (
     ('KU Leuven',                         'BE', 'Leuven',       'B LEUVEN01',   'https://www.kuleuven.be'),
     ('TU Wien',                           'AT', 'Vienna',       'A WIEN02',     'https://www.tuwien.at'),
     ('Technical University of Denmark',   'DK', 'Lyngby',       'DK LYNGBY01',  'https://www.dtu.dk')
+  on conflict (erasmus_code) do update set erasmus_code = excluded.erasmus_code
   returning id, erasmus_code
 ),
 
@@ -425,7 +417,7 @@ seeded_bips as (
       'bip-memoire@example.fr',
       'url',
       'https://example.fr/apply/european-memory-studies-paris-2026',
-      (select id from seeded_unis where erasmus_code = 'F PARIS004'),
+      (select id from seeded_unis where erasmus_code = 'F PARIS468'),
       false,
       '2026-04-18T08:00:00Z', '2026-04-18T08:00:00Z'
     ),
@@ -728,7 +720,7 @@ values
 
   -- BIP 4 (digital-democracy-europe-heidelberg-2026): Sorbonne (FK) + Charles (FK) + Univ. Warsaw (raw)
   ((select id from seeded_bips where slug = 'digital-democracy-europe-heidelberg-2026'),
-   (select id from seeded_unis where erasmus_code = 'F PARIS004'), null, null, null),
+   (select id from seeded_unis where erasmus_code = 'F PARIS468'), null, null, null),
   ((select id from seeded_bips where slug = 'digital-democracy-europe-heidelberg-2026'),
    (select id from seeded_unis where erasmus_code = 'CZ PRAHA07'), null, null, null),
   ((select id from seeded_bips where slug = 'digital-democracy-europe-heidelberg-2026'),
@@ -760,7 +752,7 @@ values
 
   -- BIP 8 (agroecology-food-systems-wageningen-2025): Sorbonne (FK) + Univ. Łódź (FK) + Univ. Hohenheim (raw)
   ((select id from seeded_bips where slug = 'agroecology-food-systems-wageningen-2025'),
-   (select id from seeded_unis where erasmus_code = 'F PARIS004'), null, null, null),
+   (select id from seeded_unis where erasmus_code = 'F PARIS468'), null, null, null),
   ((select id from seeded_bips where slug = 'agroecology-food-systems-wageningen-2025'),
    (select id from seeded_unis where erasmus_code = 'PL LODZ01'), null, null, null),
   ((select id from seeded_bips where slug = 'agroecology-food-systems-wageningen-2025'),
@@ -832,7 +824,7 @@ values
 
   -- BIP 17 (atlantic-heritage-blue-economy-lisbon-2026): Sorbonne (FK) + UPM (FK) + Univ. Galway (raw)
   ((select id from seeded_bips where slug = 'atlantic-heritage-blue-economy-lisbon-2026'),
-   (select id from seeded_unis where erasmus_code = 'F PARIS004'), null, null, null),
+   (select id from seeded_unis where erasmus_code = 'F PARIS468'), null, null, null),
   ((select id from seeded_bips where slug = 'atlantic-heritage-blue-economy-lisbon-2026'),
    (select id from seeded_unis where erasmus_code = 'E MADRID05'), null, null, null),
   ((select id from seeded_bips where slug = 'atlantic-heritage-blue-economy-lisbon-2026'),
