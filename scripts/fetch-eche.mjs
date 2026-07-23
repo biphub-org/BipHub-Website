@@ -102,6 +102,16 @@ function displayName(legal) {
     .join(' ')
 }
 
+/** Tidy a display name that carried the full legal name: a long name leading
+ *  with a quoted trading name collapses to that trade name; otherwise embedded
+ *  quote characters become spaces. legal_name keeps the untouched original. */
+function cleanupName(name) {
+  const s = (name || '').trim()
+  const lead = s.match(/^["“”«»]([^"“”«»]{3,})["“”«»]/)
+  if (lead && s.length > 60) return lead[1].replace(/\s+/g, ' ').trim()
+  return s.replace(/["“”«»]/g, ' ').replace(/\s+/g, ' ').trim()
+}
+
 function normalizeWebsite(url) {
   const s = (url || '').trim()
   if (!s) return null
@@ -140,7 +150,7 @@ async function main() {
     seen.add(code)
     const country = COUNTRY_REMAP[r.countryCodeIso] || r.countryCodeIso || r.country
     rows.push({
-      name: CURATED_NAMES[code] || displayName(r.organisationLegalName),
+      name: CURATED_NAMES[code] || cleanupName(displayName(r.organisationLegalName)),
       legal_name: (r.organisationLegalName || '').trim() || null,
       country,
       city: displayName(r.city) || null,
