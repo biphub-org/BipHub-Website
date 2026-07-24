@@ -16,12 +16,15 @@ export function BipCover({ bip }: { bip: BipDetail }) {
   const imageUrl = attachmentPublicUrl(bip.card_image_path)
 
   return (
-    <div className="relative mb-8 aspect-[12/5] w-full overflow-hidden rounded-xl border border-border bg-bg-soft">
+    <div className="group relative mb-8 aspect-[12/5] w-full overflow-hidden rounded-xl border border-border bg-bg-soft">
+      {/* Slow, shallow push-in on hover. Longer and gentler than the gallery
+          thumbnails' scale-105 — this is a large hero, so the same rate would
+          read as a lurch. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={imageUrl}
         alt=""
-        className="absolute inset-0 h-full w-full object-cover"
+        className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
       />
     </div>
   )

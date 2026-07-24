@@ -46,6 +46,13 @@ const ICON_CLASSES = {
   pending: 'text-white animate-pulse',
 } as const
 
+/**
+ * Heart hover-swell, shared by both display modes. Kept as a static string
+ * appended via cn() rather than interpolated into ICON_CLASSES — Tailwind v4's
+ * scanner cannot resolve template literals (CLAUDE.md never-do).
+ */
+const ICON_MOTION = 'transition-transform duration-200 ease-out group-hover:scale-110'
+
 /** Button label text for the button display mode — static lookup */
 const BUTTON_LABELS = {
   unsaved: 'Save this BIP',
@@ -140,7 +147,7 @@ export function SaveToggleIsland({
       <Button
         variant="outline"
         className={cn(
-          'w-full flex items-center gap-2 min-h-[44px]',
+          'group w-full flex items-center gap-2 min-h-[44px]',
           saved && isStudent ? 'text-eu-blue border-eu-blue' : '',
           className,
         )}
@@ -152,15 +159,16 @@ export function SaveToggleIsland({
       >
         <Heart
           size={20}
-          className={
+          className={cn(
             !isStudent
               ? 'text-muted'
               : isPending
                 ? ICON_CLASSES.pending
                 : saved
                   ? ICON_CLASSES.saved
-                  : 'text-muted'
-          }
+                  : 'text-muted',
+            ICON_MOTION,
+          )}
           aria-hidden="true"
         />
         {label}
@@ -182,13 +190,13 @@ export function SaveToggleIsland({
       aria-label={!isStudent ? 'Sign in to save' : ariaLabel}
       aria-pressed={isStudent ? saved : undefined}
       className={cn(
-        'flex items-center justify-center min-h-[44px] min-w-[44px]',
+        'group flex items-center justify-center min-h-[44px] min-w-[44px]',
         'rounded-full focus-visible:outline-none focus-visible:ring-2',
         'focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent',
         className,
       )}
     >
-      <Heart size={20} className={iconClass} aria-hidden="true" />
+      <Heart size={20} className={cn(iconClass, ICON_MOTION)} aria-hidden="true" />
     </button>
   )
 }

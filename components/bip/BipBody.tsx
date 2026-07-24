@@ -117,9 +117,13 @@ function UniversityCard({
     <li
       className={cn(
         'flex items-start gap-3 rounded-xl border p-4',
+        // Same lift/shadow vocabulary as the listing BipCard. The border tint
+        // follows the card's own role colour so the host stays gold on hover
+        // rather than flipping to the partner blue.
+        'transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md',
         isHost
-          ? 'border-eu-gold/50 bg-eu-gold-soft/30'
-          : 'border-border bg-white',
+          ? 'border-eu-gold/50 bg-eu-gold-soft/30 hover:border-eu-gold'
+          : 'border-border bg-white hover:border-eu-blue',
       )}
     >
       {countryCode ? (
@@ -161,8 +165,10 @@ function SupportCard({
   body: string
 }) {
   return (
-    <div className="rounded-xl border border-border bg-white p-5 shadow-[0_4px_16px_rgba(10,23,53,0.06)]">
-      <span className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-eu-blue-50 text-eu-blue">
+    <div className="group rounded-xl border border-border bg-white p-5 shadow-[0_4px_16px_rgba(10,23,53,0.06)] transition-all duration-200 hover:-translate-y-0.5 hover:border-eu-blue hover:shadow-lg">
+      {/* Icon chip warms to gold on card hover — the mockup's
+          `.cat-item:hover .cat-item-icon` treatment. */}
+      <span className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-eu-blue-50 text-eu-blue transition-colors duration-200 group-hover:bg-eu-gold group-hover:text-ink">
         <Icon size={20} strokeWidth={1.8} aria-hidden="true" />
       </span>
       <h3 className="text-[15px] font-semibold tracking-tight text-ink">
@@ -186,7 +192,7 @@ function ContactLink({
   return (
     <a
       href={href}
-      className="inline-flex items-center gap-2 rounded-pill border border-eu-blue/25 bg-white px-4 py-2 text-sm font-semibold text-eu-blue transition-colors hover:border-eu-blue/50 hover:bg-eu-blue-50"
+      className="inline-flex items-center gap-2 rounded-pill border border-eu-blue/25 bg-white px-4 py-2 text-sm font-semibold text-eu-blue transition-all duration-200 hover:-translate-y-px hover:border-eu-blue/50 hover:bg-eu-blue-50 hover:shadow-sm"
     >
       <Icon size={15} strokeWidth={1.9} aria-hidden="true" />
       {label}
@@ -283,8 +289,8 @@ export function BipBody({ bip }: { bip: BipDetail }) {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {/* Online / virtual tile */}
               {hasVirtual && (
-                <div className="rounded-xl border border-eu-blue-100 bg-white p-6 shadow-[0_4px_16px_rgba(10,23,53,0.06)]">
-                  <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-lg bg-eu-blue-50 text-eu-blue">
+                <div className="group rounded-xl border border-eu-blue-100 bg-white p-6 shadow-[0_4px_16px_rgba(10,23,53,0.06)] transition-all duration-200 hover:-translate-y-0.5 hover:border-eu-blue hover:shadow-lg">
+                  <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-lg bg-eu-blue-50 text-eu-blue transition-transform duration-200 group-hover:scale-105">
                     <Laptop size={22} strokeWidth={1.8} aria-hidden="true" />
                   </div>
                   <h3 className="text-[17px] font-semibold tracking-tight text-ink">
@@ -312,8 +318,8 @@ export function BipBody({ bip }: { bip: BipDetail }) {
 
               {/* On-site / physical tile */}
               {hasPhysical && (
-                <div className="rounded-xl border border-eu-gold/50 bg-eu-gold-soft/30 p-6 shadow-[0_4px_16px_rgba(10,23,53,0.06)]">
-                  <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-lg bg-eu-gold text-ink">
+                <div className="group rounded-xl border border-eu-gold/50 bg-eu-gold-soft/30 p-6 shadow-[0_4px_16px_rgba(10,23,53,0.06)] transition-all duration-200 hover:-translate-y-0.5 hover:border-eu-gold hover:shadow-lg">
+                  <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-lg bg-eu-gold text-ink transition-transform duration-200 group-hover:scale-105">
                     <Building2 size={22} strokeWidth={1.8} aria-hidden="true" />
                   </div>
                   <h3 className="text-[17px] font-semibold tracking-tight text-ink">
@@ -512,12 +518,20 @@ export function BipBody({ bip }: { bip: BipDetail }) {
                   target="_blank"
                   rel="noopener noreferrer"
                   className={cn(
-                    'inline-flex shrink-0 items-center gap-1 rounded-pill px-5 py-3 text-base font-semibold',
-                    'bg-eu-blue text-white transition-colors hover:bg-eu-blue-dark',
+                    'group inline-flex shrink-0 items-center gap-1 rounded-pill px-5 py-3 text-base font-semibold',
+                    // The mockup's primary-button hover: 1px lift + shadow.
+                    'bg-eu-blue text-white transition-all duration-200',
+                    'hover:-translate-y-px hover:bg-eu-blue-dark hover:shadow-md',
                     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eu-blue focus-visible:ring-offset-2',
                   )}
                 >
-                  Apply via host university →
+                  Apply via host university
+                  <span
+                    aria-hidden="true"
+                    className="transition-transform duration-200 ease-out group-hover:translate-x-0.5"
+                  >
+                    →
+                  </span>
                 </Link>
               </div>
             ) : bip.how_to_apply_type === 'contact' && bip.contact_email ? (

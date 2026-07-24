@@ -129,13 +129,16 @@ function StatTile({
   span,
 }: StatTileProps & { span?: boolean }) {
   return (
+    // Matches the mockup's `.stat:hover` — a small lift and a background step.
+    // Non-interactive by design, so the tint stays subtle rather than reading
+    // as a click target.
     <div
-      className={`rounded-lg bg-bg-soft px-3 py-3 ${span ? 'col-span-2' : ''}`}
+      className={`group rounded-lg bg-bg-soft px-3 py-3 transition-all duration-200 hover:-translate-y-0.5 hover:bg-eu-blue-50 ${span ? 'col-span-2' : ''}`}
     >
       <Icon
         size={15}
         strokeWidth={1.9}
-        className="text-eu-blue"
+        className="text-eu-blue transition-transform duration-200 group-hover:scale-110"
         aria-hidden="true"
       />
       <p

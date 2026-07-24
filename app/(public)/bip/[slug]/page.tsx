@@ -135,9 +135,13 @@ export default async function BipDetailPage({
         {/* Breadcrumb — UI-SPEC line 268 */}
         <Link
           href="/bips"
-          className="inline-flex items-center gap-1 text-sm text-muted hover:text-eu-blue mb-6 transition-colors"
+          className="group inline-flex items-center gap-1 text-sm text-muted hover:text-eu-blue mb-6 transition-colors"
         >
-          <IconChevronLeft size={16} aria-hidden="true" />
+          <IconChevronLeft
+            size={16}
+            aria-hidden="true"
+            className="transition-transform duration-200 ease-out group-hover:-translate-x-0.5"
+          />
           All BIPs
         </Link>
 

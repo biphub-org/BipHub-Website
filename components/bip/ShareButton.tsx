@@ -41,13 +41,17 @@ export function ShareButton({
       onClick={onClick}
       aria-label="Share this BIP"
       className={cn(
-        'inline-flex items-center justify-center w-11 h-11 rounded-md text-ink-2',
-        'hover:bg-bg-soft hover:text-ink transition-colors',
+        'group inline-flex items-center justify-center w-11 h-11 rounded-md text-ink-2',
+        'hover:bg-bg-soft hover:text-ink transition-colors duration-200',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eu-blue focus-visible:ring-offset-2',
         className,
       )}
     >
-      <IconShare size={20} aria-hidden="true" />
+      <IconShare
+        size={20}
+        aria-hidden="true"
+        className="transition-transform duration-200 ease-out group-hover:scale-110"
+      />
     </button>
   )
 }
