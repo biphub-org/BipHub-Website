@@ -8,20 +8,27 @@
  *   universities) OR a free-text fallback. Free-text entries are flagged
  *   `isVerified: false` and gain the "(unverified)" suffix at submit time
  *   (Plan 02-07).
- * - Step 3 does NOT trigger the wizard's debounced auto-save:
- *   `saveDraftAction` strips `partner_universities` from its payload because
- *   partners require a finalized `bip_id` and live in a separate table written
- *   by `submitBipAction`. Partners are persisted in Zustand + localStorage only
- *   until submission.
- * - Partners are mirrored into Zustand on every change so step navigation /
- *   session-expiry recovery preserve them.
+ * - Every change is mirrored into Zustand (for step navigation and
+ *   session-expiry recovery) AND pushed through the wizard's debounced
+ *   auto-save, matching steps 1/2/4. `saveDraftAction` reconciles
+ *   `partner_universities` into the `bip_partner_universities` table once a
+ *   `bip_id` exists — which it always does here, since Step 1 creates the row.
+ *
+ *   This step used to skip auto-save entirely because the action dropped
+ *   partners on the floor, leaving them in memory only: a hard refresh
+ *   re-hydrated from the DB and the list came back empty unless the
+ *   coordinator had pressed "Save & continue" first.
  */
 
 import { useState } from 'react'
 import { Trash2 } from 'lucide-react'
 import { Checkbox } from '@/components/ui/checkbox'
 import { UniversityCombobox } from '@/components/dashboard/UniversityCombobox'
-import { useBipDraft, type Step3PartnerDraft } from '@/lib/store/bip-draft'
+import {
+  useBipDraft,
+  type Step3PartnerDraft,
+  type BipDraftData,
+} from '@/lib/store/bip-draft'
 import { step3Schema, type Step3Values } from '@/lib/schemas/bip-wizard'
 import type { UniversitySearchResult } from '@/lib/actions/universities'
 
@@ -34,12 +41,14 @@ interface Props {
   }
   initialUniversities: UniversitySearchResult[]
   onContinue: (values: Step3Values) => void
+  onAutoSave: (payload: Partial<BipDraftData>) => void
 }
 
 export function WizardStep3Partners({
   hostUniversity,
   initialUniversities,
   onContinue,
+  onAutoSave,
 }: Props) {
   const draft = useBipDraft((s) => s.draft)
   const mergeDraft = useBipDraft((s) => s.mergeDraft)
@@ -53,9 +62,13 @@ export function WizardStep3Partners({
   const [pickerKey, setPickerKey] = useState(0) // remount UniversityCombobox after add
   const [error, setError] = useState<string | null>(null)
 
+  // Adding or removing a partner is a discrete, deliberate action (no typing to
+  // settle), but it still goes through the debounced auto-save so a burst of
+  // adds collapses into one write instead of one round-trip per chip.
   function commit(next: Step3PartnerDraft[]) {
     setPartners(next)
     mergeDraft({ partner_universities: next })
+    onAutoSave({ partner_universities: next })
   }
 
   function addRegistered(_id: string, u: UniversitySearchResult) {
@@ -188,6 +201,7 @@ export function WizardStep3Partners({
             const boolNext = Boolean(next)
             setPartnerOnly(boolNext)
             mergeDraft({ partner_institutions_only: boolNext })
+            onAutoSave({ partner_institutions_only: boolNext })
           }}
         />
         <span>

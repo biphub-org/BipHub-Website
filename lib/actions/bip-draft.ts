@@ -13,21 +13,33 @@
  *     `.eq('updated_at', lastKnownUpdatedAt)`. When 0 rows match,
  *     `.maybeSingle()` returns `{ data: null }` and we surface
  *     `{ error: 'conflict' }` so the wizard can show the two-tab dialog.
- *   - `partner_universities` is intentionally stripped from the persistable
- *     payload — partners live in the `bip_partner_universities` table and
- *     require a finalized `bip_id`; Plan 02-07 writes them at submit time.
+ *   - `partner_universities` is not a `bips` column — partners live in the
+ *     `bip_partner_universities` table — so it is stripped from the column
+ *     payload and reconciled separately once a `bip_id` exists (see
+ *     `reconcilePartners` below). It used to be dropped entirely, on the
+ *     reasoning that submit would write it; but that left partners in Zustand
+ *     memory only, so a hard refresh mid-draft re-hydrated from the DB and the
+ *     list came back empty.
  *   - Slug is generated only on first INSERT; subsequent updates do NOT touch
  *     it. Status is hard-coded to `'draft'` on insert and never set on update
  *     — the RLS policy `bips_update_own_draft_or_pending` (migration 00006)
  *     forbids self-promotion to `approved`/`rejected`.
  */
 
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
 import { generateDraftSlug } from '@/lib/utils/slug'
+import { toPartnerRows } from '@/lib/utils/partners'
 import type { BipDraftData } from '@/lib/store/bip-draft'
 
 export type SaveDraftResult =
-  | { success: true; bipId: string; updatedAt: string }
+  // `warning` reports a non-fatal partial save: the `bips` row committed (so
+  // `updatedAt` is the caller's new lock and MUST be adopted) but the partner
+  // reconciliation did not. Returning a plain error here instead would leave
+  // the client holding a stale lock against a row whose updated_at just moved
+  // — the exact false-"updated in another tab" conflict this file already
+  // guards against elsewhere.
+  | { success: true; bipId: string; updatedAt: string; warning?: string }
   | { error: 'conflict' }
   // The row exists and the lock still matches, but the UPDATE matched 0 rows —
   // i.e. RLS filtered it (a status this coordinator may not edit in place).
@@ -36,6 +48,48 @@ export type SaveDraftResult =
   | { error: 'forbidden'; message: string }
   | { error: 'auth' }
   | { error: 'unknown'; message: string }
+
+/**
+ * Delete-then-insert the partner rows for `bipId` (same reconciliation the
+ * submit and admin-edit paths use). Returns a warning string on failure rather
+ * than throwing — the caller has already committed the `bips` row and must
+ * still hand its new lock back to the client.
+ *
+ * Only called when `partner_universities` is actually present on the incoming
+ * payload: the debounced per-field auto-saves send a single step's fields, so
+ * they skip this entirely. It runs on "Save & continue" (which sends the whole
+ * merged draft) and on explicit retries — a handful of times per session.
+ *
+ * RLS: `bip_partners_insert_own` / `bip_partners_delete_own` (migration 00006)
+ * gate on `bips.created_by` with no status predicate, so a draft-status row is
+ * writable here without any policy change.
+ */
+async function reconcilePartners(
+  supabase: SupabaseClient,
+  bipId: string,
+  partners: NonNullable<BipDraftData['partner_universities']>,
+): Promise<string | undefined> {
+  const { error: deleteError } = await supabase
+    .from('bip_partner_universities')
+    .delete()
+    .eq('bip_id', bipId)
+  if (deleteError) {
+    console.error('[saveDraftAction] partner delete error:', deleteError.message)
+    return 'Your partner universities could not be saved. They are still on screen — try saving again.'
+  }
+
+  const rows = toPartnerRows(bipId, partners)
+  if (rows.length === 0) return undefined
+
+  const { error: insertError } = await supabase
+    .from('bip_partner_universities')
+    .insert(rows)
+  if (insertError) {
+    console.error('[saveDraftAction] partner insert error:', insertError.message)
+    return 'Your partner universities could not be saved. They are still on screen — try saving again.'
+  }
+  return undefined
+}
 
 export async function saveDraftAction(
   stepData: Partial<BipDraftData>,
@@ -50,18 +104,20 @@ export async function saveDraftAction(
   const userId = claimsData.claims.sub
 
   // Reshape the wizard's flat draft into bips columns:
-  //   - partner_universities: a separate table, written at submit time — dropped.
+  //   - partner_universities: a separate table — lifted out of the column
+  //     payload here and reconciled after the row write, once bipId is known.
   //   - how_to_apply_url: a form-only field. The bips column is
   //     `how_to_apply_value` — one column holding the URL or the contact email,
   //     discriminated by `how_to_apply_type`. Mirrors submitBipAction's transform;
   //     without this the UPDATE fails ("Could not find the 'how_to_apply_url'
   //     column") and Step 4 of the wizard can never save.
-  const {
-    partner_universities: _ignoredPartners,
-    how_to_apply_url,
-    ...rest
-  } = stepData
-  void _ignoredPartners
+  const { partner_universities, how_to_apply_url, ...rest } = stepData
+
+  // Presence of the KEY is the signal, not truthiness: a payload that omits it
+  // (every debounced per-step auto-save) must leave the existing partner rows
+  // alone, while an explicit `[]` means the coordinator removed the last
+  // partner and the rows should go.
+  const hasPartners = 'partner_universities' in stepData
 
   const howToApply =
     'how_to_apply_url' in stepData || 'how_to_apply_type' in stepData
@@ -166,7 +222,16 @@ export async function saveDraftAction(
       }
     }
 
-    return { success: true, bipId: data.id, updatedAt: data.updated_at }
+    const warning = hasPartners
+      ? await reconcilePartners(supabase, data.id, partner_universities ?? [])
+      : undefined
+
+    return {
+      success: true,
+      bipId: data.id,
+      updatedAt: data.updated_at,
+      warning,
+    }
   }
 
   // First INSERT — generate a draft slug to satisfy bips.slug NOT NULL.
@@ -204,5 +269,13 @@ export async function saveDraftAction(
     console.error('[saveDraftAction] insert error:', error.message)
     return { error: 'unknown', message: error.message }
   }
-  return { success: true, bipId: data.id, updatedAt: data.updated_at }
+
+  // Partners cannot exist before the row does (Step 1 creates it, Step 3 adds
+  // partners), so this is defensive — but a draft restored from localStorage
+  // after a session expiry can arrive here fully populated.
+  const warning = hasPartners
+    ? await reconcilePartners(supabase, data.id, partner_universities ?? [])
+    : undefined
+
+  return { success: true, bipId: data.id, updatedAt: data.updated_at, warning }
 }

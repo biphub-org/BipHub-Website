@@ -290,6 +290,13 @@ export function BipSubmissionWizard({
         setBipId(result.bipId)
         setLastKnownUpdatedAt(result.updatedAt)
         setSaveStatus('idle')
+        // Partial save: the bips row committed (so the lock above is current
+        // and MUST be adopted) but partner reconciliation failed. Report it
+        // without blocking — the partner list is still in the store, so the
+        // next save retries it.
+        if (result.warning) {
+          toast.warning(result.warning, { duration: 5000 })
+        }
         return { ok: true as const }
       })
       // Keep the chain alive after a rejected/failed link so later saves still
@@ -478,6 +485,7 @@ export function BipSubmissionWizard({
                 hostUniversity={hostUniversity}
                 initialUniversities={initialUniversities}
                 onContinue={(values) => void saveAndContinue(values)}
+                onAutoSave={(payload) => debouncedAutoSave(payload)}
               />
             ) : currentStep === 4 ? (
               <WizardStep4ApplicationInfo

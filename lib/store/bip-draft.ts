@@ -47,8 +47,9 @@ export type BipDraftData = {
   study_levels?: Array<'vocational' | 'bachelor' | 'master' | 'phd' | 'none'>
   language_of_instruction?: string
   language_level_min?: 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2' | 'none'
-  // Step 3 — partner_universities is preserved in Zustand/localStorage only
-  // until submission; saveDraftAction strips it (foreign-key requires bip_id).
+  // Step 3 — not a `bips` column. saveDraftAction lifts this out of the column
+  // payload and reconciles it into `bip_partner_universities` after the row
+  // write, so it survives a refresh mid-draft like every other field.
   partner_universities?: Step3PartnerDraft[]
   partner_institutions_only?: boolean
   // Step 4
