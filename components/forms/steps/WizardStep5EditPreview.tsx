@@ -31,8 +31,7 @@ import { useBipDraft } from '@/lib/store/bip-draft'
 import { draftToBipDetail } from '@/components/forms/wizardAdapter'
 import { usePreviewAttachments } from '@/components/forms/usePreviewAttachments'
 import { submitEditAction, resubmitEditAction, resubmitPendingBipAction } from '@/lib/actions/bip-edits'
-import { BipBody } from '@/components/bip/BipBody'
-import { BipSidebar } from '@/components/bip/BipSidebar'
+import { InlineBipPreview } from '@/components/forms/InlineBipPreview'
 import { FullPagePreview } from '@/components/forms/FullPagePreview'
 
 export type EditPreviewState = 'state-a' | 'state-b' | 'state-c' | 'd06a'
@@ -142,13 +141,9 @@ export function WizardStep5EditPreview({
         </Alert>
       )}
 
-      {/* Two-column preview matching public detail page */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6">
-        <div>
-          <BipBody bip={previewBip} />
-        </div>
-        <BipSidebar bip={previewBip} />
-      </div>
+      {/* Single-column render — see InlineBipPreview for why the detail page's
+          two-column grid cannot be used inside the ~696px wizard card. */}
+      <InlineBipPreview bip={previewBip} />
 
       {/* State A: Submit Edit for Review */}
       {editState === 'state-a' && (

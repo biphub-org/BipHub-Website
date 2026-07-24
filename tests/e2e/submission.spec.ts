@@ -252,11 +252,14 @@ test.describe('submission wizard', () => {
     await advance(page, 4)
 
     // ----- Step 5: Preview + Submit -----
-    // The preview reuses <BipBody>/<BipSidebar>, which don't render the title
-    // (that's page chrome on the public route). Assert on the preview banner to
-    // confirm Step 5 rendered, then submit.
+    // The preview renders the detail page single-column via <InlineBipPreview>
+    // (cover → header → key facts → body), so the BIP title is on screen as the
+    // preview's h1. Assert the banner *and* the title, then submit.
     await expect(
       page.getByText(/this is a preview of your bip/i),
+    ).toBeVisible({ timeout: 5_000 })
+    await expect(
+      page.getByRole('heading', { level: 1, name: E2E_TITLE }),
     ).toBeVisible({ timeout: 5_000 })
     await page.getByRole('button', { name: /submit for review/i }).click()
 

@@ -3,10 +3,12 @@
 /**
  * Step 5 — Preview & submit (SUBM-03 / SUBM-08).
  *
- * Renders the full BIP using the public-page components `<BipBody>` and
- * `<BipSidebar>` via the `draftToBipDetail` adapter (Pitfall 4), so the
- * coordinator sees exactly what students will see on the public catalog
- * once the BIP is approved.
+ * Renders the full BIP using the public-page components via the
+ * `draftToBipDetail` adapter (Pitfall 4), so the coordinator sees exactly what
+ * students will see on the public catalog once the BIP is approved:
+ *   - `<InlineBipPreview>` — embedded, single-column (the wizard card is only
+ *     ~696px wide; see that file for why the two-column grid can't fit).
+ *   - `<FullPagePreview>`  — overlay, the wide two-column detail layout.
  *
  * Submit flow:
  *   1. Read `bipId` + `draft` from the wizard's Zustand store.
@@ -29,8 +31,7 @@ import { useBipDraft } from '@/lib/store/bip-draft'
 import { draftToBipDetail } from '@/components/forms/wizardAdapter'
 import { usePreviewAttachments } from '@/components/forms/usePreviewAttachments'
 import { submitBipAction } from '@/lib/actions/bip-submit'
-import { BipBody } from '@/components/bip/BipBody'
-import { BipSidebar } from '@/components/bip/BipSidebar'
+import { InlineBipPreview } from '@/components/forms/InlineBipPreview'
 import { FullPagePreview } from '@/components/forms/FullPagePreview'
 
 interface Props {
@@ -99,13 +100,11 @@ export function WizardStep5Preview({ hostUniversity }: Props) {
         </Alert>
       )}
 
-      {/* Two-column layout matching public detail page (Phase 1 Plan 01-07). */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6">
-        <div className="min-w-0">
-          <BipBody bip={previewBip} />
-        </div>
-        <BipSidebar bip={previewBip} />
-      </div>
+      {/* Single-column render of the public detail page — the wizard card is
+          only ~696px wide, so the desktop two-column grid does not fit here.
+          See InlineBipPreview for the full rationale; FullPagePreview above is
+          the wide, two-column faithful render. */}
+      <InlineBipPreview bip={previewBip} />
 
       <div className="flex justify-end">
         <Button
