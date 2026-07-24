@@ -20,7 +20,7 @@ Routes to the settings workflow which handles:
 </objective>
 
 <execution_context>
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/settings.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/settings.md
 </execution_context>
 
 <process>

@@ -21,10 +21,10 @@ Import external plan files into the GSD planning system with conflict detection 
 </objective>
 
 <execution_context>
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/import.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/references/ui-brand.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/references/gate-prompts.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/references/doc-conflict-engine.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/import.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/references/ui-brand.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/references/gate-prompts.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/references/doc-conflict-engine.md
 </execution_context>
 
 <context>
@@ -33,7 +33,7 @@ $ARGUMENTS
 
 <process>
 If `--from-gsd2` is in $ARGUMENTS:
-Run: `node "C:/dev/Antigravity/BIP_project/.claude/get-shit-done/bin/gsd-tools.cjs" from-gsd2`
+Run: `node "C:/dev/Antigravity/BipHub/.claude/get-shit-done/bin/gsd-tools.cjs" from-gsd2`
 Pass `--path <dir>` if provided. Present the migration result to the user.
 Stop here (do not run the standard import workflow).
 

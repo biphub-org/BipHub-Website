@@ -40,7 +40,7 @@ works via Bash and produces equivalent output.
 </documentation_lookup>
 
 <required_reading>
-Read `C:/dev/Antigravity/BIP_project/.claude/get-shit-done/references/ai-evals.md` — specifically the rubric design and domain expert sections.
+Read `C:/dev/Antigravity/BipHub/.claude/get-shit-done/references/ai-evals.md` — specifically the rubric design and domain expert sections.
 </required_reading>
 
 <input>

@@ -5,7 +5,7 @@ Use after /gsd-execute-phase to verify that the evaluation strategy from AI-SPEC
 </purpose>
 
 <required_reading>
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/references/ai-evals.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/references/ai-evals.md
 </required_reading>
 
 <process>
@@ -78,7 +78,7 @@ Build file list for auditor:
 Build prompt:
 
 ```markdown
-Read C:/dev/Antigravity/BIP_project/.claude/agents/gsd-eval-auditor.md for instructions.
+Read C:/dev/Antigravity/BipHub/.claude/agents/gsd-eval-auditor.md for instructions.
 
 <objective>
 Conduct evaluation coverage audit of Phase {phase_number}: {phase_name}

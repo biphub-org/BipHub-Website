@@ -25,7 +25,7 @@ Routes to the update workflow which handles:
 </objective>
 
 <execution_context>
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/update.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/update.md
 </execution_context>
 
 <flags>
@@ -43,6 +43,6 @@ Parse the first token of $ARGUMENTS:
 </process>
 
 <execution_context_extended>
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/sync-skills.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/reapply-patches.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/sync-skills.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/reapply-patches.md
 </execution_context_extended>

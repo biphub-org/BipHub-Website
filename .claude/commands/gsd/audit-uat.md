@@ -12,7 +12,7 @@ Scan all phases for pending, skipped, blocked, and human_needed UAT items. Cross
 </objective>
 
 <execution_context>
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/audit-uat.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/audit-uat.md
 </execution_context>
 
 <context>

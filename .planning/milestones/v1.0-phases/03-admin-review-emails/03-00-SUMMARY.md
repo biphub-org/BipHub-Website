@@ -129,7 +129,7 @@ Each task was committed atomically on `worktree-agent-af76bdecfd8c8b9a9` branch:
 ## Issues Encountered
 
 **1. Worktree absolute-path drift during first Edit/Write attempts**
-- **Symptom:** My first round of `Edit` calls used the absolute path `C:\dev\Antigravity\BIP_project\package.json` (main repo) when I should have used the worktree absolute path `C:\dev\Antigravity\BIP_project\.claude\worktrees\agent-af76bdecfd8c8b9a9\package.json`. This is the exact #3099 worktree absolute-path drift scenario.
+- **Symptom:** My first round of `Edit` calls used the absolute path `C:\dev\Antigravity\BipHub\package.json` (main repo) when I should have used the worktree absolute path `C:\dev\Antigravity\BipHub\.claude\worktrees\agent-af76bdecfd8c8b9a9\package.json`. This is the exact #3099 worktree absolute-path drift scenario.
 - **Detection:** `git diff` in the main repo showed my package.json edits had landed there instead of the worktree.
 - **Recovery:** Ran `git checkout -- package.json` in the main repo to restore it; re-applied edits using the worktree absolute path. Verified main-repo `git status` shows no package.json changes (only the orchestrator-owned `.planning/STATE.md` edit, which is expected).
 - **Impact on plan output:** Zero. All 3 task commits landed on the correct worktree branch; the main repo was left clean.

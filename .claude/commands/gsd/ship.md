@@ -17,7 +17,7 @@ Closes the plan → execute → verify → ship loop.
 </objective>
 
 <execution_context>
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/ship.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/ship.md
 </execution_context>
 
-Execute the ship workflow from @C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/ship.md end-to-end.
+Execute the ship workflow from @C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/ship.md end-to-end.

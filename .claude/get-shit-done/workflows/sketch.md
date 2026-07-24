@@ -11,10 +11,10 @@ Supports two modes:
 <required_reading>
 Read all files referenced by the invoking prompt's execution_context before starting.
 
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/references/sketch-theme-system.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/references/sketch-variant-patterns.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/references/sketch-interactivity.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/references/sketch-tooling.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/references/sketch-theme-system.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/references/sketch-variant-patterns.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/references/sketch-interactivity.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/references/sketch-tooling.md
 </required_reading>
 
 <process>

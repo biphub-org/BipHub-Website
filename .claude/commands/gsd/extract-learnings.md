@@ -16,7 +16,7 @@ Extract structured learnings from completed phase artifacts (PLAN.md, SUMMARY.md
 </objective>
 
 <execution_context>
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/extract-learnings.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/extract-learnings.md
 </execution_context>
 
-Execute the extract-learnings workflow from @C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/extract-learnings.md end-to-end.
+Execute the extract-learnings workflow from @C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/extract-learnings.md end-to-end.

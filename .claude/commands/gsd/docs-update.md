@@ -25,7 +25,7 @@ Flag handling rule:
 </objective>
 
 <execution_context>
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/docs-update.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/docs-update.md
 </execution_context>
 
 <context>

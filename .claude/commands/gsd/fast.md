@@ -22,7 +22,7 @@ you could describe in one sentence and execute in under 2 minutes.
 </objective>
 
 <execution_context>
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/fast.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/fast.md
 </execution_context>
 
 <process>

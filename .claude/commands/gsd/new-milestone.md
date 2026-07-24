@@ -25,11 +25,11 @@ Brownfield equivalent of new-project. Project exists, PROJECT.md has history. Ga
 </objective>
 
 <execution_context>
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/new-milestone.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/references/questioning.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/references/ui-brand.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/templates/project.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/templates/requirements.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/new-milestone.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/references/questioning.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/references/ui-brand.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/templates/project.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/templates/requirements.md
 </execution_context>
 
 <context>

@@ -31,8 +31,8 @@ Context budget: ~15% orchestrator, 100% fresh per subagent.
 </objective>
 
 <execution_context>
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/execute-phase.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/references/ui-brand.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/execute-phase.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/references/ui-brand.md
 </execution_context>
 
 <runtime_note>

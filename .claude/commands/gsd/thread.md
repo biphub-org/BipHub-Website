@@ -15,7 +15,7 @@ doesn't belong to any specific phase.
 </objective>
 
 <execution_context>
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/thread.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/thread.md
 </execution_context>
 
 <process>

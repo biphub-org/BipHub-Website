@@ -1,6 +1,6 @@
 ﻿$ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-$f02 = 'C:\dev\Antigravity\BIP_project\.planning\phases\01-discovery-foundation\01-02-PLAN.md'
+$f02 = 'C:\dev\Antigravity\BipHub\.planning\phases\01-discovery-foundation\01-02-PLAN.md'
 
 # Build chars from codepoints to avoid script-encoding issues
 $bt = [string][char]0x60   # backtick

@@ -28,8 +28,8 @@ Clarify phase requirements through structured Socratic questioning with quantita
 </objective>
 
 <execution_context>
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/spec-phase.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/templates/spec.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/spec-phase.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/templates/spec.md
 </execution_context>
 
 <runtime_note>

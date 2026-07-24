@@ -20,8 +20,8 @@ Output: {phase_num}-UAT.md tracking all test results. If issues found: diagnosed
 </objective>
 
 <execution_context>
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/verify-work.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/templates/UAT.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/verify-work.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/templates/UAT.md
 </execution_context>
 
 <context>

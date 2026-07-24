@@ -28,10 +28,10 @@ Three modes:
 </flags>
 
 <execution_context>
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/progress.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/next.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/do.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/references/ui-brand.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/progress.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/next.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/do.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/references/ui-brand.md
 </execution_context>
 
 <process>

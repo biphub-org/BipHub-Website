@@ -29,10 +29,10 @@ Mode routing:
 </routing>
 
 <execution_context>
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/new-workspace.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/list-workspaces.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/remove-workspace.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/references/ui-brand.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/new-workspace.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/list-workspaces.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/remove-workspace.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/references/ui-brand.md
 </execution_context>
 
 <context>

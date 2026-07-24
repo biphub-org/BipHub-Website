@@ -17,7 +17,7 @@ changes that are irrelevant to code review.
 </objective>
 
 <execution_context>
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/pr-branch.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/pr-branch.md
 </execution_context>
 
 <process>

@@ -33,11 +33,11 @@ Initialize a new project through unified flow: questioning → research (optiona
 </objective>
 
 <execution_context>
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/new-project.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/references/questioning.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/references/ui-brand.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/templates/project.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/templates/requirements.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/new-project.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/references/questioning.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/references/ui-brand.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/templates/project.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/templates/requirements.md
 </execution_context>
 
 <process>

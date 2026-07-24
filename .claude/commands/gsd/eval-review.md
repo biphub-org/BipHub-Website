@@ -18,8 +18,8 @@ Produces EVAL-REVIEW.md with score, verdict, gaps, and remediation plan.
 </objective>
 
 <execution_context>
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/eval-review.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/references/ai-evals.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/eval-review.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/references/ai-evals.md
 </execution_context>
 
 <context>

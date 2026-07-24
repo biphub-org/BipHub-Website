@@ -17,7 +17,7 @@ Turn domain rubric ingredients into measurable, tooled evaluation criteria. Writ
 </role>
 
 <required_reading>
-Read `C:/dev/Antigravity/BIP_project/.claude/get-shit-done/references/ai-evals.md` before planning. This is your evaluation framework.
+Read `C:/dev/Antigravity/BipHub/.claude/get-shit-done/references/ai-evals.md` before planning. This is your evaluation framework.
 </required_reading>
 
 <input>

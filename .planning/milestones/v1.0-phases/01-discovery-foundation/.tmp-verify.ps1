@@ -9,10 +9,10 @@ function Check {
     Write-Host ("[$mark] $Tag (present={0}, expected={1})" -f $present, $ExpectPresent)
 }
 
-$f04 = 'C:\dev\Antigravity\BIP_project\.planning\phases\01-discovery-foundation\01-04-PLAN.md'
-$f06 = 'C:\dev\Antigravity\BIP_project\.planning\phases\01-discovery-foundation\01-06-PLAN.md'
-$f02 = 'C:\dev\Antigravity\BIP_project\.planning\phases\01-discovery-foundation\01-02-PLAN.md'
-$f07 = 'C:\dev\Antigravity\BIP_project\.planning\phases\01-discovery-foundation\01-07-PLAN.md'
+$f04 = 'C:\dev\Antigravity\BipHub\.planning\phases\01-discovery-foundation\01-04-PLAN.md'
+$f06 = 'C:\dev\Antigravity\BipHub\.planning\phases\01-discovery-foundation\01-06-PLAN.md'
+$f02 = 'C:\dev\Antigravity\BipHub\.planning\phases\01-discovery-foundation\01-02-PLAN.md'
+$f07 = 'C:\dev\Antigravity\BipHub\.planning\phases\01-discovery-foundation\01-07-PLAN.md'
 
 Write-Host '=== 01-04 (B3 + W1) ==='
 Check $f04 'npx shadcn@latest add sheet' 'B3-deps shadcn install line' $true

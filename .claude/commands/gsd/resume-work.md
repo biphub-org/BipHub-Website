@@ -22,7 +22,7 @@ Routes to the resume-project workflow which handles:
   </objective>
 
 <execution_context>
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/resume-project.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/resume-project.md
 </execution_context>
 
 <process>

@@ -22,7 +22,7 @@ Output: updated VALIDATION.md + generated test files.
 </objective>
 
 <execution_context>
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/validate-phase.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/validate-phase.md
 </execution_context>
 
 <context>

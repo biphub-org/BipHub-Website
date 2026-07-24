@@ -21,7 +21,7 @@ Validate `.planning/` directory integrity and report actionable issues. Checks f
 </objective>
 
 <execution_context>
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/health.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/health.md
 </execution_context>
 
 <process>

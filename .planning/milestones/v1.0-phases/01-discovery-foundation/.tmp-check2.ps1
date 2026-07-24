@@ -1,5 +1,5 @@
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-$c = Get-Content -Raw -Encoding UTF8 -Path 'C:\dev\Antigravity\BIP_project\.planning\phases\01-discovery-foundation\01-06-PLAN.md'
+$c = Get-Content -Raw -Encoding UTF8 -Path 'C:\dev\Antigravity\BipHub\.planning\phases\01-discovery-foundation\01-06-PLAN.md'
 $idx = $c.IndexOf('iso2 + name')
 Write-Host "iso2 idx: $idx"
 $slice = $c.Substring($idx - 5, 5)

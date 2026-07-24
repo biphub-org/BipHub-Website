@@ -27,10 +27,10 @@ Auto-synthesizes most conflicts using the precedence rule `ADR > SPEC > PRD > DO
 </objective>
 
 <execution_context>
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/ingest-docs.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/references/ui-brand.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/references/gate-prompts.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/references/doc-conflict-engine.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/ingest-docs.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/references/ui-brand.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/references/gate-prompts.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/references/doc-conflict-engine.md
 </execution_context>
 
 <context>

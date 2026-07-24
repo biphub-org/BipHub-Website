@@ -11,7 +11,7 @@ Instantly restore full project context so "Where were we?" has an immediate, com
 </purpose>
 
 <required_reading>
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/references/continuation-format.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/references/continuation-format.md
 </required_reading>
 
 <process>

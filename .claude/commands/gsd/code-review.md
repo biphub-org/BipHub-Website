@@ -30,7 +30,7 @@ Output: {padded_phase}-REVIEW.md in phase directory + inline summary of findings
 </objective>
 
 <execution_context>
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/code-review.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/code-review.md
 </execution_context>
 
 <context>

@@ -31,9 +31,9 @@ Mode routing:
 </routing>
 
 <execution_context>
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/settings.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/settings-advanced.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/settings-integrations.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/settings.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/settings-advanced.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/settings-integrations.md
 </execution_context>
 
 <context>

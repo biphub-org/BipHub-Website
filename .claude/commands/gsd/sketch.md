@@ -29,13 +29,13 @@ Does not require `/gsd-new-project` — auto-creates `.planning/sketches/` if ne
 </objective>
 
 <execution_context>
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/sketch.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/sketch-wrap-up.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/references/ui-brand.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/references/sketch-theme-system.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/references/sketch-interactivity.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/references/sketch-tooling.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/references/sketch-variant-patterns.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/sketch.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/sketch-wrap-up.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/references/ui-brand.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/references/sketch-theme-system.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/references/sketch-interactivity.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/references/sketch-tooling.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/references/sketch-variant-patterns.md
 </execution_context>
 
 <runtime_note>

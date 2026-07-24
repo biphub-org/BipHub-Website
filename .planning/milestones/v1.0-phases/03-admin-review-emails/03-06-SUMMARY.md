@@ -127,7 +127,7 @@ completed: 2026-05-12
 
 - **Found during:** Task 2 (npm run build verification)
 - **Issue:** Worktree at `.claude/worktrees/agent-a49cc531b9371da34/` had no `node_modules/`. Initial `ln -sf` symlink attempt produced a directory entry that fooled `ls` but didn't resolve for `node`. `npx shadcn add` had also created a stray `package-lock.json` and a partial `node_modules` resolution that caused `next build` to crash with `useContext` is null inside `/_error` prerender.
-- **Fix:** Removed the stale `node_modules` + worktree-local `package-lock.json`, then created a proper Windows directory junction via `cmd //c "mklink /J node_modules C:\dev\Antigravity\BIP_project\node_modules"` so `node` correctly resolves the main repo's installed packages. Restored the tracked `package-lock.json` from `HEAD` via `git checkout HEAD -- package-lock.json`. Cleaned the junction with `cmd //c "rmdir node_modules"` before final commit so the worktree stays slim.
+- **Fix:** Removed the stale `node_modules` + worktree-local `package-lock.json`, then created a proper Windows directory junction via `cmd //c "mklink /J node_modules C:\dev\Antigravity\BipHub\node_modules"` so `node` correctly resolves the main repo's installed packages. Restored the tracked `package-lock.json` from `HEAD` via `git checkout HEAD -- package-lock.json`. Cleaned the junction with `cmd //c "rmdir node_modules"` before final commit so the worktree stays slim.
 - **Files modified:** None (tooling-only; nothing committed).
 - **Verification:** `npx next build` after the junction completed successfully; `/admin/bips` and `/admin/analytics` appeared in the route map with no errors.
 - **Committed in:** N/A (pure tooling).

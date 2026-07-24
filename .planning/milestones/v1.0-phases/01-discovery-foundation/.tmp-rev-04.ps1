@@ -1,5 +1,5 @@
 $ErrorActionPreference = 'Stop'
-$path = 'C:\dev\Antigravity\BIP_project\.planning\phases\01-discovery-foundation\01-04-PLAN.md'
+$path = 'C:\dev\Antigravity\BipHub\.planning\phases\01-discovery-foundation\01-04-PLAN.md'
 $c = Get-Content -Raw -LiteralPath $path
 
 # Fix duplicated install line in Task 1

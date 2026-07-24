@@ -7,7 +7,7 @@ $bt = '`'  # backtick (in single quotes is literal)
 $scriptLines = @(
     '$ErrorActionPreference = ''Stop''',
     '[Console]::OutputEncoding = [System.Text.Encoding]::UTF8',
-    '$f02 = ''C:\dev\Antigravity\BIP_project\.planning\phases\01-discovery-foundation\01-02-PLAN.md''',
+    '$f02 = ''C:\dev\Antigravity\BipHub\.planning\phases\01-discovery-foundation\01-02-PLAN.md''',
     '',
     '# Build chars from codepoints to avoid script-encoding issues',
     '$bt = [string][char]0x60   # backtick',
@@ -37,7 +37,7 @@ $scriptLines = @(
     '}'
 )
 
-$out = 'C:\dev\Antigravity\BIP_project\.planning\phases\01-discovery-foundation\.tmp-w4-inject.ps1'
+$out = 'C:\dev\Antigravity\BipHub\.planning\phases\01-discovery-foundation\.tmp-w4-inject.ps1'
 # Write with UTF-8 BOM so PowerShell reads it correctly
 $utf8WithBom = New-Object System.Text.UTF8Encoding $true
 [System.IO.File]::WriteAllLines($out, $scriptLines, $utf8WithBom)

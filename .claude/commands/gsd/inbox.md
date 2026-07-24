@@ -20,7 +20,7 @@ and optionally applies labels or closes non-compliant submissions.
 </objective>
 
 <execution_context>
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/inbox.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/inbox.md
 </execution_context>
 
 <context>

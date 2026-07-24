@@ -1,5 +1,5 @@
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-$f = 'C:\dev\Antigravity\BIP_project\.planning\phases\01-discovery-foundation\01-02-PLAN.md'
+$f = 'C:\dev\Antigravity\BipHub\.planning\phases\01-discovery-foundation\01-02-PLAN.md'
 $c = Get-Content -Raw -Encoding UTF8 -Path $f
 $idx = $c.IndexOf('ERASMUS_COUNTRIES` of length')
 $slice = $c.Substring($idx, 80)

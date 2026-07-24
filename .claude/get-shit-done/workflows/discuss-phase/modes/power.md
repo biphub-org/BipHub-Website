@@ -8,7 +8,7 @@
 ## Dispatch
 
 ```
-Read @C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/discuss-phase-power.md
+Read @C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/discuss-phase-power.md
 ```
 
 Execute it end-to-end. Do not continue with the standard interactive steps.

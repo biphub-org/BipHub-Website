@@ -179,7 +179,7 @@ No new threat surface introduced beyond the threat register.
 
 ## Issues Encountered
 
-- **One absolute-path drift event** during Task 1: my initial Write calls used absolute paths under `C:\dev\Antigravity\BIP_project\`, which resolved to the **main repo's** working tree instead of the worktree (PITFALL #3099 / cwd drift). Caught immediately by the Task-1 verifier (ENOENT under the worktree path), files copied into the worktree with `cp`, removed from the main repo with `rm`, and re-verified. Main repo's tracked tree is uncontaminated (`git status` post-cleanup shows only the pre-existing `LogoMark.tsx` modification on `master`). All subsequent Write calls used relative paths.
+- **One absolute-path drift event** during Task 1: my initial Write calls used absolute paths under `C:\dev\Antigravity\BipHub\`, which resolved to the **main repo's** working tree instead of the worktree (PITFALL #3099 / cwd drift). Caught immediately by the Task-1 verifier (ENOENT under the worktree path), files copied into the worktree with `cp`, removed from the main repo with `rm`, and re-verified. Main repo's tracked tree is uncontaminated (`git status` post-cleanup shows only the pre-existing `LogoMark.tsx` modification on `master`). All subsequent Write calls used relative paths.
 
 ## User Setup Required
 

@@ -1,5 +1,5 @@
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-$f = 'C:\dev\Antigravity\BIP_project\.planning\phases\01-discovery-foundation\.tmp-revision2.ps1'
+$f = 'C:\dev\Antigravity\BipHub\.planning\phases\01-discovery-foundation\.tmp-revision2.ps1'
 $bytes = [System.IO.File]::ReadAllBytes($f)
 # Look for the byte sequence that should be the >= char (E2 89 A5)
 for ($i = 0; $i -lt $bytes.Length - 2; $i++) {

@@ -15,7 +15,7 @@ Output ONLY the reference content below. Do NOT add:
 </objective>
 
 <execution_context>
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/help.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/help.md
 </execution_context>
 
 <process>

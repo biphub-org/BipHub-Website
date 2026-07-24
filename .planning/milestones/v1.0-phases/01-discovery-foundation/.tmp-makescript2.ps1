@@ -11,7 +11,7 @@ function L { param($s) $script:lines.Add($s) }
 
 L '$ErrorActionPreference = ''Stop'''
 L '[Console]::OutputEncoding = [System.Text.Encoding]::UTF8'
-L '$dir = ''C:\dev\Antigravity\BIP_project\.planning\phases\01-discovery-foundation'''
+L '$dir = ''C:\dev\Antigravity\BipHub\.planning\phases\01-discovery-foundation'''
 L ''
 L '$bt   = [string][char]0x60   # `'
 L '$em   = [string][char]0x2014 # —'
@@ -303,7 +303,7 @@ L 'Replace-Literal -Path $f07 -Old $w4_ac_old -New $w4_ac_new -Tag ''W4-07-accep
 L ''
 L 'Write-Host "DONE-batch1"'
 
-$out = 'C:\dev\Antigravity\BIP_project\.planning\phases\01-discovery-foundation\.tmp-batch1.ps1'
+$out = 'C:\dev\Antigravity\BipHub\.planning\phases\01-discovery-foundation\.tmp-batch1.ps1'
 $utf8WithBom = New-Object System.Text.UTF8Encoding $true
 [System.IO.File]::WriteAllLines($out, $lines, $utf8WithBom)
 Write-Host "Wrote $out with BOM ($($lines.Count) lines)"

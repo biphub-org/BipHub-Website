@@ -1,5 +1,5 @@
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-$f = 'C:\dev\Antigravity\BIP_project\.planning\phases\01-discovery-foundation\01-06-PLAN.md'
+$f = 'C:\dev\Antigravity\BipHub\.planning\phases\01-discovery-foundation\01-06-PLAN.md'
 $c = Get-Content -Raw -Encoding UTF8 -Path $f
 
 # Find the full line containing "iso2 + name"

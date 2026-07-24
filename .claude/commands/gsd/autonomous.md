@@ -25,8 +25,8 @@ Uses ROADMAP.md phase discovery and Skill() flat invocations for each phase comm
 </objective>
 
 <execution_context>
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/autonomous.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/references/ui-brand.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/autonomous.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/references/ui-brand.md
 </execution_context>
 
 <context>

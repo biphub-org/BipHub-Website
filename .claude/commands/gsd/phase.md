@@ -31,10 +31,10 @@ Mode routing:
 </routing>
 
 <execution_context>
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/add-phase.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/insert-phase.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/remove-phase.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/edit-phase.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/add-phase.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/insert-phase.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/remove-phase.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/edit-phase.md
 </execution_context>
 
 <context>

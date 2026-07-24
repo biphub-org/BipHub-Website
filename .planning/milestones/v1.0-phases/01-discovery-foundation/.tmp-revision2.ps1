@@ -1,6 +1,6 @@
 $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-$dir = 'C:\dev\Antigravity\BIP_project\.planning\phases\01-discovery-foundation'
+$dir = 'C:\dev\Antigravity\BipHub\.planning\phases\01-discovery-foundation'
 
 function Replace-Regex {
     param([string]$Path, [string]$Pattern, [string]$Replacement, [string]$Tag)

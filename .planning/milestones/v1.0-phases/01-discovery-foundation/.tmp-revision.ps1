@@ -1,6 +1,6 @@
 $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-$dir = 'C:\dev\Antigravity\BIP_project\.planning\phases\01-discovery-foundation'
+$dir = 'C:\dev\Antigravity\BipHub\.planning\phases\01-discovery-foundation'
 $em = [string][char]0x2014  # em dash —
 $ge = [string][char]0x2265  # ≥
 $nl = [Environment]::NewLine

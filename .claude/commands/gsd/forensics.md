@@ -19,7 +19,7 @@ Output: Forensic report saved to `.planning/forensics/`, presented inline, with 
 </objective>
 
 <execution_context>
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/forensics.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/forensics.md
 </execution_context>
 
 <context>

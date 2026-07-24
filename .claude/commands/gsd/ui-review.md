@@ -18,8 +18,8 @@ Output: {phase_num}-UI-REVIEW.md
 </objective>
 
 <execution_context>
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/ui-review.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/references/ui-brand.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/ui-review.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/references/ui-brand.md
 </execution_context>
 
 <context>

@@ -17,7 +17,7 @@ Verify milestone achieved its definition of done. Check requirements coverage, c
 </objective>
 
 <execution_context>
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/audit-milestone.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/audit-milestone.md
 </execution_context>
 
 <context>

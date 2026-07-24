@@ -19,7 +19,7 @@ Accepts an optional topic argument: `/gsd-explore authentication strategy`
 </objective>
 
 <execution_context>
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/explore.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/explore.md
 </execution_context>
 
 <process>

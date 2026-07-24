@@ -21,9 +21,9 @@ Flow: Select Framework → Research Docs → Research Domain → Design Eval Str
 </objective>
 
 <execution_context>
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/ai-integration-phase.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/references/ai-frameworks.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/references/ai-evals.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/ai-integration-phase.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/references/ai-frameworks.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/references/ai-evals.md
 </execution_context>
 
 <context>

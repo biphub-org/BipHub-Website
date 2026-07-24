@@ -14,7 +14,7 @@ Use when `.planning/phases/` has accumulated directories from past milestones.
 </objective>
 
 <execution_context>
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/cleanup.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/cleanup.md
 </execution_context>
 
 <process>

@@ -6,8 +6,8 @@ offers mid-conversation research when useful, then routes crystallized outputs t
 <required_reading>
 Read all files referenced by the invoking prompt's execution_context before starting.
 
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/references/questioning.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/references/domain-probes.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/references/questioning.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/references/domain-probes.md
 </required_reading>
 
 <available_agent_types>

@@ -10,7 +10,7 @@ Display comprehensive project statistics including phase progress, plan executio
 </objective>
 
 <execution_context>
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/stats.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/stats.md
 </execution_context>
 
 <process>

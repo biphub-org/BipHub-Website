@@ -20,9 +20,9 @@ Three modes:
 </objective>
 
 <execution_context>
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/undo.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/references/ui-brand.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/references/gate-prompts.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/undo.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/references/ui-brand.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/references/gate-prompts.md
 </execution_context>
 
 <context>

@@ -36,12 +36,12 @@ Mode routing:
 </routing>
 
 <execution_context>
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/add-todo.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/note.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/add-backlog.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/plant-seed.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/workflows/check-todos.md
-@C:/dev/Antigravity/BIP_project/.claude/get-shit-done/references/ui-brand.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/add-todo.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/note.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/add-backlog.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/plant-seed.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/workflows/check-todos.md
+@C:/dev/Antigravity/BipHub/.claude/get-shit-done/references/ui-brand.md
 </execution_context>
 
 <context>

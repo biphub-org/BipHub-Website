@@ -1,5 +1,5 @@
 $ErrorActionPreference = 'Stop'
-$path = 'C:\dev\Antigravity\BIP_project\.planning\phases\01-discovery-foundation\01-04-PLAN.md'
+$path = 'C:\dev\Antigravity\BipHub\.planning\phases\01-discovery-foundation\01-04-PLAN.md'
 
 # Read line 135 raw (1-indexed, so index 134)
 $lines = [System.IO.File]::ReadAllLines($path)
