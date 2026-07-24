@@ -33,6 +33,7 @@ import { usePreviewAttachments } from '@/components/forms/usePreviewAttachments'
 import { submitEditAction, resubmitEditAction, resubmitPendingBipAction } from '@/lib/actions/bip-edits'
 import { InlineBipPreview } from '@/components/forms/InlineBipPreview'
 import { FullPagePreview } from '@/components/forms/FullPagePreview'
+import { WizardFooterSlot } from '@/components/forms/WizardFooterSlot'
 
 export type EditPreviewState = 'state-a' | 'state-b' | 'state-c' | 'd06a'
 
@@ -133,6 +134,12 @@ export function WizardStep5EditPreview({
         <FullPagePreview bip={previewBip} />
       </div>
 
+      {/* Single-column render — see InlineBipPreview for why the detail page's
+          two-column grid cannot be used inside the ~696px wizard card. */}
+      <InlineBipPreview bip={previewBip} />
+
+      {/* Below the preview, not above it: the CTA lives in the wizard footer,
+          so a failure surfaces next to the control the user just pressed. */}
       {serverError && (
         <Alert variant="destructive">
           <AlertDescription>
@@ -141,74 +148,66 @@ export function WizardStep5EditPreview({
         </Alert>
       )}
 
-      {/* Single-column render — see InlineBipPreview for why the detail page's
-          two-column grid cannot be used inside the ~696px wizard card. */}
-      <InlineBipPreview bip={previewBip} />
-
-      {/* State A: Submit Edit for Review */}
-      {editState === 'state-a' && (
-        <div className="flex justify-end">
+      {/* The CTA portals into the wizard footer (see WizardFooterSlot) so it
+          reads as wizard chrome rather than part of the previewed page. */}
+      <WizardFooterSlot>
+        {/* State A: Submit Edit for Review */}
+        {editState === 'state-a' && (
           <Button
             type="button"
             onClick={handleSubmitEdit}
             disabled={isPending}
-            className="bg-eu-gold text-ink hover:bg-eu-gold/90 rounded-pill px-5 py-2 font-semibold w-full"
+            className="bg-eu-gold text-ink hover:bg-eu-gold/90 rounded-pill px-5 py-2 font-semibold"
           >
             {isPending && (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
             )}
             {isPending ? 'Submitting…' : 'Submit Edit for Review'}
           </Button>
-        </div>
-      )}
+        )}
 
-      {/* State B: disabled "Edit in review" — resubmit action NOT mounted */}
-      {editState === 'state-b' && (
-        <div className="flex justify-end">
+        {/* State B: disabled "Edit in review" — resubmit action NOT mounted */}
+        {editState === 'state-b' && (
           <Button
             type="button"
             variant="outline"
             disabled
-            className="rounded-pill px-5 py-2 w-full opacity-60 cursor-not-allowed"
+            className="rounded-pill px-5 py-2 opacity-60 cursor-not-allowed"
           >
             Edit in review
           </Button>
-        </div>
-      )}
+        )}
 
-      {/* State C: Resubmit Edit (bip_edits row) */}
-      {editState === 'state-c' && (
-        <div className="flex justify-end">
+        {/* State C: Resubmit Edit (bip_edits row) */}
+        {editState === 'state-c' && (
           <Button
             type="button"
             onClick={handleResubmitEdit}
             disabled={isPending}
-            className="bg-eu-gold text-ink hover:bg-eu-gold/90 rounded-pill px-5 py-2 font-semibold w-full"
+            className="bg-eu-gold text-ink hover:bg-eu-gold/90 rounded-pill px-5 py-2 font-semibold"
           >
             {isPending && (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
             )}
             {isPending ? 'Resubmitting…' : 'Resubmit Edit'}
           </Button>
-        </div>
-      )}
+        )}
 
-      {/* D-06a: Resubmit for new-submission changes_requested */}
-      {editState === 'd06a' && (
-        <div className="flex justify-end">
+        {/* D-06a: Resubmit for new-submission changes_requested */}
+        {editState === 'd06a' && (
           <Button
             type="button"
             onClick={handleResubmitPendingBip}
             disabled={isPending}
-            className="bg-eu-gold text-ink hover:bg-eu-gold/90 rounded-pill px-5 py-2 font-semibold w-full"
+            className="bg-eu-gold text-ink hover:bg-eu-gold/90 rounded-pill px-5 py-2 font-semibold"
           >
             {isPending && (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
             )}
             {isPending ? 'Resubmitting…' : 'Resubmit Edit'}
           </Button>
-        </div>
-      )}
+        )}
+      </WizardFooterSlot>
     </div>
   )
 }

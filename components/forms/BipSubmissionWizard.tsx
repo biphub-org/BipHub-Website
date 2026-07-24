@@ -47,6 +47,7 @@ import { WizardStep2ProgramDetails } from '@/components/forms/steps/WizardStep2P
 import { WizardStep3Partners } from '@/components/forms/steps/WizardStep3Partners'
 import { WizardStep4ApplicationInfo } from '@/components/forms/steps/WizardStep4ApplicationInfo'
 import { TwoTabConflictDialog } from '@/components/forms/TwoTabConflictDialog'
+import { WizardFooterProvider } from '@/components/forms/WizardFooterSlot'
 import type { UniversitySearchResult } from '@/lib/actions/universities'
 import { cn } from '@/lib/utils/cn'
 
@@ -176,6 +177,11 @@ export function BipSubmissionWizard({
   } = useBipDraft()
 
   const [conflictOpen, setConflictOpen] = useState(false)
+
+  // Footer portal target for the step-5 primary action. Held in state (not a
+  // ref) so attaching the node re-renders the provider and the slot can portal
+  // into it. Only mounted on step 5, so it is null everywhere else.
+  const [footerSlotEl, setFooterSlotEl] = useState<HTMLDivElement | null>(null)
 
   // Single-flight lock for optimistic draft saves. Every performSave() chains
   // onto this promise so two saves never run concurrently against the same
@@ -374,6 +380,7 @@ export function BipSubmissionWizard({
 
   return (
     <LazyMotion features={domAnimation}>
+      <WizardFooterProvider value={footerSlotEl}>
       {/* Plan 03-07 (D-17) — admin-mode banner. The copy is locked verbatim. */}
       {mode === 'admin' ? (
         <div
@@ -488,7 +495,7 @@ export function BipSubmissionWizard({
         </div>
 
         {/* Wizard footer */}
-        <div className="border-t border-border px-8 py-4 flex items-center justify-between">
+        <div className="border-t border-border px-8 py-4 flex items-center justify-between gap-4">
           <Button
             type="button"
             variant="ghost"
@@ -497,7 +504,7 @@ export function BipSubmissionWizard({
           >
             ← Back
           </Button>
-          {currentStep < 5 && (
+          {currentStep < 5 ? (
             <Button
               type="submit"
               variant="primary"
@@ -505,6 +512,14 @@ export function BipSubmissionWizard({
             >
               Save &amp; continue →
             </Button>
+          ) : (
+            // Step 5's primary action portals in here (see WizardFooterSlot) so
+            // it sits in the wizard chrome next to Back, not at the tail of the
+            // scrolling preview where it reads as part of the previewed page.
+            <div
+              ref={setFooterSlotEl}
+              className="flex flex-wrap items-center justify-end gap-3"
+            />
           )}
         </div>
       </div>
@@ -514,6 +529,7 @@ export function BipSubmissionWizard({
         onReload={handleReload}
         onOverwrite={handleOverwrite}
       />
+      </WizardFooterProvider>
     </LazyMotion>
   )
 }

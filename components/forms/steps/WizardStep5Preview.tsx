@@ -33,6 +33,7 @@ import { usePreviewAttachments } from '@/components/forms/usePreviewAttachments'
 import { submitBipAction } from '@/lib/actions/bip-submit'
 import { InlineBipPreview } from '@/components/forms/InlineBipPreview'
 import { FullPagePreview } from '@/components/forms/FullPagePreview'
+import { WizardFooterSlot } from '@/components/forms/WizardFooterSlot'
 
 interface Props {
   hostUniversity: { id: string; name: string; country: string }
@@ -94,30 +95,32 @@ export function WizardStep5Preview({ hostUniversity }: Props) {
         <FullPagePreview bip={previewBip} />
       </div>
 
-      {serverError && (
-        <Alert variant="destructive">
-          <AlertDescription>{serverError}</AlertDescription>
-        </Alert>
-      )}
-
       {/* Single-column render of the public detail page — the wizard card is
           only ~696px wide, so the desktop two-column grid does not fit here.
           See InlineBipPreview for the full rationale; FullPagePreview above is
           the wide, two-column faithful render. */}
       <InlineBipPreview bip={previewBip} />
 
-      <div className="flex justify-end">
+      {/* Below the preview, not above it: the submit button lives in the wizard
+          footer, so a failure surfaces directly next to the control the user
+          just pressed instead of off-screen at the top of the scroll area. */}
+      {serverError && (
+        <Alert variant="destructive">
+          <AlertDescription>{serverError}</AlertDescription>
+        </Alert>
+      )}
+
+      <WizardFooterSlot>
         <Button
           type="button"
           onClick={handleSubmit}
           disabled={isSubmitting}
           variant="gold"
-          size="lg"
         >
           {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Submit for review →
         </Button>
-      </div>
+      </WizardFooterSlot>
     </div>
   )
 }
