@@ -178,12 +178,17 @@ test.describe('submission wizard', () => {
       .fill(
         'Four online lectures (90 min each) across the 4 weeks before physical mobility plus a group project handover.',
       )
-    // virtual_session_dates — first date required, plus an optional extra date
-    // added via the "Add another date" button. Dates are entered through the
-    // custom <DatePicker> calendar popover (pickDate), not a native input.
-    await pickDate(page, /virtual session date \(required\)/i, addDays(80))
+    // virtual_timing — REQUIRED: the wizard will not advance past Step 2 until
+    // a timing is picked (the select opens on an empty placeholder).
+    await page
+      .getByLabel(/when do the virtual sessions run/i)
+      .selectOption('before')
+    // virtual_session_dates — fully optional, but filled here so the create
+    // path still proves multi-date entry. Dates are entered through the custom
+    // <DatePicker> calendar popover (pickDate), not a native input.
+    await pickDate(page, /virtual session date 1/i, addDays(80))
     await page.getByRole('button', { name: /add another date/i }).click()
-    await pickDate(page, /additional virtual session date 2/i, addDays(87))
+    await pickDate(page, /virtual session date 2/i, addDays(87))
     await page.getByLabel(/host city/i).fill('Munich')
     // Future-relative dates. physical_end after physical_start.
     await pickDate(page, /physical mobility start date/i, addDays(90))

@@ -22,6 +22,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { getCountryName } from '@/lib/countries'
+import { virtualTimingLabel } from '@/lib/constants/virtual-timing'
 import type { BipDetail } from '@/lib/queries/bipDetail'
 import { CountryFlag } from '@/components/ui/country-flag'
 import { cn } from '@/lib/utils/cn'
@@ -74,14 +75,6 @@ function Section({ title, icon: Icon, children, className }: SectionProps) {
       {children}
     </section>
   )
-}
-
-const VIRTUAL_TIMING_LABEL: Record<string, string> = {
-  before: 'Before the mobility',
-  during: 'During the mobility',
-  after: 'After the mobility',
-  before_and_after: 'Before & after the mobility',
-  mixed: 'Mixed timing',
 }
 
 /** Inclusive day count between two YYYY-MM-DD dates, or null. */
@@ -297,10 +290,7 @@ export function BipBody({ bip }: { bip: BipDetail }) {
                     Online component
                   </h3>
                   <p className="mt-1 text-[13px] font-semibold uppercase tracking-wider text-eu-blue">
-                    {bip.virtual_timing
-                      ? (VIRTUAL_TIMING_LABEL[bip.virtual_timing] ??
-                        bip.virtual_timing)
-                      : 'Virtual learning'}
+                    {virtualTimingLabel(bip.virtual_timing) ?? 'Virtual learning'}
                   </p>
                   {virtualSessionDates && (
                     <div className="mt-3">

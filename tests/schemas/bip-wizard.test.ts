@@ -2,11 +2,12 @@
  * Wizard Zod schema tests — v1.2 builder field revision.
  *
  * Covers the locked field set after the builder revision:
- *   - virtual_timing enum matches the DB CHECK (no legacy 'concurrent').
+ *   - virtual_timing enum matches the DB CHECK (no legacy 'concurrent') and is
+ *     REQUIRED — every BIP must state when its online component runs.
  *   - max_participants ceiling is 100 (floor loosened to 1).
  *   - study_levels accepts 'vocational' (EQF 5).
  *   - Step 1 requires external_bip_id (Official Erasmus+ BIP code) + target_group.
- *   - virtual_session_dates requires a first date; extra dates are optional.
+ *   - virtual_session_dates is fully optional (timing carries the requirement).
  *   - fees are optional.
  */
 import { describe, it, expect } from 'vitest'
@@ -98,6 +99,23 @@ describe('step2Schema — virtual_timing enum (SUBM-12)', () => {
     const result = step2Schema.safeParse({ ...validStep2Base, virtual_timing: 'concurrent' })
     expect(result.success).toBe(false)
   })
+
+  // Required: a blended programme must state when its online component runs.
+  it('rejects a missing virtual_timing', () => {
+    const { virtual_timing: _omitted, ...withoutTiming } = validStep2Base
+    const result = step2Schema.safeParse(withoutTiming)
+    expect(result.success).toBe(false)
+  })
+
+  it("rejects the empty-string placeholder from the select", () => {
+    const result = step2Schema.safeParse({ ...validStep2Base, virtual_timing: '' })
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.issues[0]?.message).toBe(
+        'Select when the virtual sessions run.',
+      )
+    }
+  })
 })
 
 describe('step2Schema — max_participants ceiling (item 9)', () => {
@@ -129,15 +147,24 @@ describe('step2Schema — study levels (item 10)', () => {
   })
 })
 
-describe('step2Schema — virtual_session_dates (required first, rest optional)', () => {
-  it('requires at least one date', () => {
+describe('step2Schema — virtual_session_dates (fully optional)', () => {
+  it('accepts an empty list — dates may not be fixed yet', () => {
     const result = step2Schema.safeParse({ ...validStep2Base, virtual_session_dates: [] })
-    expect(result.success).toBe(false)
+    expect(result.success).toBe(true)
   })
 
-  it('treats an all-blank list as missing', () => {
+  it('accepts an all-blank list and strips it to empty', () => {
     const result = step2Schema.safeParse({ ...validStep2Base, virtual_session_dates: ['', ''] })
-    expect(result.success).toBe(false)
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.virtual_session_dates).toEqual([])
+    }
+  })
+
+  it('accepts the field being omitted entirely', () => {
+    const { virtual_session_dates: _omitted, ...withoutDates } = validStep2Base
+    const result = step2Schema.safeParse(withoutDates)
+    expect(result.success).toBe(true)
   })
 
   it('accepts a single date', () => {

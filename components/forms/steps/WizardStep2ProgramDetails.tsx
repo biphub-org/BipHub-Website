@@ -31,6 +31,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useBipDraft } from '@/lib/store/bip-draft'
 import { step2Schema, type Step2Values } from '@/lib/schemas/bip-wizard'
+import { VIRTUAL_TIMING_OPTIONS } from '@/lib/constants/virtual-timing'
 
 const STUDY_LEVEL_OPTIONS: Array<{
   value: 'vocational' | 'bachelor' | 'master' | 'phd' | 'none'
@@ -69,6 +70,9 @@ export function WizardStep2ProgramDetails({ onContinue, onAutoSave }: Props) {
     resolver: zodResolver(step2Schema),
     defaultValues: {
       virtual_component_description: draft.virtual_component_description ?? '',
+      // No fallback: an unset timing must stay empty so the required-field
+      // error fires instead of a silently pre-picked value being submitted.
+      virtual_timing: draft.virtual_timing,
       host_city: draft.host_city ?? '',
       physical_start_date: draft.physical_start_date ?? '',
       physical_end_date: draft.physical_end_date ?? '',
@@ -123,6 +127,37 @@ export function WizardStep2ProgramDetails({ onContinue, onAutoSave }: Props) {
         />
 
         <FormField
+          name="virtual_timing"
+          control={form.control}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>When do the virtual sessions run?</FormLabel>
+              <FormControl>
+                <select
+                  className="block w-full rounded-md border border-border bg-white px-3 py-2 text-sm"
+                  value={field.value ?? ''}
+                  onChange={(e) => field.onChange(e.target.value)}
+                  onBlur={field.onBlur}
+                >
+                  <option value="">Select when the sessions run…</option>
+                  {VIRTUAL_TIMING_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              </FormControl>
+              <FormDescription>
+                Relative to the physical mobility abroad. Required — students
+                need to know whether the online work happens before they travel,
+                while they are away, or after they return.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
           name="virtual_session_dates"
           control={form.control}
           render={({ field }) => {
@@ -146,18 +181,10 @@ export function WizardStep2ProgramDetails({ onContinue, onAutoSave }: Props) {
                           value={value}
                           onChange={(next) => setAt(index, next)}
                           onBlur={field.onBlur}
-                          aria-label={
-                            index === 0
-                              ? 'Virtual session date (required)'
-                              : `Additional virtual session date ${index + 1}`
-                          }
+                          aria-label={`Virtual session date ${index + 1}`}
                         />
                       </FormControl>
-                      {index === 0 ? (
-                        <span className="whitespace-nowrap text-xs text-muted">
-                          Required
-                        </span>
-                      ) : (
+                      {index > 0 && (
                         <button
                           type="button"
                           onClick={() => removeAt(index)}
@@ -176,6 +203,10 @@ export function WizardStep2ProgramDetails({ onContinue, onAutoSave }: Props) {
                 >
                   + Add another date
                 </button>
+                <FormDescription>
+                  Optional — leave blank if the individual session dates
+                  aren&rsquo;t fixed yet. Blank rows are ignored.
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )

@@ -164,9 +164,10 @@ async function driveEditWizardToStep5(
   await page.getByRole('button', { name: /save.*continue/i }).click()
 
   await expect(page.getByText(/step\s*2\s*of\s*5/i)).toBeVisible({ timeout: 10_000 })
-  // virtual_session_dates: first date is required (v1.2). The seeded edit-target
-  // BIP predates the column (null), so pick a date before advancing.
-  await pickDate(page, /virtual session date \(required\)/i, '2027-05-15')
+  // virtual_session_dates is optional and virtual_timing is pre-filled from the
+  // fixture row (seed-cloud-e2e.mjs sets 'before'), so Step 2 could advance
+  // untouched — a date is still picked so the edit payload carries one.
+  await pickDate(page, /virtual session date 1/i, '2027-05-15')
   await page.getByRole('button', { name: /save.*continue/i }).click()
 
   await expect(page.getByText(/step\s*3\s*of\s*5/i)).toBeVisible({ timeout: 10_000 })
@@ -408,13 +409,13 @@ test.describe('bip edit flow', () => {
         await coordPage.getByLabel(/target group/i).selectOption('students_staff')
         await coordPage.getByRole('button', { name: /save.*continue/i }).click()
 
-        // ----- Step 2: virtual_session_dates (required first date) -----
+        // ----- Step 2: virtual_session_dates (optional, changed here) -----
         await expect(coordPage.getByText(/step\s*2\s*of\s*5/i)).toBeVisible({
           timeout: 10_000,
         })
         await pickDate(
           coordPage,
-          /virtual session date \(required\)/i,
+          /virtual session date 1/i,
           NEW_VIRTUAL_SESSION_DATE,
         )
         await coordPage.getByRole('button', { name: /save.*continue/i }).click()

@@ -1,5 +1,6 @@
 import { z } from 'zod' // Zod v3 — see CLAUDE.md (locked stack)
 import { ISCED_FIELDS } from '@/lib/isced'
+import { VIRTUAL_TIMINGS } from '@/lib/constants/virtual-timing'
 
 /**
  * Wizard step schemas (SUBM-04).
@@ -49,29 +50,32 @@ export type Step1Values = z.infer<typeof step1Schema>
 
 // Step 2 — Programme details.
 const STUDY_LEVELS = ['vocational', 'bachelor', 'master', 'phd', 'none'] as const
-// Matches supabase/migrations/00003_bips_full_schema.sql virtual_timing CHECK
-// exactly (SUBM-12). The legacy 'concurrent' value silently failed the DB
-// CHECK on save and must never reappear here.
-const VIRTUAL_TIMINGS = ['before', 'during', 'after', 'before_and_after', 'mixed'] as const
 const LANGUAGE_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'none'] as const
 
-// Virtual-session dates: a required first date plus any number of optional
-// additional dates. The list arrives from the wizard with empty-string
-// placeholders for un-filled rows; trim + drop them, then require at least one
-// valid YYYY-MM-DD value. Output is a clean string[] for both the DB (date[])
-// and the detail-page renderer.
+// Virtual-session dates: entirely optional — a coordinator may know WHEN the
+// online component sits relative to the physical mobility (virtual_timing,
+// required) long before the individual session dates are fixed. The list
+// arrives from the wizard with empty-string placeholders for un-filled rows;
+// trim + drop them, then validate whatever remains. Output is a clean string[]
+// for both the DB (date[]) and the detail-page renderer.
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
 const virtualSessionDatesSchema = z
   .array(z.string())
   .optional()
   .default([])
   .transform((arr) => arr.map((s) => s.trim()).filter(Boolean))
-  .refine((arr) => arr.length >= 1, {
-    message: 'Add at least one virtual session date.',
-  })
   .refine((arr) => arr.every((d) => ISO_DATE.test(d)), {
     message: 'Use YYYY-MM-DD for each virtual session date.',
   })
+
+// Required on every BIP: a blended programme must state when its online
+// component runs relative to the physical mobility. One errorMap covers both
+// "nothing selected" (the '' placeholder) and an out-of-set value.
+const virtualTimingSchema = z.enum(VIRTUAL_TIMINGS, {
+  errorMap: () => ({
+    message: 'Select when the virtual sessions run.',
+  }),
+})
 
 export const step2Schema = z
   .object({
@@ -80,8 +84,8 @@ export const step2Schema = z
       .trim()
       .min(20, 'Describe the virtual component briefly.')
       .max(2000),
-    virtual_timing: z.enum(VIRTUAL_TIMINGS).optional(),
-    // One or more virtual-session dates. First required, rest optional.
+    virtual_timing: virtualTimingSchema,
+    // Virtual-session dates — optional; timing above is the required field.
     virtual_session_dates: virtualSessionDatesSchema,
     host_city: z.string().trim().min(2, 'Please enter the host city.').max(120),
     physical_start_date: z
@@ -197,7 +201,7 @@ export const fullBipSchema = z
     learning_outcomes: step1Schema.shape.learning_outcomes,
     // Step 2 — re-declare without per-step `.refine`s; they live below.
     virtual_component_description: z.string().trim().min(20).max(2000),
-    virtual_timing: z.enum(VIRTUAL_TIMINGS).optional(),
+    virtual_timing: virtualTimingSchema,
     virtual_session_dates: virtualSessionDatesSchema,
     host_city: z.string().trim().min(2).max(120),
     physical_start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
