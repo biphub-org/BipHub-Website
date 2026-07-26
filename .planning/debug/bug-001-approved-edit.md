@@ -1,8 +1,10 @@
 ---
-status: awaiting_human_verify
+status: verified
 trigger: "systematic fix for the approved-edit wizard (BUG-001)"
 created: 2026-07-17
-updated: 2026-07-17
+updated: 2026-07-26
+verified_by: "E2E — all 11 tests/e2e/bip-edits.spec.ts tests green against the cloud test project (see Resolution > verification); KNOWN-BUGS.md BUG-001 marked resolved in 9bcccc7"
+verified_note: "Flipped from awaiting_human_verify during 2026-07-26 pre-parallel-split cleanup. The fix was already test-proven on 2026-07-17; only this session file lagged. Open blind spot from the original investigation, deliberately NOT claimed as verified: the SIGNED_OUT -> localStorage recovery path under coordinator editMode was reasoned about but never driven end-to-end in a browser."
 ---
 
 ## Current Focus

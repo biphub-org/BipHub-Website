@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Coordinator BIP Builder
-status: verifying
-stopped_at: "Phase 09 Plan 09 complete: full phase-gate E2E proof shipped -- create-path fields+timing enum, per-field edit->approve->persist live-row round trip (SUBM-14/anti-Pitfall-1), BROW-14 badge spec. Phase 9 (coordinator-bip-builder-completion) is now fully executed: 9/9 plans complete, all 30 requirements satisfied, full Playwright suite green (41 passed, 1 pre-existing local-only skip)."
-last_updated: "2026-07-18T07:58:04.314Z"
-last_activity: 2026-07-18
+status: active
+stopped_at: "Phase 09 (coordinator-bip-builder-completion) CLOSED: 9/9 plans complete and 09-VERIFICATION.md passed 8/8 must-haves with 0 overrides. Phases 10 (BIP Detail Page) and 11 (Alert Subscriptions) are both unplanned and, per REQUIREMENTS.md coverage note, mutually independent — being run in parallel across two sessions (Phase 11 on branch phase-11-alerts in the ../BipHub-p11 worktree)."
+last_updated: "2026-07-26T16:37:10.000Z"
+last_activity: 2026-07-26
 progress:
   total_phases: 3
   completed_phases: 1
   total_plans: 9
   completed_plans: 9
-  percent: 100
+  percent: 33
 ---
 
 # Project State
@@ -21,14 +21,31 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-18 after v1.1 milestone)
 
 **Core value:** Students can reliably discover Erasmus+ BIPs by country, field of study, and dates, and universities can self-service list their BIPs through a fast, professional submission flow with admin review.
-**Current focus:** Phase 09 — coordinator-bip-builder-completion
+**Current focus:** Phase 10 — bip-detail-page (this session) ‖ Phase 11 — alert-subscriptions (parallel session, `../BipHub-p11`)
 
 ## Current Position
 
-Phase: 10
-Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-07-18
+Phase: 10 (BIP Detail Page) — and Phase 11 (Alert Subscriptions) in parallel
+Plan: Not started (neither phase planned; no phase directory on disk for either)
+Status: Phase 09 complete and verified (8/8, 0 overrides) — Phase 10 and Phase 11 both awaiting discuss/plan
+Last activity: 2026-07-26
+
+**Parallel-work contract (set 2026-07-26).** Phases 10 and 11 are being run concurrently in two
+sessions. Code surfaces are disjoint (Phase 10: `app/(public)/bip/[slug]/`, `lib/queries/bipDetail.ts`,
+`components/bip/*`, zero DDL — DETL-11..16 read columns Phase 9 already added. Phase 11: new
+migrations + `bip_subscriptions`/`bip_alert_deliveries`, `/student-dashboard`, `lib/email/*`,
+unsubscribe route, `approved_at` marker in the approve actions). Shared-resource rules:
+
+- **Migrations:** Phase 11 owns the number space from `00042` onward. Phase 10 needs no DDL; if that
+  changes, claim a number here first.
+- **`lib/supabase/database.types.ts`:** Phase 11 only. Regeneration rewrites the whole file, so
+  Phase 10 must pull rather than regenerate.
+- **Cloud Supabase (shared project):** additive DDL may be pushed freely; **coordinate before any
+  re-seed** — a fresh re-seed drops the `@biphub.test` fixture users and breaks the other session's
+  Playwright runs mid-flight.
+- **`playwright.config.ts`:** Phase 11 extends the `student-authed` testMatch; Phase 10 extends
+  `public`. Adjacent lines — expect a trivial conflict at merge.
+- **This file + ROADMAP.md:** both sessions write them per plan. Resolve at merge, don't hand-sync.
 
 ## Performance Metrics
 
@@ -46,10 +63,9 @@ Last activity: 2026-07-18
 | 6 | 4 | - | - |
 | 7 | 0 (deferred → Phase 11) | - | - |
 | 8 | 9 | - | - |
-| 9 — Builder Completion | TBD | - | - |
+| 9 — Builder Completion | 9 | - | - |
 | 10 — BIP Detail Page | TBD | - | - |
 | 11 — Alert Subscriptions | TBD | - | - |
-| 09 | 9 | - | - |
 
 *Updated after each plan completion*
 | Phase 06-saved-bips-sync P02 | 593s | 3 tasks | 8 files |
@@ -180,9 +196,9 @@ Recent decisions affecting current work:
 - [Phase ?]: Plan 08-04: Two-query merge for getAdminPendingEdits (bip_edits + bips joined in-process); ADMIN_BIP_SELECT exported; openEdit on CoordinatorBipForEdit for approved/changes_requested BIPs
 - [Phase ?]: FieldDef accessor pattern for heterogeneous BipDetail vs BipDraftData comparison in BipEditDiffView
 - [Phase ?]: Literal EDIT_BADGE_CLASSES const for Tailwind v4 static scanner compliance per T-08-18
-- v1.2 Research/Roadmap: Phase 9 (builder completion + detail page) and Phase 10 (alerts, carried from v1.1 Phase 7) are the full v1.2 scope — 30/30 requirements mapped, no orphans. Phase 9 is a hard-ordered internal pair (builder before detail page — mechanical dependency on the finalized `BipDetail` type, not a preference); Phase 10 is fully independent and can be planned/executed in parallel with Phase 9.
+- v1.2 Research/Roadmap: builder completion + detail page + alerts (carried from v1.1 Phase 7) are the full v1.2 scope — 30/30 requirements mapped, no orphans. **Numbering note (corrected 2026-07-26):** this decision was logged before the builder/detail-page split, when alerts were provisionally "Phase 10". The final ROADMAP.md numbering is **Phase 9 = builder completion, Phase 10 = BIP detail page, Phase 11 = alerts** — ROADMAP.md is authoritative. Phase 9→10 is a hard-ordered pair (builder before detail page — mechanical dependency on the finalized `BipDetail` type, not a preference); Phase 11 (alerts) is fully independent and can be planned/executed in parallel.
 - v1.2 Roadmap: Phase 9 success criteria anchor on anti-Pitfall-1 (per-field E2E proving an approved edit round-trips to the live page, not just wizard/detail-page render) and the `virtual_timing` enum fix (no CHECK-constraint violation on any offered option).
-- v1.2 Roadmap: Phase 10 success criteria anchor on infrastructure-first verification (`pg_net` enabled + real `cron.job_run_details` firing confirmed BEFORE other work is considered done), idempotency via a dedicated `bips.approved_at` marker (never `updated_at`, which edit-merges bump), and no-login one-click unsubscribe.
+- v1.2 Roadmap: Phase 11 (alerts) success criteria anchor on infrastructure-first verification (`pg_net` enabled + real `cron.job_run_details` firing confirmed BEFORE other work is considered done), idempotency via a dedicated `bips.approved_at` marker (never `updated_at`, which edit-merges bump), and no-login one-click unsubscribe.
 - [Phase ?]: Plan 09-01: bip_edits column additions always mirror bips schema state; nullable/no-default/no-CHECK content columns validated by Zod at submit boundary, not Postgres — Follows exact 00020 additive pattern; regenerated types via supabase gen types --linked (not npm run db:types --local) to avoid the false-positive trap where local generation type-checks clean without reflecting the pushed cloud schema
 - [Phase 09-02]: Consolidated lib/actions/bip-submit.ts onto exported fullBipSchema, deleting the hand-copied submitSchema twin (Pitfall 0) — create and edit paths now share one validator
 - [Phase 09-02]: VIRTUAL_TIMINGS corrected to 5-value union (before/during/after/before_and_after/mixed) matching the bips.virtual_timing DB CHECK exactly; legacy 'concurrent' value removed everywhere
@@ -206,8 +222,8 @@ None yet.
 - erasmusbip.org ToS: review before any seed scraping script is written; fallback is coordinator-outreach seed strategy
 - `@supabase/ssr` is `^0.x` beta — pin exact minor version; monitor changelog before upgrading
 - Zod v4 / `@hookform/resolvers` compatibility — recheck before Phase 2 starts
-- **Phase 10 prerequisite:** confirm `pg_net` is enabled in `supabase/config.toml` before Phase 10 planning locks scope — not currently present in the repo's config; local `pg_cron` cannot call a public URL — Edge Function must be invoked manually via `supabase functions serve` for end-to-end local testing
-- **Phase 10:** Resend free tier ceiling is 100 emails/day — Phase 10 plan should document the upgrade trigger (Resend Starter $20/mo for 5K/day)
+- **Phase 11 prerequisite (alerts — NOT Phase 10):** confirm `pg_net` is enabled in `supabase/config.toml` before Phase 11 planning locks scope — not currently present in the repo's config; local `pg_cron` cannot call a public URL — Edge Function must be invoked manually via `supabase functions serve` for end-to-end local testing
+- **Phase 11 (alerts):** Resend free tier ceiling is 100 emails/day — the Phase 11 plan should document the upgrade trigger (Resend Starter $20/mo for 5K/day)
 - **Phase 9:** two live data-integrity bugs must be fixed in the same pass as new Step 2 fields — `virtual_timing` wizard/DB enum mismatch (silent save failure on "concurrent") and `max_participants` wizard floor of 5 vs DB/domain minimum of 10 (check existing/seeded BIPs for sub-10 values before tightening)
 
 ## Deferred Items
@@ -229,18 +245,18 @@ Items acknowledged and deferred at v1.1 milestone close on 2026-07-18:
 | Verification | Phase 08 human-verify (08-VERIFICATION.md): Resend edit-outcome email delivery (EDIT-07) + ISR revalidate-on-approve timing (EDIT-04) — runtime, needs real Resend key | Carried to v1.2 | 2026-07-18 |
 | UAT | Phase 08 manual UAT (08-UAT.md): same Resend+ISR runtime sign-off | Carried to v1.2 | 2026-07-18 |
 | UAT | Phase 05 human-UAT (05-HUMAN-UAT.md): 1 pending scenario | Carried to v1.2 | 2026-07-18 |
-| Debug | bug-001-approved-edit debug session marked `awaiting_human_verify` — bug is RESOLVED (`9bcccc7`, KNOWN-BUGS.md); session file was never flipped to verified | Resolved; bookkeeping only | 2026-07-18 |
-| Feature | Phase 7 (Alert Subscriptions + Email Pipeline) not built — full scope moved to v1.2 roadmap as Phase 10 | Moved to v1.2 (Phase 10) | 2026-07-18 |
+| Debug | bug-001-approved-edit debug session marked `awaiting_human_verify` — bug is RESOLVED (`9bcccc7`, KNOWN-BUGS.md); session file was never flipped to verified | **Closed 2026-07-26** — session flipped to `verified` (E2E proof: all 11 `bip-edits.spec.ts` tests green) | 2026-07-18 |
+| Feature | Phase 7 (Alert Subscriptions + Email Pipeline) not built — full scope moved to the v1.2 roadmap as **Phase 11** | Moved to v1.2 (Phase 11) | 2026-07-18 |
 
 ## Session Continuity
 
-Last session: 2026-07-18T07:43:28.832Z
-Stopped at: Phase 09 Plan 09 complete: full phase-gate E2E proof shipped -- create-path fields+timing enum, per-field edit->approve->persist live-row round trip (SUBM-14/anti-Pitfall-1), BROW-14 badge spec. Phase 9 (coordinator-bip-builder-completion) is now fully executed: 9/9 plans complete, all 30 requirements satisfied, full Playwright suite green (41 passed, 1 pre-existing local-only skip).
+Last session: 2026-07-26T16:37:10.000Z
+Stopped at: Phase 09 closed (9/9 plans, 09-VERIFICATION.md passed 8/8, 0 overrides). Pre-split bookkeeping done: stale "Phase 10 = alerts" numbering corrected throughout this file, ROADMAP Phase 9 row corrected from 7/9 to 9/9, bug-001 debug session flipped to `verified`. Worktree `../BipHub-p11` created on branch `phase-11-alerts` for parallel Phase 11 work.
 Resume file: None
-Resume instructions: Phase 9 (coordinator-bip-builder-completion) is fully executed (9/9 plans). Run phase verification/close-out, then plan Phase 10 (BIP Detail Page).
+Resume instructions: Two parallel tracks. THIS repo (`C:\dev\Antigravity\BipHub`, branch `main`) = Phase 10 (BIP Detail Page) — start with `/gsd-discuss-phase 10`, then `/gsd-ui-phase 10` (UI hint: yes). The `../BipHub-p11` worktree (branch `phase-11-alerts`) = Phase 11 (Alert Subscriptions) — start with `/gsd-discuss-phase 11`; its first plan must resolve the `pg_net` prerequisite. Observe the parallel-work contract under "Current Position" before touching migrations, `database.types.ts`, or re-seeding the shared cloud DB.
 
 ## Operator Next Steps
 
-- Run Phase 9 verification/close-out (all 9 plans complete, full Playwright suite green: 41 passed, 1 pre-existing local-only skip).
-- Plan Phase 10 (BIP Detail Page) — depends on Phase 9's finalized BipDetail type, now fully proven end-to-end.
-- Phase 11 (Alert Subscriptions + Email Pipeline) remains fully independent per research and can be planned in parallel.
+- **Phase 10 (this repo, `main`):** `/gsd-discuss-phase 10` → `/gsd-ui-phase 10` → plan. Needs no DDL; note that the 2026-07-24 DETL hover-motion commit (`69d774c`) already moved part of this surface outside the GSD loop.
+- **Phase 11 (`../BipHub-p11`, `phase-11-alerts`):** `/gsd-discuss-phase 11`. Infrastructure-first — `pg_net` + a real `cron.job_run_details` row before any Server Action work counts as done.
+- **Carried verification debt (still open):** Phase 08 Resend edit-outcome email (EDIT-07) + ISR revalidate-on-approve (EDIT-04) and the Phase 05 human-UAT scenario. Also unverified in-browser: the two-tab false-conflict fix (`239998b`).

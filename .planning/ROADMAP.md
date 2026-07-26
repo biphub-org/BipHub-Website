@@ -36,9 +36,16 @@ Full phase details, success criteria, and per-plan breakdown: [milestones/v1.1-R
 
 ### v1.2 Coordinator BIP Builder (Phases 9–11)
 
-- [ ] **Phase 9: Coordinator BIP Builder Completion** - the BIP data model is fully wired through the builder and edit-and-re-review flow (wizard → draft store → submit/edit → admin merge → diff view), two live data-integrity bugs fixed, and a partner-only badge on `/bips`
+- [x] **Phase 9: Coordinator BIP Builder Completion** (9/9 plans, verified 8/8) - the BIP data model is fully wired through the builder and edit-and-re-review flow (wizard → draft store → submit/edit → admin merge → diff view), two live data-integrity bugs fixed, and a partner-only badge on `/bips`
 - [ ] **Phase 10: BIP Detail Page** - `/bip/[slug]` redesigned against the finalized field set from Phase 9, presenting the complete BIP data in clear labelled sections
 - [ ] **Phase 11: Alert Subscriptions + Email Pipeline** - students subscribe to new-BIP digest alerts by field/country, receive idempotent weekly/daily emails, and unsubscribe with no login required (carried from v1.1 Phase 7)
+
+> **Parallel tracks (2026-07-26).** Phases 10 and 11 are being built concurrently: Phase 10 on `main`
+> in the primary checkout, Phase 11 on branch `phase-11-alerts` in the `../BipHub-p11` worktree.
+> Requirement sets are disjoint (DETL-11..16 vs ALRT-01..09 + FOUN-11..13) and so are the code
+> surfaces. Shared-resource rules (migration number space, `database.types.ts` ownership, cloud
+> re-seed coordination) are recorded under "Current Position" in STATE.md — read them before
+> touching either.
 
 ## Phase Details
 
@@ -102,6 +109,6 @@ Full phase details, success criteria, and per-plan breakdown: [milestones/v1.1-R
 | 6. Saved BIPs Sync | v1.1 | 4/4 | Complete | 2026-06-15 |
 | 7. Alert Subscriptions + Email Pipeline | v1.1→v1.2 | 0/TBD | Deferred to v1.2 | - |
 | 8. Edit-Approved + Request-Changes | v1.1 | 9/9 | Complete | 2026-06-26 |
-| 9. Coordinator BIP Builder Completion | v1.2 | 7/9 | In Progress|  |
+| 9. Coordinator BIP Builder Completion | v1.2 | 9/9 | Complete | 2026-07-18 |
 | 10. BIP Detail Page | v1.2 | 0/TBD | Not started | - |
 | 11. Alert Subscriptions + Email Pipeline | v1.2 | 0/TBD | Not started | - |
