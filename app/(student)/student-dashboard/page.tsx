@@ -6,6 +6,8 @@ import { signOutStudentAction } from '@/lib/actions/auth'
 import { getSavedBipsCount } from '@/lib/queries/savedBips'
 import { DeleteAccountDialog } from '@/components/dashboard/DeleteAccountDialog'
 import { LegacySweepIsland } from '@/components/student/LegacySweepIsland'
+import { AlertSubscriptionForm } from '@/components/student/AlertSubscriptionForm'
+import { AlertSubscriptionList } from '@/components/student/AlertSubscriptionList'
 
 /**
  * /student-dashboard — D-14 minimal-but-real shell (STUD-03 / 05-UI-SPEC Surface 2).
@@ -114,8 +116,31 @@ export default async function StudentDashboardPage() {
         </p>
       </div>
 
+      {/* Phase 11 — Alert subscriptions (ALRT-01/02/04/09) */}
+      <div className="rounded-lg border border-border bg-white shadow-sm p-6 flex flex-col gap-4">
+        <h2 className="text-base font-semibold text-ink">Alert subscriptions</h2>
+        <p className="text-sm text-muted">Get a digest when new BIPs match your field or country. Weekly by default, daily if you prefer. Up to 5 active.</p>
+        {/* Server-fetched list + client form/list */}
+        {/* We fetch subscriptions server-side so the page is never empty on first paint */}
+        <AlertSubscriptionSection />
+        <AlertSubscriptionForm />
+      </div>
+
       {/* STUD-06 / D-02 — one-time legacy localStorage sweep; renders null */}
       <LegacySweepIsland />
     </div>
   )
+}
+
+async function AlertSubscriptionSection() {
+  const supabase = await createClient()
+  const { data: claimsData } = await supabase.auth.getClaims()
+  const userId = (claimsData?.claims as any)?.sub
+  if (!userId) return <p className="text-sm text-muted">Sign in to manage alerts.</p>
+  const { data } = await supabase
+    .from('bip_subscriptions')
+    .select('id, field, country, frequency, created_at')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: true })
+  return <AlertSubscriptionList subscriptions={(data as any) ?? []} />
 }

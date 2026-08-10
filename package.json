@@ -18,7 +18,8 @@
     "db:types": "supabase gen types typescript --local > lib/supabase/database.types.ts",
     "verify:seed": "tsx scripts/verify-seed.ts",
     "build:topojson": "tsx scripts/build-eu-topojson.ts",
-    "fonts:fetch": "tsx scripts/fetch-inter-fonts.ts"
+    "fonts:fetch": "tsx scripts/fetch-inter-fonts.ts",
+    "dev:turbo": "next dev --turbo"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",

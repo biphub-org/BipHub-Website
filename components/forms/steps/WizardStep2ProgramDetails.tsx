@@ -13,7 +13,7 @@
  * live in `step2Schema` and surface as field-level errors.
  */
 
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
@@ -65,6 +65,7 @@ interface Props {
 export function WizardStep2ProgramDetails({ onContinue, onAutoSave }: Props) {
   const draft = useBipDraft((s) => s.draft)
   const mergeDraft = useBipDraft((s) => s.mergeDraft)
+  const refs = useRef<Record<string, HTMLElement>>({})
 
   const form = useForm<Step2Values>({
     resolver: zodResolver(step2Schema),
@@ -90,6 +91,19 @@ export function WizardStep2ProgramDetails({ onContinue, onAutoSave }: Props) {
     mode: 'onBlur',
   })
 
+  const handleSubmit = form.handleSubmit((data) => {
+    onContinue(data)
+  }, (errors) => {
+    // Find the first field with an error and scroll to it
+    const firstErrorField = Object.keys(errors)[0]
+    if (firstErrorField && refs.current[firstErrorField]) {
+      refs.current[firstErrorField].focus()
+      // Scroll into view with smooth behavior
+      const element = refs.current[firstErrorField] as HTMLElement
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  })
+
   useEffect(() => {
     const sub = form.watch((value) => {
       mergeDraft(value as Partial<Step2Values>)
@@ -102,7 +116,7 @@ export function WizardStep2ProgramDetails({ onContinue, onAutoSave }: Props) {
     <Form {...form}>
       <form
         id="wizard-step-2-form"
-        onSubmit={form.handleSubmit(onContinue)}
+        onSubmit={handleSubmit}
         className="space-y-5"
       >
         <FormField
@@ -116,6 +130,10 @@ export function WizardStep2ProgramDetails({ onContinue, onAutoSave }: Props) {
                   rows={3}
                   placeholder="Describe the online sessions, group work, or asynchronous learning that complement the physical exchange."
                   {...field}
+                  ref={(el) => {
+                    field.ref(el)
+                    if (el) refs.current['virtual_component_description'] = el as unknown as HTMLElement
+                  }}
                 />
               </FormControl>
               <FormDescription>
@@ -134,6 +152,9 @@ export function WizardStep2ProgramDetails({ onContinue, onAutoSave }: Props) {
               <FormLabel>When do the virtual sessions run?</FormLabel>
               <FormControl>
                 <select
+                  ref={(el) => {
+                    if (el) refs.current['virtual_timing'] = el
+                  }}
                   className="block w-full rounded-md border border-border bg-white px-3 py-2 text-sm"
                   value={field.value ?? ''}
                   onChange={(e) => field.onChange(e.target.value)}
@@ -172,27 +193,28 @@ export function WizardStep2ProgramDetails({ onContinue, onAutoSave }: Props) {
               field.onChange(dates.filter((_, i) => i !== index))
             return (
               <FormItem>
-                <FormLabel>Virtual Session Dates</FormLabel>
+                <FormLabel>Virtual Session Date</FormLabel>
                 <div className="space-y-2">
                   {dates.map((value, index) => (
                     <div key={index} className="flex items-center gap-2">
                       <FormControl>
                         <DatePicker
+                          ref={(el) => {
+                            if (el) refs.current[`virtual_session_date_${index}`] = el
+                          }}
                           value={value}
                           onChange={(next) => setAt(index, next)}
                           onBlur={field.onBlur}
                           aria-label={`Virtual session date ${index + 1}`}
                         />
                       </FormControl>
-                      {index > 0 && (
-                        <button
-                          type="button"
-                          onClick={() => removeAt(index)}
-                          className="whitespace-nowrap rounded-md px-2 py-1 text-xs font-medium text-muted hover:text-eu-blue"
-                        >
-                          Remove
-                        </button>
-                      )}
+                      <button
+                        type="button"
+                        onClick={() => removeAt(index)}
+                        className="whitespace-nowrap rounded-md px-2 py-1 text-xs font-medium text-muted hover:text-eu-blue"
+                      >
+                        Remove
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -220,7 +242,14 @@ export function WizardStep2ProgramDetails({ onContinue, onAutoSave }: Props) {
             <FormItem>
               <FormLabel>Host city</FormLabel>
               <FormControl>
-                <Input placeholder="Leuven" {...field} />
+                <Input
+                  placeholder="Leuven"
+                  {...field}
+                  ref={(el) => {
+                    field.ref(el)
+                    if (el) refs.current['host_city'] = el as unknown as HTMLElement
+                  }}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -236,6 +265,9 @@ export function WizardStep2ProgramDetails({ onContinue, onAutoSave }: Props) {
                 <FormLabel>Physical Mobility Start Date</FormLabel>
                 <FormControl>
                   <DatePicker
+                    ref={(el) => {
+                      if (el) refs.current['physical_start_date'] = el
+                    }}
                     value={field.value}
                     onChange={field.onChange}
                     onBlur={field.onBlur}
@@ -254,6 +286,9 @@ export function WizardStep2ProgramDetails({ onContinue, onAutoSave }: Props) {
                 <FormLabel>Physical Mobility End Date</FormLabel>
                 <FormControl>
                   <DatePicker
+                    ref={(el) => {
+                      if (el) refs.current['physical_end_date'] = el
+                    }}
                     value={field.value}
                     onChange={field.onChange}
                     onBlur={field.onBlur}
@@ -274,6 +309,9 @@ export function WizardStep2ProgramDetails({ onContinue, onAutoSave }: Props) {
               <FormLabel>Application deadline</FormLabel>
               <FormControl>
                 <DatePicker
+                  ref={(el) => {
+                    if (el) refs.current['application_deadline'] = el
+                  }}
                   value={field.value}
                   onChange={field.onChange}
                   onBlur={field.onBlur}
@@ -293,7 +331,16 @@ export function WizardStep2ProgramDetails({ onContinue, onAutoSave }: Props) {
               <FormItem>
                 <FormLabel>ECTS credits</FormLabel>
                 <FormControl>
-                  <Input type="number" min={1} max={30} {...field} />
+                  <Input
+                    type="number"
+                    min={1}
+                    max={30}
+                    {...field}
+                    ref={(el) => {
+                      field.ref(el)
+                      if (el) refs.current['ects_credits'] = el as unknown as HTMLElement
+                    }}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -306,7 +353,16 @@ export function WizardStep2ProgramDetails({ onContinue, onAutoSave }: Props) {
               <FormItem>
                 <FormLabel>Maximum Number of Participants</FormLabel>
                 <FormControl>
-                  <Input type="number" min={1} max={100} {...field} />
+                  <Input
+                    type="number"
+                    min={1}
+                    max={100}
+                    {...field}
+                    ref={(el) => {
+                      field.ref(el)
+                      if (el) refs.current['max_participants'] = el as unknown as HTMLElement
+                    }}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -321,7 +377,12 @@ export function WizardStep2ProgramDetails({ onContinue, onAutoSave }: Props) {
             <FormItem>
               <FormLabel>Study levels</FormLabel>
               <FormControl>
-                <div className="flex flex-wrap gap-4">
+                <div
+                  ref={(el) => {
+                    if (el) refs.current['study_levels'] = el
+                  }}
+                  className="flex flex-wrap gap-4"
+                >
                   {STUDY_LEVEL_OPTIONS.map((opt) => {
                     const checked = (field.value ?? []).includes(opt.value)
                     return (
@@ -366,6 +427,10 @@ export function WizardStep2ProgramDetails({ onContinue, onAutoSave }: Props) {
                     maxLength={10}
                     className="uppercase placeholder:normal-case"
                     {...field}
+                    ref={(el) => {
+                      field.ref(el)
+                      if (el) refs.current['language_of_instruction'] = el as unknown as HTMLElement
+                    }}
                     onChange={(e) => field.onChange(e.target.value.toLowerCase())}
                   />
                 </FormControl>
@@ -384,6 +449,9 @@ export function WizardStep2ProgramDetails({ onContinue, onAutoSave }: Props) {
                 <FormLabel>Minimum CEFR level</FormLabel>
                 <FormControl>
                   <select
+                    ref={(el) => {
+                      if (el) refs.current['language_level_min'] = el
+                    }}
                     className="block w-full rounded-md border border-border bg-white px-3 py-2 text-sm"
                     value={field.value}
                     onChange={(e) => field.onChange(e.target.value)}

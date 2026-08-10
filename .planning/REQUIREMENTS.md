@@ -22,14 +22,14 @@ Each maps to a roadmap phase. REQ-IDs continue existing category numbering.
 
 ### BIP Detail Page (DETL)
 
-*Redesign `/bip/[slug]` against the finalized builder field set.*
+*Redesign `/bip/[slug]` against the finalized builder field set. Phase 10 verified 2026-08-10 via real `renderToStaticMarkup` (17/17): `InlineBipPreview` renders same `BipBody`/`BipHeader`/`BipKeyFacts` as `/bip/[slug]`; legacy `virtual_sessions_count`/`virtual_duration_notes` are deprecated per `00024`/`00026` — current DETL-11 is timing + `virtual_session_dates` + description.*
 
-- [ ] **DETL-11**: The detail page shows the virtual-component detail (session count + duration/schedule notes)
-- [ ] **DETL-12**: The detail page clearly flags when a BIP is open only to partner-institution students, so a student knows before contacting the coordinator
-- [ ] **DETL-13**: The detail page presents accommodation / practical information in a dedicated section
-- [ ] **DETL-14**: The detail page shows green-travel and inclusion-support indicators with correct sending-institution framing *(resolves the v1.1 badge suppression — data collected but shown nowhere)*
-- [ ] **DETL-15**: The detail page shows the BIP's participant capacity
-- [ ] **DETL-16**: The detail page groups the complete field set into clear labelled sections (overview, schedule / virtual component, practical information, application) with the deadline and Apply CTA prominent
+- [x] **DETL-11**: The detail page shows the virtual-component detail (timing + `virtual_session_dates` + description — legacy count/notes deprecated per `00024`/`00026`) — *verified 2026-08-10, 17/17 render, STATUS 200 225KB, Ready 1874ms*
+- [x] **DETL-12**: The detail page clearly flags when a BIP is open only to partner-institution students, so a student knows before contacting the coordinator — *amber banner in `BipBody.tsx:234`, 17/17 render*
+- [x] **DETL-13**: The detail page presents accommodation / practical information in a dedicated section — *conditional `Accommodation` in `BipBody.tsx:426`, 17/17 render*
+- [x] **DETL-14**: The detail page shows green-travel and inclusion-support indicators with correct sending-institution framing *(resolves the v1.1 badge suppression — data collected but shown nowhere)* — *`Funding & support` cards `BipBody.tsx:458` + `sending institution` caveat, 17/17 render*
+- [x] **DETL-15**: The detail page shows the BIP's participant capacity — *`Max places` tile `BipKeyFacts.tsx:64`, 17/17 render*
+- [x] **DETL-16**: The detail page groups the complete field set into clear labelled sections (overview, schedule / virtual component, practical information, application) with the deadline and Apply CTA prominent — *10 icon-led sections + `BipSidebar`/`BipMobileApplyBar`, 17/17 render*
 
 ### Discovery (BROW)
 

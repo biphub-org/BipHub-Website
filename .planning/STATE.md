@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Coordinator BIP Builder
 status: active
-stopped_at: "Phase 09 (coordinator-bip-builder-completion) CLOSED: 9/9 plans complete and 09-VERIFICATION.md passed 8/8 must-haves with 0 overrides. Phases 10 (BIP Detail Page) and 11 (Alert Subscriptions) are both unplanned and, per REQUIREMENTS.md coverage note, mutually independent — being run in parallel across two sessions (Phase 11 on branch phase-11-alerts in the ../BipHub-p11 worktree)."
-last_updated: "2026-07-26T16:37:10.000Z"
-last_activity: 2026-07-26
+stopped_at: "v1.2 CLOSED 2026-08-10: Phase 11 (alert-subscriptions) 7/7 verified — weekly default, 5-cap, confirm dialog, Medicine/Austria labels, HMAC unsubscribe, pg_cron→pg_net→Edge Function→Resend on approved_at, cron.job_run_details succeeded 17:58 UTC, cascade delete verified, 4/4 E2E, 110 tests. Phase 10 0-code 17/17 render. Remove alert-preview.html."
+last_updated: "2026-08-10T21:40:00.000Z"
+last_activity: 2026-08-10
 progress:
   total_phases: 3
-  completed_phases: 1
-  total_plans: 9
-  completed_plans: 9
-  percent: 33
+  completed_phases: 3
+  total_plans: 16
+  completed_plans: 16
+  percent: 100
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-18 after v1.1 milestone)
 
 **Core value:** Students can reliably discover Erasmus+ BIPs by country, field of study, and dates, and universities can self-service list their BIPs through a fast, professional submission flow with admin review.
-**Current focus:** Phase 10 — bip-detail-page (this session) ‖ Phase 11 — alert-subscriptions (parallel session, `../BipHub-p11`)
+**Current focus:** v1.2 CLOSED — all phases shipped (Phase 11 verified 2026-08-10)
 
 ## Current Position
 
-Phase: 10 (BIP Detail Page) — and Phase 11 (Alert Subscriptions) in parallel
-Plan: Not started (neither phase planned; no phase directory on disk for either)
-Status: Phase 09 complete and verified (8/8, 0 overrides) — Phase 10 and Phase 11 both awaiting discuss/plan
-Last activity: 2026-07-26
+Phase: v1.2 CLOSED 2026-08-10 — Phase 11 7/7 complete, Phase 10 0-code
+Plan: — (milestone complete)
+Status: v1.2 CLOSED — Phase 11 verified: DDL 00042-00044, pg_net + cron.job_run_details succeeded (17:58 UTC heartbeat), Edge Function deployed, /student-dashboard weekly/daily + confirm dialog + Medicine/Austria labels, HMAC unsubscribe, idempotency on approved_at, cascade delete verified via throwaway uat-cascade-1786388288, 4/4 E2E, 110 tests
+Last activity: 2026-08-10
 
 **Parallel-work contract (set 2026-07-26).** Phases 10 and 11 are being run concurrently in two
 sessions. Code surfaces are disjoint (Phase 10: `app/(public)/bip/[slug]/`, `lib/queries/bipDetail.ts`,

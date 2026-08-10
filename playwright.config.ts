@@ -113,7 +113,7 @@ export default defineConfig({
       // setup via signInStudent() / the admin generate_link + OTP verify helpers —
       // no pre-established storageState. No dependency on 'setup' (coordinator/admin
       // setup) to avoid ordering entanglement.
-      testMatch: /(student-auth|saved-bips)\.spec\.ts$/,
+      testMatch: /(student-auth|saved-bips|alert-subscriptions)\.spec\.ts$/,
       use: { ...devices['Desktop Chrome'] },
     },
   ],

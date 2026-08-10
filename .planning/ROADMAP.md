@@ -37,8 +37,8 @@ Full phase details, success criteria, and per-plan breakdown: [milestones/v1.1-R
 ### v1.2 Coordinator BIP Builder (Phases 9–11)
 
 - [x] **Phase 9: Coordinator BIP Builder Completion** (9/9 plans, verified 8/8) - the BIP data model is fully wired through the builder and edit-and-re-review flow (wizard → draft store → submit/edit → admin merge → diff view), two live data-integrity bugs fixed, and a partner-only badge on `/bips`
-- [ ] **Phase 10: BIP Detail Page** - `/bip/[slug]` redesigned against the finalized field set from Phase 9, presenting the complete BIP data in clear labelled sections
-- [ ] **Phase 11: Alert Subscriptions + Email Pipeline** - students subscribe to new-BIP digest alerts by field/country, receive idempotent weekly/daily emails, and unsubscribe with no login required (carried from v1.1 Phase 7)
+- [x] **Phase 10: BIP Detail Page** (verified 2026-08-10, 0 code — detail page already equals builder preview) - `/bip/[slug]` verified via real `renderToStaticMarkup` 17/17 (timing + dates + description, partner-only banner, accommodation, Fees, Funding & support, Max places, labelled sections + CTA; `Ready in 1874ms` with `dev:turbo`)
+- [x] **Phase 11: Alert Subscriptions + Email Pipeline** (7/7 plans, verified 2026-08-10 — weekly default/daily, 5-cap, update/delete with confirm dialog, Medicine/Austria labels, HMAC no-login unsubscribe, pg_cron→pg_net→Edge Function→Resend idempotency on `approved_at`, cascade delete, `/privacy` update, 4/4 E2E, `cron.job_run_details succeeded`) - students subscribe to new-BIP digest alerts by field/country, receive idempotent weekly/daily emails, and unsubscribe with no login required (carried from v1.1 Phase 7)
 
 > **Parallel tracks (2026-07-26).** Phases 10 and 11 are being built concurrently: Phase 10 on `main`
 > in the primary checkout, Phase 11 on branch `phase-11-alerts` in the `../BipHub-p11` worktree.
@@ -110,5 +110,5 @@ Full phase details, success criteria, and per-plan breakdown: [milestones/v1.1-R
 | 7. Alert Subscriptions + Email Pipeline | v1.1→v1.2 | 0/TBD | Deferred to v1.2 | - |
 | 8. Edit-Approved + Request-Changes | v1.1 | 9/9 | Complete | 2026-06-26 |
 | 9. Coordinator BIP Builder Completion | v1.2 | 9/9 | Complete | 2026-07-18 |
-| 10. BIP Detail Page | v1.2 | 0/TBD | Not started | - |
-| 11. Alert Subscriptions + Email Pipeline | v1.2 | 0/TBD | Not started | - |
+| 10. BIP Detail Page | v1.2 | 0/0 | Complete | 2026-08-10 |
+| 11. Alert Subscriptions + Email Pipeline | v1.2 | 7/7 | Complete | 2026-08-10 |

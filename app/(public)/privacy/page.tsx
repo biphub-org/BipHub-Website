@@ -122,6 +122,12 @@ export default function PrivacyPage() {
             the public Erasmus+ directory.
           </p>
           <p>
+            <strong className="text-ink">Alert subscriptions.</strong> When a signed-in student creates an alert, we store a <code>bip_subscriptions</code> row with your user ID, your chosen field of study and/or country, frequency (<code>weekly</code> or{' '}<code>daily</code>), the explicit consent text you agreed to, and creation time. This is used solely to send you the digest emails you requested.
+          </p>
+          <p>
+            <strong className="text-ink">Alert deliveries.</strong> Each time we send you a digest, we store a <code>bip_alert_deliveries</code> row (BIP ID + your user ID + delivery time) so the same BIP is never emailed twice for the same subscription. Both surfaces are retained until you delete the subscription or delete your account. All{' '}<code>bip_subscriptions</code> and <code>bip_alert_deliveries</code> rows are permanently deleted when you delete your account (cascading deletion via foreign key). You can unsubscribe at any time via the link in the email (no sign-in required) or from your dashboard.
+          </p>
+          <p>
             <strong className="text-ink">No analytics.</strong> We run no
             analytics scripts, no third-party trackers, no marketing pixels, no
             advertising cookies. We do not measure your behaviour. This is by

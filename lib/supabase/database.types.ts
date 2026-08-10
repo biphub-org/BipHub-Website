@@ -39,6 +39,35 @@ export type Database = {
   }
   public: {
     Tables: {
+      bip_alert_deliveries: {
+        Row: {
+          bip_id: string
+          delivered_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          bip_id: string
+          delivered_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          bip_id?: string
+          delivered_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bip_alert_deliveries_bip_id_fkey"
+            columns: ["bip_id"]
+            isOneToOne: false
+            referencedRelation: "bips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bip_attachments: {
         Row: {
           bip_id: string
@@ -319,10 +348,41 @@ export type Database = {
           },
         ]
       }
+      bip_subscriptions: {
+        Row: {
+          consent_text: string
+          country: string | null
+          created_at: string
+          field: string | null
+          frequency: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          consent_text: string
+          country?: string | null
+          created_at?: string
+          field?: string | null
+          frequency?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          consent_text?: string
+          country?: string | null
+          created_at?: string
+          field?: string | null
+          frequency?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       bips: {
         Row: {
           accommodation_notes: string | null
           application_deadline: string | null
+          approved_at: string | null
           card_image_path: string | null
           contact_email: string | null
           contact_name: string | null
@@ -370,6 +430,7 @@ export type Database = {
         Insert: {
           accommodation_notes?: string | null
           application_deadline?: string | null
+          approved_at?: string | null
           card_image_path?: string | null
           contact_email?: string | null
           contact_name?: string | null
@@ -417,6 +478,7 @@ export type Database = {
         Update: {
           accommodation_notes?: string | null
           application_deadline?: string | null
+          approved_at?: string | null
           card_image_path?: string | null
           contact_email?: string | null
           contact_name?: string | null
@@ -553,27 +615,39 @@ export type Database = {
           city: string | null
           country: string
           created_at: string
+          eche_end_date: string | null
           erasmus_code: string | null
           id: string
+          legal_name: string | null
           name: string
+          oid: string | null
+          source: string
           website_url: string | null
         }
         Insert: {
           city?: string | null
           country: string
           created_at?: string
+          eche_end_date?: string | null
           erasmus_code?: string | null
           id?: string
+          legal_name?: string | null
           name: string
+          oid?: string | null
+          source?: string
           website_url?: string | null
         }
         Update: {
           city?: string | null
           country?: string
           created_at?: string
+          eche_end_date?: string | null
           erasmus_code?: string | null
           id?: string
+          legal_name?: string | null
           name?: string
+          oid?: string | null
+          source?: string
           website_url?: string | null
         }
         Relationships: []
