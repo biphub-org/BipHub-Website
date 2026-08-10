@@ -550,8 +550,8 @@ test.describe('saved bips', () => {
     // saved_bips table name must appear in the page content (multiple occurrences are expected)
     await expect(page.getByText('saved_bips', { exact: false }).first()).toBeVisible({ timeout: 5_000 })
 
-    // cascading deletion language must be present
-    await expect(page.getByText('cascading deletion', { exact: false })).toBeVisible({ timeout: 5_000 })
+    // cascading deletion language must be present (now appears twice: saved_bips + alert deliveries)
+    await expect(page.getByText('cascading deletion', { exact: false }).first()).toBeVisible({ timeout: 5_000 })
   })
 
 })
