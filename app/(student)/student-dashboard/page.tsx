@@ -135,12 +135,13 @@ export default async function StudentDashboardPage() {
 async function AlertSubscriptionSection() {
   const supabase = await createClient()
   const { data: claimsData } = await supabase.auth.getClaims()
-  const userId = (claimsData?.claims as any)?.sub
+  const claims = claimsData?.claims as unknown as { sub?: string } | undefined
+  const userId = claims?.sub
   if (!userId) return <p className="text-sm text-muted">Sign in to manage alerts.</p>
   const { data } = await supabase
     .from('bip_subscriptions')
     .select('id, field, country, frequency, created_at')
     .eq('user_id', userId)
     .order('created_at', { ascending: true })
-  return <AlertSubscriptionList subscriptions={(data as any) ?? []} />
+  return <AlertSubscriptionList subscriptions={(data as unknown as React.ComponentProps<typeof AlertSubscriptionList>['subscriptions']) ?? []} />
 }

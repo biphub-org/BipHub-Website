@@ -8,8 +8,9 @@ import { revalidatePath } from "next/cache"
 async function getUserId(): Promise<string | null> {
   const supabase = await createClient()
   const { data } = await supabase.auth.getClaims()
-  const claims = (data as any)?.claims
-  const sub = claims?.sub ?? claims?.claims?.sub
+  const raw = data as unknown as { claims?: { sub?: unknown; claims?: { sub?: unknown } } } | null
+  const claims = raw?.claims
+  const sub = (claims?.sub as string | undefined) ?? ((claims?.claims as { sub?: unknown } | undefined)?.sub as string | undefined)
   if (typeof sub === "string") return sub
   // Fallback: try getUser (requires JWT validation via getClaims already done)
   const { data: userData } = await supabase.auth.getUser()
@@ -77,15 +78,24 @@ export async function deleteSubscriptionAction(id: string) {
   return { success: true }
 }
 
-export async function listSubscriptionsAction() {
+type SubscriptionRow = {
+  id: string
+  field: string | null
+  country: string | null
+  frequency: string
+  consent_text: string
+  created_at: string
+}
+
+export async function listSubscriptionsAction(): Promise<{ data: SubscriptionRow[]; error?: string }> {
   const userId = await getUserId()
-  if (!userId) return { error: "Not authenticated" as const, data: [] as any[] }
+  if (!userId) return { error: "Not authenticated" as const, data: [] as SubscriptionRow[] }
   const supabase = await createClient()
   const { data, error } = await supabase
     .from("bip_subscriptions")
     .select("id, field, country, frequency, consent_text, created_at")
     .eq("user_id", userId)
     .order("created_at", { ascending: true })
-  if (error) return { error: error.message, data: [] as any[] }
-  return { data: data ?? [] }
+  if (error) return { error: error.message, data: [] as SubscriptionRow[] }
+  return { data: (data as SubscriptionRow[] | null) ?? [] }
 }

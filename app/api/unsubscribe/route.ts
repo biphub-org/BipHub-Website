@@ -6,7 +6,6 @@ import { verifyUnsubscribeToken, verifyUnsubscribeHmac } from '@/lib/constants/u
 // This Route Handler uses service_role to delete the subscription after HMAC verification.
 // It is intentionally outside app/(admin)/ and creates its own service client —
 // the only sanctioned non-admin service-role usage (see plan 11-06).
-// eslint-disable-next-line @typescript-eslint/no-restricted-imports -- Phase 11 public unsubscribe exception
 
 export async function GET(req: NextRequest) {
   const token = req.nextUrl.searchParams.get('token')
