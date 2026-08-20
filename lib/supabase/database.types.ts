@@ -390,6 +390,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           description: string | null
+          duplicated_from_bip_id: string | null
           ects_credits: number | null
           eligibility_notes: string | null
           external_bip_id: string | null
@@ -438,6 +439,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description?: string | null
+          duplicated_from_bip_id?: string | null
           ects_credits?: number | null
           eligibility_notes?: string | null
           external_bip_id?: string | null
@@ -486,6 +488,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description?: string | null
+          duplicated_from_bip_id?: string | null
           ects_credits?: number | null
           eligibility_notes?: string | null
           external_bip_id?: string | null
@@ -529,6 +532,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bips_duplicated_from_bip_id_fkey"
+            columns: ["duplicated_from_bip_id"]
+            isOneToOne: false
+            referencedRelation: "bips"
             referencedColumns: ["id"]
           },
           {

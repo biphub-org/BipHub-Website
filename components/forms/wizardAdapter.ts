@@ -87,6 +87,7 @@ export function draftToBipDetail(
     accommodation_notes: draft.accommodation_notes ?? null,
     card_image_path: draft.card_image_path ?? null,
     partner_institutions_only: draft.partner_institutions_only ?? false,
+    duplicated_from_bip_id: null,
     host_university: host
       ? {
           id: host.id,

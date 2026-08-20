@@ -50,6 +50,7 @@ export type BipDetail = {
   accommodation_notes: string | null
   card_image_path: string | null
   partner_institutions_only: boolean | null
+  duplicated_from_bip_id: string | null
   host_university: {
     id: string
     name: string
@@ -100,7 +101,7 @@ export async function getBipBySlug(slug: string): Promise<BipDetail | null> {
       how_to_apply_type, how_to_apply_value,
       contact_name, contact_email, contact_phone, application_deadline,
       green_travel, inclusion_support, is_seed, status, created_at, subject_areas,
-      accommodation_notes, partner_institutions_only, card_image_path,
+      accommodation_notes, partner_institutions_only, card_image_path, duplicated_from_bip_id,
       host_university:universities!host_university_id(id, name, country, city, erasmus_code),
       partners:bip_partner_universities(
         id, partner_name_raw, partner_country_raw, partner_erasmus_code_raw, university_id,
@@ -154,7 +155,7 @@ export async function getBipById(id: string): Promise<BipDetail | null> {
       how_to_apply_type, how_to_apply_value,
       contact_name, contact_email, contact_phone, application_deadline,
       green_travel, inclusion_support, is_seed, status, created_at, subject_areas,
-      accommodation_notes, partner_institutions_only, card_image_path,
+      accommodation_notes, partner_institutions_only, card_image_path, duplicated_from_bip_id,
       host_university:universities!host_university_id(id, name, country, city, erasmus_code),
       partners:bip_partner_universities(
         id, partner_name_raw, partner_country_raw, partner_erasmus_code_raw, university_id,
@@ -210,3 +211,58 @@ export async function getAllPublishedSlugs(): Promise<string[]> {
     return []
   }
 }
+
+/**
+ * Derive the "Edition N" maturity signal for a BIP (SUBM-16).
+ *
+ * Edition = length of the duplication chain via duplicated_from_bip_id.
+ * Original (no parent) => 1, first duplicate => 2, etc. No stored counter
+ * so deletion (ON DELETE SET NULL) degrades gracefully and no drift is
+ * possible. Uses a loop over the foreign key; chain depth is expected to be
+ * < 10 (annual recurrence) and each step is a single indexed PK lookup.
+ * A cycle guard and depth cap (20) prevent infinite loops on corrupted data.
+ *
+ * Called from the public /bip/[slug] RSC after getBipBySlug. Uses the same
+ * Supabase client (RLS = bips_select_approved_public for anon) — so for the
+ * 12.3 E2E case (approved → duplicate → approved) the full chain is visible.
+ * If a lineage contains a non-approved intermediate (e.g. rejected parent),
+ * the public helper correctly returns 1 for that branch; a SECURITY DEFINER
+ * RPC can replace this loop later if cross-status lineage must be counted.
+ */
+export async function getBipEdition(bipId: string): Promise<number> {
+  const supabase = await createClient()
+  let edition = 1
+  let currentId: string | null = bipId
+  const visited = new Set<string>()
+  for (let i = 0; i < 20; i++) {
+    if (!currentId || visited.has(currentId)) break
+    visited.add(currentId)
+    const { data: row, error }: { data: { duplicated_from_bip_id: string | null } | null; error: unknown } = await supabase
+      .from('bips')
+      .select('duplicated_from_bip_id')
+      .eq('id', currentId)
+      .maybeSingle() as never
+    if (error || !row) break
+    const parent: string | null = (row as { duplicated_from_bip_id: string | null }).duplicated_from_bip_id
+    if (parent) {
+      edition += 1
+      currentId = parent
+    } else {
+      break
+    }
+  }
+  return edition
+}
+
+/**
+ * Convenience: derive edition directly from an already-fetched BipDetail
+ * without an extra round-trip when the chain is shallow. Falls back to
+ * getBipEdition when the parent is outside the fetched object.
+ */
+export async function getEditionForBip(bip: Pick<BipDetail, 'id' | 'duplicated_from_bip_id'>): Promise<number> {
+  if (!bip.duplicated_from_bip_id) return 1
+  // bip itself is 1, plus its lineage
+  const parentEdition = await getBipEdition(bip.duplicated_from_bip_id)
+  return parentEdition + 1
+}
+
