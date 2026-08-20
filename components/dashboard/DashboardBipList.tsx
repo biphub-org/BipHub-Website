@@ -25,7 +25,7 @@ import type { CoordinatorBip, CoordinatorBipStatus } from '@/lib/queries/coordin
 
 type TabValue = 'all' | CoordinatorBipStatus
 
-const TAB_ORDER: ReadonlyArray<TabValue> = ['all', 'draft', 'pending', 'approved', 'rejected']
+const TAB_ORDER: ReadonlyArray<TabValue> = ['all', 'draft', 'pending', 'approved', 'rejected', 'changes_requested']
 
 const TAB_LABELS: Record<TabValue, string> = {
   all: 'All',
@@ -33,6 +33,7 @@ const TAB_LABELS: Record<TabValue, string> = {
   pending: 'Pending',
   approved: 'Approved',
   rejected: 'Rejected',
+  changes_requested: 'Changes Requested',
 }
 
 interface Props {
@@ -72,6 +73,7 @@ export function DashboardBipList({ bips, initialStatus, showSubmittedToast }: Pr
       pending: 0,
       approved: 0,
       rejected: 0,
+      changes_requested: 0,
     }
     for (const b of bips) acc[b.status] = (acc[b.status] ?? 0) + 1
     return acc

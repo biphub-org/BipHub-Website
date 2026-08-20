@@ -25,6 +25,7 @@ import { reviseRejectedBipAction } from '@/lib/actions/bip-revise'
 import type { CoordinatorBip } from '@/lib/queries/coordinatorBips'
 import { cn } from '@/lib/utils/cn'
 import { formatLongDate } from '@/lib/utils/dates'
+import { duplicateBipAction } from '@/lib/actions/bip-duplicate'
 
 function formatDate(iso: string | null): string {
   return formatLongDate(iso) ?? '—'
@@ -39,6 +40,7 @@ export function DashboardBipCard({ bip }: Props) {
   const [withdrawOpen, setWithdrawOpen] = useState(false)
   const router = useRouter()
   const [isRevising, startRevise] = useTransition()
+  const [isDuplicating, startDuplicate] = useTransition()
 
   // Revise a rejected BIP: transition it back to `draft` (server action), then
   // open the wizard so the coordinator can edit and re-submit. The edit route
@@ -53,6 +55,26 @@ export function DashboardBipCard({ bip }: Props) {
       router.push(`/dashboard/bips/${bip.id}/edit`)
     })
   }
+
+  function handleDuplicate() {
+    startDuplicate(async () => {
+      const result = await duplicateBipAction(bip.id)
+      if ('error' in result) {
+        toast.error(result.error)
+        return
+      }
+      const maybeWarning = (result as { warning?: string }).warning
+      if (maybeWarning) {
+        toast.warning(maybeWarning)
+      } else {
+        toast.success('BIP duplicated — adjust the dates for the new edition.')
+      }
+      router.push(`/dashboard/bips/${result.bipId}/edit`)
+    })
+  }
+
+  const canDuplicate =
+    bip.status === 'approved' || bip.status === 'rejected' || bip.status === 'changes_requested'
 
   return (
     <article className="rounded-md border border-border bg-white shadow-sm p-5">
@@ -127,25 +149,58 @@ export function DashboardBipCard({ bip }: Props) {
                 </Button>
               </>
             )}
-            {bip.status === 'approved' && (
-              <Link
-                href={`/bip/${bip.slug}`}
-                target="_blank"
-                className="text-sm text-eu-blue hover:underline"
-              >
-                View public page →
-              </Link>
+            {(bip.status === 'approved' || bip.status === 'changes_requested') && (
+              <>
+                <Link href={`/dashboard/bips/${bip.id}/edit`}>
+                  <Button variant="ghost" size="sm">
+                    Edit
+                  </Button>
+                </Link>
+                <Link
+                  href={`/bip/${bip.slug}`}
+                  target="_blank"
+                  className="text-sm text-eu-blue hover:underline"
+                >
+                  View public page →
+                </Link>
+                {canDuplicate && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleDuplicate}
+                    disabled={isDuplicating}
+                    className="text-muted hover:text-ink"
+                    aria-label={`Duplicate ${bip.title}`}
+                  >
+                    {isDuplicating ? 'Duplicating…' : 'Duplicate'}
+                  </Button>
+                )}
+              </>
             )}
             {bip.status === 'rejected' && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleRevise}
-                disabled={isRevising}
-                className="text-eu-blue"
-              >
-                {isRevising ? 'Reopening…' : 'Revise & resubmit'}
-              </Button>
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleRevise}
+                  disabled={isRevising}
+                  className="text-eu-blue"
+                >
+                  {isRevising ? 'Reopening…' : 'Revise & resubmit'}
+                </Button>
+                {canDuplicate && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleDuplicate}
+                    disabled={isDuplicating}
+                    className="text-muted hover:text-ink"
+                    aria-label={`Duplicate ${bip.title}`}
+                  >
+                    {isDuplicating ? 'Duplicating…' : 'Duplicate'}
+                  </Button>
+                )}
+              </>
             )}
           </div>
         </div>
