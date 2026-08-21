@@ -46,13 +46,27 @@ interface AdminBipRowProps {
   bip: AdminBip
   /** 'edit' → show Edit badge after the status pill */
   kind?: 'submission' | 'edit'
+  selectable?: boolean
+  selected?: boolean
+  onToggle?: (id: string, checked: boolean) => void
 }
 
-export function AdminBipRow({ bip, kind }: AdminBipRowProps) {
+export function AdminBipRow({ bip, kind, selectable, selected, onToggle }: AdminBipRowProps) {
   const [rejectOpen, setRejectOpen] = useState(false)
 
   return (
-    <article className="flex items-center gap-3 rounded-md border border-border bg-white px-4 py-3 transition hover:border-border-strong">
+    <article
+      className={`flex items-center gap-3 rounded-md border bg-white px-4 py-3 transition hover:border-border-strong ${selected ? 'border-eu-blue bg-eu-blue-50/30' : 'border-border'}`}
+    >
+      {selectable && (
+        <input
+          type="checkbox"
+          checked={!!selected}
+          onChange={(e) => onToggle?.(bip.id, e.target.checked)}
+          className="h-4 w-4 shrink-0 accent-eu-blue"
+          aria-label={`Select ${bip.title || 'Untitled BIP'}`}
+        />
+      )}
       <div className="min-w-0 flex-1">
         <h3 className="truncate text-sm font-semibold text-ink">
           {bip.title || 'Untitled BIP'}

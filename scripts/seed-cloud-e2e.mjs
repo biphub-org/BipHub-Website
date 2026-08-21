@@ -16,6 +16,7 @@
  */
 import { readFileSync } from 'node:fs'
 import { createClient } from '@supabase/supabase-js'
+import ws from 'ws'
 
 // ---- load .env.local -------------------------------------------------------
 function loadEnv(path) {
@@ -46,6 +47,8 @@ console.log(`Seeding ${URL}`)
 
 const sb = createClient(URL, SERVICE_KEY, {
   auth: { autoRefreshToken: false, persistSession: false },
+  global: { WebSocket: ws },
+  realtime: { transport: ws },
 })
 
 const FIXTURE_SLUGS = [
@@ -58,6 +61,8 @@ const FIXTURE_SLUGS = [
   'e2e-request-changes-target',
   // Approved BIP the bip-edits spec drives through the edit wizard.
   'e2e-edit-target-bip',
+  // Phase 12 — Edition chain (SUBM-16): second edition of the edit-target.
+  'e2e-edition-copy',
 ]
 
 const USERS = {
@@ -314,6 +319,37 @@ async function main() {
         'Dorm rooms reserved at the TUM student residence; confirm dietary needs in advance.',
       partner_institutions_only: true,
       how_to_apply_value: 'https://tum.example/materials/apply',
+    },
+    {
+      // Phase 12 — Edition chain (SUBM-16, FOUN-15). Approved copy of
+      // e2e-edit-target-bip so /bip/e2e-edition-copy renders Edition 2.
+      ...baseBip,
+      id: 'e2e0bbbb-bbbb-bbbb-bbbb-000000000011',
+      slug: 'e2e-edition-copy',
+      title: 'E2E Edition Copy',
+      status: 'approved',
+      description:
+        'Second edition of the sustainable materials BIP — same host, updated dates, demonstrating the Edition N maturity signal. Covers bio-composites and circular design with an extended lab week.',
+      learning_outcomes:
+        '- Select appropriate bio-composite materials for a given engineering constraint\n- Apply circular-economy principles to product lifecycle analysis\n- Fabricate and test a small prototype from recycled feedstock',
+      virtual_component_description:
+        'Three online pre-mobility workshops covering materials databases, simulation tools, and a group design brief.',
+      virtual_sessions_count: 4,
+      virtual_duration_notes:
+        'Weekly online seminars ahead of the mobility week.',
+      physical_start_date: '2027-07-09',
+      physical_end_date: '2027-07-19',
+      application_deadline: '2027-05-01',
+      max_participants: 18,
+      subject_area: 'it-engineering',
+      isced_f_code: 'it-engineering',
+      subject_areas: ['it-engineering', 'arts-design'],
+      study_levels: ['bachelor', 'master'],
+      accommodation_notes:
+        'Dorm rooms reserved at the TUM student residence; confirm dietary needs in advance.',
+      partner_institutions_only: true,
+      how_to_apply_value: 'https://tum.example/materials/apply',
+      duplicated_from_bip_id: 'e2e0bbbb-bbbb-bbbb-bbbb-000000000010',
     },
   ]
 

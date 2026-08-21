@@ -5,6 +5,7 @@ import { DeadlineBadge } from '@/components/bip/DeadlineBadge'
 import { BipApplyCta } from '@/components/bip/BipApplyCta'
 import { BipKeyFacts } from '@/components/bip/BipKeyFacts'
 import { ShareButton } from '@/components/bip/ShareButton'
+import { cn } from '@/lib/utils/cn'
 
 /**
  * BipSidebar — sticky 340px right column at lg+ (D-09 / UI-SPEC line 357).
@@ -49,7 +50,7 @@ export function BipSidebar({
   return (
     <aside
       aria-label="Key facts"
-      className="hidden lg:block sticky top-[88px] self-start"
+      className={cn("hidden lg:block self-start", !isAdminReview && "sticky top-[88px]")}
     >
       <div className="bg-white border border-border rounded-lg p-6 shadow-sm">
         {/* Deadline chip */}

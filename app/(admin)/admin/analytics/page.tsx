@@ -45,7 +45,7 @@ export default async function AdminAnalyticsPage() {
         <StatCard
           label="Total BIPs"
           value={analytics.totalBips}
-          description="Real submissions (seed data excluded)."
+          description="All BIPs including demo seed data."
           Icon={Database}
         />
         <StatCard

@@ -36,6 +36,8 @@ export const BipFilterSchema = z.object({
   status: z.enum(STATUS_FILTER_OPTIONS).optional(),
   // BROW-08: study level (multi)
   level: csvArray(STUDY_LEVELS),
+  // BROW-15: partner filter (?partnerOnly=exclude → hide, =only → show only partner-only, absent = show all)
+  partnerOnly: z.enum(['exclude', 'only']).optional(),
   // BROW-09: full-text search query (1-100 chars). Empty string treated as undefined.
   q: z.string().min(1).max(100).optional(),
   // BROW-10: sort

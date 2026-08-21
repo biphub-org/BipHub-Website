@@ -39,6 +39,8 @@ export default async function PublicLayout({
 
   let initials: string | null = null
   const hasClaims = Boolean(claims)
+  const role = (claims as unknown as { app_metadata?: { role?: string } } | null)?.app_metadata?.role ?? null
+  const dashboardHref = role === 'admin' ? '/admin' : role === 'student' ? '/student-dashboard' : '/dashboard'
 
   if (claims?.sub) {
     // Profile name first; fall back to email.
@@ -68,7 +70,7 @@ export default async function PublicLayout({
   return (
     <>
       <a href="#main" className="skip-link">Skip to main content</a>
-      <StickyNav hasClaims={hasClaims} initials={initials} />
+      <StickyNav hasClaims={hasClaims} initials={initials} dashboardHref={dashboardHref} dashboardLabel={role === 'admin' ? 'Admin' : 'Dashboard'} />
       <main id="main" className="min-h-[calc(100vh-68px)]">
         {children}
       </main>

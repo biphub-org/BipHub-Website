@@ -80,7 +80,7 @@ export function AdminActionsPanel({
   const rejectLabel = isEdit ? 'Reject Edit' : 'Reject BIP'
 
   return (
-    <div className="bg-white border border-border rounded-md p-6 shadow-sm sticky top-20">
+    <div className="bg-white border border-border rounded-md p-6 shadow-sm">
       <h2 className="text-[22px] font-semibold text-ink mb-4">Admin actions</h2>
       <div className="flex flex-col gap-3">
         {/* Approve */}

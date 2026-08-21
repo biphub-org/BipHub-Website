@@ -19,7 +19,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { getLatestRejectionsByBipIds } from './statusHistory'
 
-export type CoordinatorBipStatus = 'draft' | 'pending' | 'approved' | 'rejected'
+export type CoordinatorBipStatus = 'draft' | 'pending' | 'approved' | 'rejected' | 'changes_requested'
 
 export type CoordinatorBip = {
   id: string
@@ -36,22 +36,70 @@ export type CoordinatorBip = {
   rejection_reason: string | null
 }
 
-export async function getCoordinatorBips(): Promise<CoordinatorBip[]> {
+export type CoordinatorBipsFilter = {
+  q?: string
+  country?: string[]
+  field?: string[]
+  lang?: string[]
+  dateFrom?: string
+  dateTo?: string
+  availability?: 'open' | 'closed' | 'any'
+  level?: string[]
+  partnerOnly?: 'exclude' | 'only'
+}
+
+export async function getCoordinatorBips(filter: CoordinatorBipsFilter = {}): Promise<CoordinatorBip[]> {
   const supabase = await createClient()
   const { data: authData, error: authError } = await supabase.auth.getClaims()
   const claims = authData?.claims ?? null
   if (authError || !claims?.sub) return []
 
-  const { data, error } = await supabase
+  const universityJoin = filter.country?.length
+    ? 'host_university:host_university_id!inner ( id, name, country )'
+    : 'host_university:host_university_id ( id, name, country )'
+
+  let query = supabase
     .from('bips')
     .select(`
       id, slug, title, status, subject_areas, host_city,
-      application_deadline, physical_start_date,
+      application_deadline, physical_start_date, language_of_instruction, study_levels, partner_institutions_only, ects_credits,
       updated_at, created_at,
-      host_university:host_university_id ( id, name, country )
+      ${universityJoin}
     `)
     .eq('created_by', claims.sub)
     .order('updated_at', { ascending: false })
+
+  if (filter.country?.length) {
+    const upper = filter.country.map((c) => c.toUpperCase())
+    query = query.in('host_university.country', upper)
+  }
+  if (filter.field?.length) {
+    query = query.overlaps('subject_areas', filter.field)
+  }
+  if (filter.lang?.length) {
+    query = query.in('language_of_instruction', filter.lang)
+  }
+  if (filter.dateFrom) query = query.gte('physical_start_date', filter.dateFrom)
+  if (filter.dateTo) query = query.lte('physical_start_date', filter.dateTo)
+  if (filter.availability === 'open') {
+    query = query.gte('application_deadline', new Date().toISOString().split('T')[0])
+  } else if (filter.availability === 'closed') {
+    query = query.lt('application_deadline', new Date().toISOString().split('T')[0])
+  }
+  if (filter.level?.length) {
+    query = query.overlaps('study_levels', filter.level)
+  }
+  if (filter.partnerOnly === 'exclude') {
+    query = query.eq('partner_institutions_only', false)
+  } else if (filter.partnerOnly === 'only') {
+    query = query.eq('partner_institutions_only', true)
+  }
+  const q = filter.q?.trim()
+  if (q) {
+    query = query.textSearch('search_vector', q, { type: 'websearch', config: 'english' })
+  }
+
+  const { data, error } = await query
 
   if (error) {
     console.error('[getCoordinatorBips] supabase error:', error.message)

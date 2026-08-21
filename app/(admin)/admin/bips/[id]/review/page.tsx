@@ -74,7 +74,7 @@ export default async function ReviewBipPage(props: {
           <BipHeader bip={bip} />
           <BipBody bip={bip} />
         </div>
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 sticky top-[88px] self-start">
           <BipSidebar bip={bip} mode="admin-review" />
           <AdminActionsPanel
             bipId={bip.id}

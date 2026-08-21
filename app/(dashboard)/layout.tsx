@@ -41,6 +41,8 @@ export default async function DashboardLayout({
   const { data, error } = await supabase.auth.getClaims()
   if (error || !data?.claims?.sub) redirect('/login')
   const claims = data.claims
+  const role = (claims as unknown as { app_metadata?: { role?: string } })?.app_metadata?.role
+  if (role === 'admin') redirect('/admin')
 
   // (2) Profile-complete gate.
   const headersList = await headers()

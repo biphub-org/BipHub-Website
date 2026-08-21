@@ -1,5 +1,27 @@
 # Milestones
 
+## v1.2 Coordinator BIP Builder (Shipped: 2026-08-10)
+
+**Phases completed:** 3 phases (9–11), 16/16 plans
+**Stats:** 2026-07-18 → 2026-08-10 (~23 days). Phases 9 (9/9 builder), Phase 10 (0-code detail verification), Phase 11 (7/7 alerts).
+
+**Key accomplishments:**
+
+- **Phase 9 — Coordinator BIP Builder Completion:** 4 orphaned columns (virtual_sessions_count, virtual_duration_notes, accommodation_notes, partner_institutions_only) wired through all 7 layers (migration + Zod + Zustand draft + wizard UI + 4 write paths + diff view + BipDetail query); 2 live-bug fixes (virtual_timing 5-value enum, max_participants floor 10→consistent with DB); FOUN-14 anti-drift (seed.sql + seed.e2e.sql + seed-cloud-e2e.mjs synced, duplicated column-list literals collapsed into BIP_EDIT_CONTENT_COLUMNS).
+- **Phase 10 — BIP Detail Page:** 0-code verification — InlineBipPreview already renders same BipBody/BipKeyFacts/BipSidebar as /bip/[slug]; 17/17 renderToStaticMarkup checks (timing+dates+description, partner-only amber banner, accommodation, Fees, Funding & support with sending-institution framing, Max places, 10 labelled sections + CTA); Ready in 1874ms dev:turbo.
+- **Phase 11 — Alert Subscriptions + Email Pipeline (carried from v1.1 Phase 7):** weekly default/daily opt-in, 5-cap, field/country matching, HMAC no-login unsubscribe (RFC 8058 List-Unsubscribe), explicit consent capture, pg_cron→pg_net→Edge Function→Resend on approved_at (never updated_at), unique (bip_id,user_id) idempotency, ON DELETE CASCADE for GDPR, /privacy enumeration, cron.job_run_details heartbeat succeeded 17:58 UTC (throwaway uat-cascade-1786388288 1→0 cascade verified), 4/4 E2E, 110 tests.
+
+**Known Gaps:**
+
+- **Phase 8 verification debt (still outstanding, now v1.3 Day-0 gate):** 08-VERIFICATION.md human_needed (EDIT-04 ISR timing + EDIT-07 Resend live delivery) + 08-UAT.md 7 steps deferred 2026-06-26. Must pass with RESEND_API_KEY set before v1.3 feature plans count as done.
+- **Phase 05 human-UAT closed 2026-08-12** per user instruction (cloud Custom Access Token hook).
+
+**Known deferred items at close:** Phase 8 gate (carried to v1.3), plus the two-tab false-conflict fix (239998b) unverified in-browser.
+
+---
+
+
+
 ## v1.1 Product Depth & Engagement (Shipped: 2026-07-18)
 
 **Phases completed:** 3 of 4 planned (Phases 5, 6, 8) — 17 plans

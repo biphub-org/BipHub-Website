@@ -1,51 +1,36 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.2
-milestone_name: Coordinator BIP Builder
+milestone: v1.3
+milestone_name: Growth & Operational Efficiency
 status: active
-stopped_at: "v1.2 CLOSED 2026-08-10: Phase 11 (alert-subscriptions) 7/7 verified — weekly default, 5-cap, confirm dialog, Medicine/Austria labels, HMAC unsubscribe, pg_cron→pg_net→Edge Function→Resend on approved_at, cron.job_run_details succeeded 17:58 UTC, cascade delete verified, 4/4 E2E, 110 tests. Phase 10 0-code 17/17 render. Remove alert-preview.html."
-last_updated: "2026-08-10T21:40:00.000Z"
-last_activity: 2026-08-10
+stopped_at: "v1.3 Phase 13 complete: BROW-15 + DISC-08/09 shortlist (bip-compare.spec.ts) + admin filter bar 6-tab. Phase 12 3/3. Day-0 gate still open (deferred)."
+last_updated: "2026-08-21T08:00:00.000Z"
+last_activity: 2026-08-21
 progress:
   total_phases: 3
-  completed_phases: 3
-  total_plans: 16
-  completed_plans: 16
-  percent: 100
+  completed_phases: 2
+  total_plans: 10
+  completed_plans: 6
+  percent: 60
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-18 after v1.1 milestone)
+See: .planning/PROJECT.md (updated 2026-08-12 for v1.3)
 
 **Core value:** Students can reliably discover Erasmus+ BIPs by country, field of study, and dates, and universities can self-service list their BIPs through a fast, professional submission flow with admin review.
-**Current focus:** v1.2 CLOSED — all phases shipped (Phase 11 verified 2026-08-10)
+**Current focus:** v1.3 Growth & Operational Efficiency — planning (plan approved 2026-08-12, Day-0 gate: Phase 8 EDIT-04/07 UAT still open). v1.2 shipped 2026-08-10.
 
 ## Current Position
 
-Phase: v1.2 CLOSED 2026-08-10 — Phase 11 7/7 complete, Phase 10 0-code
-Plan: — (milestone complete)
-Status: v1.2 CLOSED — Phase 11 verified: DDL 00042-00044, pg_net + cron.job_run_details succeeded (17:58 UTC heartbeat), Edge Function deployed, /student-dashboard weekly/daily + confirm dialog + Medicine/Austria labels, HMAC unsubscribe, idempotency on approved_at, cascade delete verified via throwaway uat-cascade-1786388288, 4/4 E2E, 110 tests
-Last activity: 2026-08-10
+Phase: 13 — Discovery (complete: BROW-15 + DISC-08/09 + GROW-01 shortlist)
+Plan: 14 — Admin Ops (next)
+Status: Phase 13 complete 2026-08-21 — BROW-15 ?partnerOnly=exclude (schema/query/sidebar/chips) + /bips/compare CompareCard + CompareBar/Toggle + lib/store/compare cap 3 + E2E bip-compare.spec.ts (2 tests) + admin filter bar 6-tab improvement. Phase 12 3/3 remains. Day-0 gate still deferred. Next: Phase 14 TOOL-01/02.
+Last activity: 2026-08-21
 
-**Parallel-work contract (set 2026-07-26).** Phases 10 and 11 are being run concurrently in two
-sessions. Code surfaces are disjoint (Phase 10: `app/(public)/bip/[slug]/`, `lib/queries/bipDetail.ts`,
-`components/bip/*`, zero DDL — DETL-11..16 read columns Phase 9 already added. Phase 11: new
-migrations + `bip_subscriptions`/`bip_alert_deliveries`, `/student-dashboard`, `lib/email/*`,
-unsubscribe route, `approved_at` marker in the approve actions). Shared-resource rules:
-
-- **Migrations:** Phase 11 owns the number space from `00042` onward. Phase 10 needs no DDL; if that
-  changes, claim a number here first.
-- **`lib/supabase/database.types.ts`:** Phase 11 only. Regeneration rewrites the whole file, so
-  Phase 10 must pull rather than regenerate.
-- **Cloud Supabase (shared project):** additive DDL may be pushed freely; **coordinate before any
-  re-seed** — a fresh re-seed drops the `@biphub.test` fixture users and breaks the other session's
-  Playwright runs mid-flight.
-- **`playwright.config.ts`:** Phase 11 extends the `student-authed` testMatch; Phase 10 extends
-  `public`. Adjacent lines — expect a trivial conflict at merge.
-- **This file + ROADMAP.md:** both sessions write them per plan. Resolve at merge, don't hand-sync.
+**Prior parallel-work contract (v1.2 Phases 10+11, now closed 2026-08-10).** Kept for history — both tracks shipped (Phase 10 0-code, Phase 11 7/7). Migration space from 00042 onward was Phase 11; next DDL is 00045 (Phase 12 duplicate) per v1.3 plan.
 
 ## Performance Metrics
 
@@ -244,19 +229,21 @@ Items acknowledged and deferred at v1.1 milestone close on 2026-07-18:
 |----------|------|--------|-------------|
 | Verification | Phase 08 human-verify (08-VERIFICATION.md): Resend edit-outcome email delivery (EDIT-07) + ISR revalidate-on-approve timing (EDIT-04) — runtime, needs real Resend key | Carried to v1.2 | 2026-07-18 |
 | UAT | Phase 08 manual UAT (08-UAT.md): same Resend+ISR runtime sign-off | Carried to v1.2 | 2026-07-18 |
-| UAT | Phase 05 human-UAT (05-HUMAN-UAT.md): 1 pending scenario | Carried to v1.2 | 2026-07-18 |
+| UAT | Phase 05 human-UAT (05-HUMAN-UAT.md): 1 pending scenario | **Closed 2026-08-12** — marked done per user instruction (cloud Custom Access Token hook assumed enabled; local hook already proven green) | 2026-07-18 |
 | Debug | bug-001-approved-edit debug session marked `awaiting_human_verify` — bug is RESOLVED (`9bcccc7`, KNOWN-BUGS.md); session file was never flipped to verified | **Closed 2026-07-26** — session flipped to `verified` (E2E proof: all 11 `bip-edits.spec.ts` tests green) | 2026-07-18 |
 | Feature | Phase 7 (Alert Subscriptions + Email Pipeline) not built — full scope moved to the v1.2 roadmap as **Phase 11** | Moved to v1.2 (Phase 11) | 2026-07-18 |
 
 ## Session Continuity
 
-Last session: 2026-07-26T16:37:10.000Z
-Stopped at: Phase 09 closed (9/9 plans, 09-VERIFICATION.md passed 8/8, 0 overrides). Pre-split bookkeeping done: stale "Phase 10 = alerts" numbering corrected throughout this file, ROADMAP Phase 9 row corrected from 7/9 to 9/9, bug-001 debug session flipped to `verified`. Worktree `../BipHub-p11` created on branch `phase-11-alerts` for parallel Phase 11 work.
+Last session: 2026-08-21T08:00:00.000Z
+Stopped at: Phase 13 complete (BROW-15 + DISC-08/09 + admin filter bar). Phase 12 3/3. Day-0 gate still open (deferred).
 Resume file: None
-Resume instructions: Two parallel tracks. THIS repo (`C:\dev\Antigravity\BipHub`, branch `main`) = Phase 10 (BIP Detail Page) — start with `/gsd-discuss-phase 10`, then `/gsd-ui-phase 10` (UI hint: yes). The `../BipHub-p11` worktree (branch `phase-11-alerts`) = Phase 11 (Alert Subscriptions) — start with `/gsd-discuss-phase 11`; its first plan must resolve the `pg_net` prerequisite. Observe the parallel-work contract under "Current Position" before touching migrations, `database.types.ts`, or re-seeding the shared cloud DB.
+Resume instructions: Next: Phase 14 Admin Ops — TOOL-01 /admin/export.csv + TOOL-02 bulk moderate (per-row audit + revalidatePath). Day-0 gate deferred, run with RESEND_API_KEY before v1.3 close.
 
 ## Operator Next Steps
 
-- **Phase 10 (this repo, `main`):** `/gsd-discuss-phase 10` → `/gsd-ui-phase 10` → plan. Needs no DDL; note that the 2026-07-24 DETL hover-motion commit (`69d774c`) already moved part of this surface outside the GSD loop.
-- **Phase 11 (`../BipHub-p11`, `phase-11-alerts`):** `/gsd-discuss-phase 11`. Infrastructure-first — `pg_net` + a real `cron.job_run_details` row before any Server Action work counts as done.
-- **Carried verification debt (still open):** Phase 08 Resend edit-outcome email (EDIT-07) + ISR revalidate-on-approve (EDIT-04) and the Phase 05 human-UAT scenario. Also unverified in-browser: the two-tab false-conflict fix (`239998b`).
+- **Day 0 — Phase 8 gate (still open, deferred):** manual 08-UAT: `RESEND_API_KEY` in `.env.local`, approved BIP → edit → admin approve → check ISR (seconds) + inbox (3 emails). Report `done` to flip `08-VERIFICATION.md` + deferred row before v1.3 close — user deferred to after Phase 13.
+- **Phase 12 (complete):** 12.1 DDL 00045 + 12.2 duplicateBipAction + 12.3 Edition N badge — all shipped 2026-08-21 (see Current Position).
+- **Phase 13 (complete):** BROW-15 + DISC-08/09 shortlist — all shipped 2026-08-21 (see Current Position) + admin filter bar 6-tab improvement .
+- **Phase 14 (next):** `/gsd-discuss-phase 14` → plan TOOL-01 CSV export + TOOL-02 bulk moderate — can start now, no dep on Day-0.
+- **Carried verification debt (still open):** Phase 08 Resend edit-outcome email (EDIT-07) + ISR revalidate-on-approve (EDIT-04) — Day-0 gate deferred. Phase 05 human-UAT closed 2026-08-12. Also unverified in-browser: the two-tab false-conflict fix (`239998b`).

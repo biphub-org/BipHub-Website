@@ -49,9 +49,12 @@ interface AdminBipCardProps {
    * (/admin/bip-edits/[editId]/review). Required when kind==='edit'.
    */
   reviewHref?: string
+  selectable?: boolean
+  selected?: boolean
+  onToggle?: (id: string, checked: boolean) => void
 }
 
-export function AdminBipCard({ bip, kind, reviewHref }: AdminBipCardProps) {
+export function AdminBipCard({ bip, kind, reviewHref, selectable, selected, onToggle }: AdminBipCardProps) {
   const submittedAgo = daysAgo(bip.created_at)
   const submittedLabel =
     submittedAgo === 0
@@ -59,9 +62,21 @@ export function AdminBipCard({ bip, kind, reviewHref }: AdminBipCardProps) {
       : `Submitted ${submittedAgo} day${submittedAgo === 1 ? '' : 's'} ago`
 
   return (
-    <article className="rounded-md border border-border bg-white shadow-sm p-5 hover:border-border-strong hover:shadow-md transition">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="flex-1 min-w-0">
+    <article
+      className={`rounded-md border bg-white shadow-sm p-5 hover:shadow-md transition ${selected ? 'border-eu-blue bg-eu-blue-50/40' : 'border-border hover:border-border-strong'}`}
+    >
+      <div className="flex gap-3 md:gap-4 md:items-center">
+        {selectable && (
+          <input
+            type="checkbox"
+            checked={!!selected}
+            onChange={(e) => onToggle?.(bip.id, e.target.checked)}
+            className="mt-1 md:mt-0 h-4 w-4 accent-eu-blue shrink-0"
+            aria-label={`Select ${bip.title}`}
+          />
+        )}
+        <div className="flex-1 min-w-0 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex-1 min-w-0">
           <h3 className="text-base font-semibold text-ink truncate">
             {bip.title || 'Untitled BIP'}
           </h3>
@@ -95,6 +110,7 @@ export function AdminBipCard({ bip, kind, reviewHref }: AdminBipCardProps) {
               Review →
             </Button>
           </Link>
+        </div>
         </div>
       </div>
     </article>

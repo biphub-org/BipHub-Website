@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils/cn'
  *
  * UI-SPEC line 78: h1 text-3xl mobile / text-[44px] lg, font-bold, tracking-tight, lh 1.15
  */
-export function BipHeader({ bip }: { bip: BipDetail }) {
+export function BipHeader({ bip, edition }: { bip: BipDetail; edition?: number | null }) {
   const host = bip.host_university
   const countryName = host?.country ? getCountryName(host.country) : ''
   const fieldLabels = (bip.subject_areas ?? []).map(
@@ -26,14 +26,25 @@ export function BipHeader({ bip }: { bip: BipDetail }) {
 
   return (
     <header className="mb-8">
-      <h1
-        className={cn(
-          'mb-3 text-3xl lg:text-[44px] font-bold text-ink tracking-tight',
-          'leading-[1.15]',
+      <div className="flex flex-wrap items-start gap-3 mb-3">
+        <h1
+          className={cn(
+            'flex-1 min-w-0 text-3xl lg:text-[44px] font-bold text-ink tracking-tight',
+            'leading-[1.15]',
+          )}
+        >
+          {bip.title}
+        </h1>
+        {edition !== null && edition !== undefined && edition > 1 && (
+          <span
+            className="inline-flex shrink-0 items-center rounded-full border border-ink/10 bg-ink px-3 py-1 text-xs font-semibold tracking-wide text-white"
+            aria-label={`Edition ${edition}`}
+            title={`This program has run ${edition} times — the current offering is the ${edition}${edition === 2 ? 'nd' : edition === 3 ? 'rd' : 'th'} edition.`}
+          >
+            Edition {edition}
+          </span>
         )}
-      >
-        {bip.title}
-      </h1>
+      </div>
 
       {/* Subtitle: [flag] host university · host city, country */}
       {host && (

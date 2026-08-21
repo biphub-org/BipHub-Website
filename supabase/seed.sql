@@ -872,6 +872,18 @@ update public.bips set subject_areas = '{health-sciences,medicine}'
 update public.bips set subject_areas = '{business-economics,it-engineering}'
   where slug = 'responsible-ai-business-strategy-leuven-2026';
 
+-- ----------------------------------------------------------------------------
+-- Phase 12 — Duplicate lineage (SUBM-15/16, FOUN-15)
+-- One seeded BIP is a second edition of another, so the public detail page
+-- can render the Edition N badge without any user action. The chain is
+-- TU Muenchen BIP 2 (Alpine) duplicated from BIP 1 (Sustainable Cities) —
+-- both at D MUNCHEN02. Edition = 2 for the duplicate, 1 for the source.
+-- ON DELETE SET NULL ensures source deletion does not cascade.
+-- ----------------------------------------------------------------------------
+update public.bips
+  set duplicated_from_bip_id = (select id from public.bips where slug = 'sustainable-cities-smart-mobility-munich-2026')
+  where slug = 'alpine-climate-resilience-munich-2026';
+
 -- ============================================================
 -- Seed summary (target — re-verified by scripts/verify-seed.ts)
 -- 20 BIPs, all is_seed=true, all status=approved

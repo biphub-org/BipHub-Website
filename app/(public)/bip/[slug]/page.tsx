@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { getBipBySlug, getAllPublishedSlugs } from '@/lib/queries/bipDetail'
+import { getBipBySlug, getAllPublishedSlugs, getEditionForBip } from '@/lib/queries/bipDetail'
 import { getCountryName } from '@/lib/countries'
 import { formatLongDate, formatLongDateRange } from '@/lib/utils/dates'
 import { BipHeader } from '@/components/bip/BipHeader'
@@ -121,6 +121,8 @@ export default async function BipDetailPage({
     notFound()
   }
 
+  const edition = await getEditionForBip(bip)
+
   // Per-user saved state is hydrated client-side by <SavedBipsHydrator /> so this
   // detail route stays cookie-free and ISR-cached (D-bip-02-03). The save button
   // renders from its SSR fallback (unsaved) until the store hydrates.
@@ -150,7 +152,7 @@ export default async function BipDetailPage({
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-8 lg:gap-12">
           <div>
-            <BipHeader bip={bip} />
+            <BipHeader bip={bip} edition={edition} />
             {/* Key facts inline below lg — the sidebar that normally carries
                 them is hidden on mobile, and the mobile bar shows only the
                 deadline + actions. */}

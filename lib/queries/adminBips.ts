@@ -157,8 +157,17 @@ export async function getAdminBipById(bipId: string): Promise<BipDetail | null> 
 }
 
 export type AdminBipsFilter = {
-  status?: 'all' | 'draft' | 'pending' | 'approved' | 'rejected'
+  status?: 'all' | 'draft' | 'pending' | 'approved' | 'rejected' | 'changes_requested'
   q?: string
+  country?: string[]
+  field?: string[]
+  lang?: string[]
+  dateFrom?: string
+  dateTo?: string
+  // student status (open/closed) — deadline-based, distinct from admin workflow status
+  availability?: 'open' | 'closed' | 'any'
+  level?: string[]
+  partnerOnly?: 'exclude' | 'only'
 }
 
 /**
@@ -181,18 +190,52 @@ export async function getAdminBips(
   const claims = authData?.claims ?? null
   if (authError || !claims?.sub) return []
 
+  // For country filter we need an inner join so the embedded host_university is not nulled
+  const universityJoin = filter.country?.length
+    ? 'host_university:host_university_id!inner ( id, name, country )'
+    : 'host_university:host_university_id ( id, name, country )'
+  const selectWithJoin = ADMIN_BIP_SELECT.replace(
+    'host_university:host_university_id ( id, name, country )',
+    universityJoin,
+  )
+
   let query = supabase
     .from('bips')
-    .select(ADMIN_BIP_SELECT)
+    .select(selectWithJoin)
     .order('updated_at', { ascending: false })
 
   if (filter.status && filter.status !== 'all') {
     query = query.eq('status', filter.status)
   }
 
+  if (filter.country?.length) {
+    const upper = filter.country.map((c) => c.toUpperCase())
+    query = query.in('host_university.country', upper)
+  }
+  if (filter.field?.length) {
+    query = query.overlaps('subject_areas', filter.field)
+  }
+  if (filter.lang?.length) {
+    query = query.in('language_of_instruction', filter.lang)
+  }
+  if (filter.dateFrom) query = query.gte('physical_start_date', filter.dateFrom)
+  if (filter.dateTo) query = query.lte('physical_start_date', filter.dateTo)
+  if (filter.availability === 'open') {
+    query = query.gte('application_deadline', new Date().toISOString().split('T')[0])
+  } else if (filter.availability === 'closed') {
+    query = query.lt('application_deadline', new Date().toISOString().split('T')[0])
+  }
+  if (filter.level?.length) {
+    query = query.overlaps('study_levels', filter.level)
+  }
+  if (filter.partnerOnly === 'exclude') {
+    query = query.eq('partner_institutions_only', false)
+  } else if (filter.partnerOnly === 'only') {
+    query = query.eq('partner_institutions_only', true)
+  }
+
   const q = filter.q?.trim()
   if (q && q.length > 0) {
-    // Reuse search_vector + websearch parser from Phase 1 (BROW-09)
     query = query.textSearch('search_vector', q, {
       type: 'websearch',
       config: 'english',
@@ -343,9 +386,10 @@ export async function getAdminBipForEdit(
 
   const draft: BipDraftData = {
     title: data.title ?? undefined,
-    external_bip_id: data.external_bip_id ?? undefined,
+    // Backfill for legacy BIPs (see coordinatorBipById.ts) — same defaults so admin can edit old approved BIPs without hunting Step 1/4.
+    external_bip_id: data.external_bip_id ?? `LEGACY-${data.slug}`,
     target_group:
-      (data.target_group as BipDraftData['target_group']) ?? undefined,
+      (data.target_group as BipDraftData['target_group']) ?? 'students',
     subject_areas: data.subject_areas ?? undefined,
     description: data.description ?? undefined,
     learning_outcomes: data.learning_outcomes ?? undefined,
@@ -366,7 +410,7 @@ export async function getAdminBipForEdit(
     language_level_min:
       (data.language_level_min as BipDraftData['language_level_min']) ??
       undefined,
-    fees: data.fees ?? undefined,
+    fees: data.fees ?? 'No fees',
     eligibility_notes: data.eligibility_notes ?? undefined,
     how_to_apply_type:
       (data.how_to_apply_type as BipDraftData['how_to_apply_type']) ??

@@ -67,9 +67,11 @@ function getScrollThreshold(pathname: string): number {
 interface StickyNavProps {
   hasClaims?: boolean
   initials?: string | null
+  dashboardHref?: string
+  dashboardLabel?: string
 }
 
-export function StickyNav({ hasClaims = false, initials = null }: StickyNavProps) {
+export function StickyNav({ hasClaims = false, initials = null, dashboardHref = '/dashboard', dashboardLabel = 'Dashboard' }: StickyNavProps) {
   const pathname = usePathname()
   const hasDarkHero = pageHasDarkHero(pathname)
   const [scrolled, setScrolled] = useState(false)
@@ -154,13 +156,13 @@ export function StickyNav({ hasClaims = false, initials = null }: StickyNavProps
           {hasClaims ? (
             <>
               <Link
-                href="/dashboard"
+                href={dashboardHref}
                 className={cn(
                   'hidden md:inline text-sm font-semibold transition-colors',
                   transparent ? 'text-white hover:text-eu-gold' : 'text-ink hover:text-eu-blue',
                 )}
               >
-                Dashboard
+                {dashboardLabel}
               </Link>
               <span
                 aria-label="Coordinator profile"
@@ -227,8 +229,8 @@ export function StickyNav({ hasClaims = false, initials = null }: StickyNavProps
                   {hasClaims ? (
                     <SheetClose
                       render={
-                        <Link href="/dashboard" className="inline-flex">
-                          <Button variant="primary" className="w-full">Dashboard</Button>
+                        <Link href={dashboardHref} className="inline-flex">
+                          <Button variant="primary" className="w-full">{dashboardLabel}</Button>
                         </Link>
                       }
                     />

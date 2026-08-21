@@ -10,25 +10,26 @@ Students can reliably discover BIPs by country, field of study, and dates, and u
 
 ## Current State
 
-**Shipped:** v1.1 Product Depth & Engagement (2026-07-18) — 3 of 4 planned phases (5, 6, 8), 17 plans, on top of v1.0 MVP (2026-06-14, 4 phases, 30 plans, ~24,500 LOC).
-Students now have real accounts: magic-link sign-in, a dedicated dashboard separate from coordinator/admin areas, server-side saved BIPs synced across devices with localStorage migration, and full GDPR cascade. Coordinators can edit already-approved BIPs through admin re-review while the live page stays public (shadow `bip_edits` table), and admins gained a third "request changes" moderation state with full audit trail. Deployed on Vercel against cloud Supabase. Playwright E2E suite green (38/38 golden-path, 2 skipped).
+**Shipped:** v1.2 Coordinator BIP Builder (2026-08-10) — Phases 9–11, 16/16 plans, on top of v1.1 (2026-07-18, 3 phases, 17 plans) and v1.0 MVP (2026-06-14, 4 phases, 30 plans, ~24,500 LOC).
+v1.2 delivered: builder wire-up of 4 orphaned columns (`virtual_sessions_count`, `virtual_duration_notes`, `accommodation_notes`, `partner_institutions_only`) + 2 live-bug fixes (`virtual_timing` 5-value enum, `max_participants` floor 10) with FOUN-14 anti-drift (3 seed sources + shared `BIP_EDIT_CONTENT_COLUMNS`), 0-code detail-page verification (17/17 `renderToStaticMarkup`, 1874ms), and Alert Subscriptions pipeline (field/country, weekly default + daily, 5-cap, HMAC unsubscribe, `pg_cron→pg_net→Edge Function→Resend` on `approved_at`, `cron.job_run_details` heartbeat 17:58 UTC, 4/4 E2E, 110 tests).
 
-**Deferred at v1.1 close:** Phase 7 (Alert Subscriptions + Email Pipeline) was NOT built — deliberately moved to v1.2 to prioritize the coordinator BIP-builder work (which unblocks BIP detail-page design). Phase 8 Resend-delivery + ISR-refresh manual UAT/verification carried to v1.2. See `STATE.md` Deferred Items.
+**Deferred at v1.2 close:** Phase 8 edit-outcome email (EDIT-07) + ISR revalidate timing (EDIT-04) manual UAT still outstanding — carried to v1.3 as Day-0 gate (see `STATE.md` Deferred Items). Phase 05 human-UAT closed 2026-08-12 per user instruction (cloud Custom Access Token hook).
 
-**Next milestone:** v1.2 — coordinator BIP builder + BIP detail page + carried-forward Phase 7 alerts — see Current Milestone below.
+**Next milestone:** v1.3 — Growth & Operational Efficiency — see Current Milestone below.
 
-## Current Milestone: v1.2 (scoping)
+## Current Milestone: v1.3 Growth & Operational Efficiency (planning — plan approved 2026-08-12, see `.agents/plans/2026-08-12-v1-3-growth-ops.md`)
 
-**Goal:** Finish the coordinator BIP builder so the BIP data model and creation flow are complete — which unblocks designing the BIP detail page — then land the carried-forward student alert subscriptions.
+**Goal:** Close the shipped-but-unverified Phase 8 debt, then make BipHub retain coordinators year-over-year and make students compare/share BIPs — without adding a public API or rich-text editor.
 
 **Target features (workstreams):**
-- **Coordinator BIP builder** — complete the BIP creation/edit experience (fields, validation, UX) so it fully expresses the BIP data model *(to be scoped in this milestone)*
-- **BIP detail page** — design/build the public detail page against the finalized builder output *(depends on builder)*
-- **Alert Subscriptions + Email Pipeline (carried from v1.1 Phase 7)** — students subscribe to new-BIP alerts by field/country, idempotent digest emails, signed unsubscribe, dashboard management (ALRT-01..08)
+- **Day 0 — Phase 8 verification gate** — run the 7-step `08-UAT.md` with `RESEND_API_KEY` set (EDIT-04 ISR within seconds + EDIT-07 all 3 emails). Must pass before new feature work counts as done.
+- **Phase 12 — Duplicate BIP + Program Maturity (SUBM-15/16)** — `Duplicate` on approved/rejected/changes_requested → new draft (slug regen, `duplicated_from_bip_id` FK `ON DELETE SET NULL`, derived `Edition N` on detail page when `N>1`)
+- **Phase 13 — Discovery: exclude partner-only + compare + shortlist (BROW-15, DISC-08/09, GROW-01 shortlist)** — `?partnerOnly=exclude` filter, client-state compare `?ids=a,b,c` (max 3, no table), shareable URL
+- **Phase 14 — Admin ops (TOOL-01/02)** — CSV export + bulk approve/reject with per-row audit/ISR; TOOL-03 (view/save counts) deferred to v1.4
 
-**Deferred to a later milestone:** Public read API + JSON-LD/SEO ("data layer for devs") — postponed until the product has a real audience worth serving via API.
+**Deferred to a later milestone:** Public read API + JSON-LD/SEO ("data layer for devs") — still postponed until audience (see `PROJECT.md` Out of Scope). Rich-text, photo uploads, funding calculator, reviews/ratings remain permanent anti-features.
 
-*Requirements and roadmap for v1.2 are being defined — see REQUIREMENTS.md once generated.*
+*Requirements for v1.3 are at `.planning/REQUIREMENTS.md` (to be generated next). Roadmap: `.planning/ROADMAP.md`.*
 
 ## Requirements
 

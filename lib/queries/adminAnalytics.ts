@@ -1,12 +1,12 @@
 /**
- * Admin analytics aggregates (D-20 / ADMN-07).
+ * Admin analytics aggregates (D-20 / ADMN-07) — seed-inclusive.
  *
- * Three stat cards on /admin/analytics:
- *   1. Total BIPs        — count(bips) where is_seed = false
+ * Three stat cards on /admin/analytics (includes seed/demo data per request):
+ *   1. Total BIPs        — count(bips) ALL rows (seed + real)
  *   2. Submissions/month — count(bip_status_history) where action_kind='submit'
- *                          AND created_at >= start-of-month
- *   3. Top 5 countries   — host_university.country tally over approved
- *                          non-seed BIPs, desc by count, limit 5
+ *                          AND created_at >= start-of-month (covers all BIPs)
+ *   3. Top 5 countries   — host_university.country tally over ALL approved
+ *                          BIPs, desc by count, limit 5
  *
  * Auth: getClaims() validates the JWT signature (CLAUDE.md never-do
  *   forbids the unvalidated session reader server-side).
@@ -62,11 +62,10 @@ export async function getAdminAnalytics(): Promise<AdminAnalytics> {
     return { totalBips: 0, submissionsThisMonth: 0, topCountries: [] }
   }
 
-  // 1. Total BIPs (real submissions only — exclude seeded fixtures)
+  // 1. Total BIPs — all rows including seed/demo data
   const totalRes = await supabase
     .from('bips')
     .select('id', { count: 'exact', head: true })
-    .eq('is_seed', false)
   const totalBips = totalRes.count ?? 0
 
   // 2. Submissions this month via bip_status_history audit log
@@ -77,11 +76,10 @@ export async function getAdminAnalytics(): Promise<AdminAnalytics> {
     .gte('created_at', startOfMonthIso())
   const submissionsThisMonth = monthRes.count ?? 0
 
-  // 3. Top 5 host countries (approved, non-seed BIPs grouped JS-side)
+  // 3. Top 5 host countries (all approved BIPs including seed, grouped JS-side)
   const { data: countryRows, error: countryError } = await supabase
     .from('bips')
     .select('host_university:host_university_id ( country )')
-    .eq('is_seed', false)
     .eq('status', 'approved')
 
   let topCountries: AdminAnalytics['topCountries'] = []

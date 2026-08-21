@@ -508,6 +508,54 @@ select
 from public.universities u
 where u.erasmus_code = 'D MUNCHEN02' limit 1;
 
+-- ----------------------------------------------------------------------------
+-- Step 6b: Phase 12 — Edition chain (SUBM-16, FOUN-15)
+-- Approved BIP that is Edition 2 (duplicate of e2e-edit-target-bip) so the
+-- public detail page /bip/e2e-edition-copy renders the "Edition 2" badge
+-- without any user action. Both rows are approved, so getBipEdition's
+-- anon RLS path can traverse the chain.
+-- ----------------------------------------------------------------------------
+insert into public.bips (
+  id, slug, title, status, is_seed,
+  description, learning_outcomes, virtual_component_description, virtual_timing,
+  virtual_sessions_count, virtual_duration_notes,
+  physical_start_date, physical_end_date, application_deadline,
+  host_city, ects_credits, max_participants,
+  language_of_instruction, language_level_min,
+  subject_area, isced_f_code,
+  study_levels, green_travel, inclusion_support,
+  accommodation_notes, partner_institutions_only,
+  contact_name, contact_email,
+  how_to_apply_type, how_to_apply_value,
+  host_university_id, created_by, duplicated_from_bip_id
+)
+select
+  'e2e0bbbb-bbbb-bbbb-bbbb-000000000011',
+  'e2e-edition-copy',
+  'E2E Edition Copy',
+  'approved', false,
+  'Second edition of the sustainable materials BIP — same host, updated dates, demonstrating the Edition N maturity signal. Covers bio-composites and circular design with an extended lab week.',
+  E'- Select appropriate bio-composite materials for a given engineering constraint\n- Apply circular-economy principles to product lifecycle analysis\n- Fabricate and test a small prototype from recycled feedstock',
+  'Three online pre-mobility workshops covering materials databases, simulation tools, and a group design brief.',
+  'before',
+  4, 'Weekly online seminars ahead of the mobility week.',
+  '2027-07-09', '2027-07-19', '2027-05-01',
+  'Munich', 4, 18,
+  'en', 'B2',
+  'it-engineering', 'it-engineering',
+  ARRAY['bachelor','master'], false, false,
+  'Dorm rooms reserved at the TUM student residence; confirm dietary needs in advance.', true,
+  'E2E Coordinator', 'e2e-coordinator@biphub.test',
+  'url', 'https://tum.example/materials/apply',
+  u.id,
+  '11111111-1111-1111-1111-111111111111',
+  'e2e0bbbb-bbbb-bbbb-bbbb-000000000010'
+from public.universities u
+where u.erasmus_code = 'D MUNCHEN02' limit 1;
+
+update public.bips set subject_areas = '{it-engineering,arts-design}'
+  where slug = 'e2e-edition-copy';
+
 -- (No Row b.) The pending bip_edits row is NOT seeded — EDIT-01 creates it by
 -- driving the coordinator "Submit Edit for Review" flow. See the NOTE above.
 

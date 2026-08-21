@@ -122,9 +122,13 @@ export async function getCoordinatorBipById(
 
   const draft: BipDraftData = {
     title: data.title ?? undefined,
-    external_bip_id: data.external_bip_id ?? undefined,
+    // Backfill for legacy BIPs created before 00024 (target_group/external_bip_id/fees nullable).
+    // Without this, a title-only edit on an old approved BIP would fail fullBipSchema validation
+    // and force the coordinator to hunt for the missing Step 1/4 fields. Defaults are
+    // coordinator-visible and can be changed before submit.
+    external_bip_id: data.external_bip_id ?? `LEGACY-${data.slug}`,
     target_group:
-      (data.target_group as BipDraftData['target_group']) ?? undefined,
+      (data.target_group as BipDraftData['target_group']) ?? 'students',
     subject_areas: data.subject_areas ?? undefined,
     description: data.description ?? undefined,
     learning_outcomes: data.learning_outcomes ?? undefined,
@@ -145,7 +149,7 @@ export async function getCoordinatorBipById(
     language_level_min:
       (data.language_level_min as BipDraftData['language_level_min']) ??
       undefined,
-    fees: data.fees ?? undefined,
+    fees: data.fees ?? 'No fees',
     eligibility_notes: data.eligibility_notes ?? undefined,
     how_to_apply_type:
       (data.how_to_apply_type as BipDraftData['how_to_apply_type']) ?? undefined,

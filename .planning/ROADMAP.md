@@ -4,7 +4,8 @@
 
 - ✅ **v1.0 MVP** — Phases 1–4 (shipped 2026-06-14) — full detail in [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 - ✅ **v1.1 Product Depth & Engagement** — Phases 5, 6, 8 (shipped 2026-07-18; Phase 7 deferred to v1.2) — full detail in [milestones/v1.1-ROADMAP.md](milestones/v1.1-ROADMAP.md)
-- 🚧 **v1.2 Coordinator BIP Builder** — Phases 9–11 (in progress)
+- ✅ **v1.2 Coordinator BIP Builder** — Phases 9–11 (shipped 2026-08-10) — full detail in [milestones/v1.2-ROADMAP.md](milestones/v1.2-ROADMAP.md)
+- 🚧 **v1.3 Growth & Operational Efficiency** — Phases 12–14 (planning — plan approved 2026-08-12, see [.agents/plans/2026-08-12-v1-3-growth-ops.md](../.agents/plans/2026-08-12-v1-3-growth-ops.md))
 
 ## Phases
 
@@ -97,6 +98,41 @@ Full phase details, success criteria, and per-plan breakdown: [milestones/v1.1-R
 **Plans**: TBD
 **UI hint**: yes
 
+
+### v1.3 Growth & Operational Efficiency (Phases 12–14 — planning)
+
+> Plan: [.agents/plans/2026-08-12-v1-3-growth-ops.md](../.agents/plans/2026-08-12-v1-3-growth-ops.md) (approved 2026-08-12). Day 0 gate = Phase 8 verification (08-UAT 7 steps + 08-VERIFICATION). See that plan for decisions, work plan, and validation.
+
+#### Phase 12: Duplicate BIP + Program Maturity
+**Goal**: Coordinators duplicate an approved/rejected/changes_requested BIP into a new draft; detail page shows derived Edition N when N>1.
+**Depends on**: v1.2 (builder complete) + Day 0 gate (deferred per user — Phase 12 shipped without gate).
+**Requirements**: SUBM-15, SUBM-16
+**Success Criteria**:
+  1. Duplicate action clones all SUBM fields + partner universities into a new draft with regenerated slug and `duplicated_from_bip_id` FK `ON DELETE SET NULL`; no PII leakage.
+  2. `/bip/[slug]` renders Edition badge only when edition>1 (recursive lineage, not stored counter).
+**Plans**: 3 plans — 12.1 DDL 00045 + edition helper (done dde2f99), 12.2 duplicateBipAction + Duplicate affordance (done 91fc451), 12.3 Edition N badge + 3 seed chains + E2E bip-duplicate.spec.ts (done 2026-08-21)
+**UI hint**: yes
+
+#### Phase 13: Discovery — Exclude Partner-Only + Compare + Shortlist
+**Goal**: Students filter out partner-only BIPs and compare/share shortlists via URL.
+**Depends on**: Day 0 gate (no hard dep on Phase 12; can parallelize).
+**Requirements**: BROW-15, DISC-08, DISC-09, GROW-01 (shortlist portion)
+**Success Criteria**:
+  1. `/bips?partnerOnly=exclude` hides partner-only cards; absent = show all; URL-driven and chip-removable.
+  2. Compare 2–3 BIPs via `?ids=a,b,c` on `/bips/compare` (no table, cards with CTA), max 3, shareable incognito.
+**Plans**: TBD
+**UI hint**: yes
+
+#### Phase 14: Admin Ops — CSV Export + Bulk Moderate
+**Goal**: Admins export filtered queue as CSV and bulk approve/reject with per-row audit/ISR.
+**Depends on**: Day 0 gate.
+**Requirements**: TOOL-01, TOOL-02 (TOOL-03 deferred to v1.4)
+**Success Criteria**:
+  1. `GET /admin/export.csv` admin-guarded, filter passthrough, `text/csv` attachment.
+  2. Bulk action returns `{succeeded, failed}` per row with per-row `bip_status_history` + `revalidatePath`.
+**Plans**: TBD
+**UI hint**: yes
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -112,3 +148,6 @@ Full phase details, success criteria, and per-plan breakdown: [milestones/v1.1-R
 | 9. Coordinator BIP Builder Completion | v1.2 | 9/9 | Complete | 2026-07-18 |
 | 10. BIP Detail Page | v1.2 | 0/0 | Complete | 2026-08-10 |
 | 11. Alert Subscriptions + Email Pipeline | v1.2 | 7/7 | Complete | 2026-08-10 |
+| 12. Duplicate BIP + Program Maturity | v1.3 | 3/3 | Complete | 2026-08-21 |
+| 13. Discovery — Exclude Partner-Only + Compare + Shortlist | v1.3 | 3/3 | Complete | 2026-08-21 |
+| 14. Admin Ops — CSV Export + Bulk Moderate | v1.3 | 0/TBD | Planning | — |

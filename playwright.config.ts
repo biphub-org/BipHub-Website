@@ -85,7 +85,7 @@ export default defineConfig({
     },
     {
       name: 'coordinator-authed',
-      testMatch: /(submission|resubmit)\.spec\.ts$/,
+      testMatch: /(submission|resubmit|bip-duplicate)\.spec\.ts$/,
       dependencies: ['setup'],
       use: {
         ...devices['Desktop Chrome'],
@@ -103,7 +103,7 @@ export default defineConfig({
     },
     {
       name: 'public',
-      testMatch: /(map-filter|no-horizontal-overflow|bips-card)\.spec\.ts$/,
+      testMatch: /(map-filter|no-horizontal-overflow|bips-card|bip-compare)\.spec\.ts$/,
       use: { ...devices['Desktop Chrome'] },
       // no storageState — public routes
     },

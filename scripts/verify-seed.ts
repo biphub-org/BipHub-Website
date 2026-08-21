@@ -158,6 +158,23 @@ async function main() {
   const partnerOnly = bips.filter((b) => b.partner_institutions_only === true).length
   check('partner_only_ge_1', partnerOnly >= 1, `${partnerOnly} BIPs`)
 
+  // 10. Edition chain (Phase 12 SUBM-16/FOUN-15): at least one seeded BIP has
+  // duplicated_from_bip_id set, proving the Edition N lineage is seeded.
+  // We query the raw column directly for this check.
+  {
+    const { data: editionRows, error: editionErr } = await supabase
+      .from('bips')
+      .select('duplicated_from_bip_id')
+      .eq('is_seed', true)
+      .not('duplicated_from_bip_id', 'is', null)
+    if (editionErr) {
+      check('edition_chain_ge_1', false, `query failed: ${editionErr.message}`)
+    } else {
+      const n = editionRows?.length ?? 0
+      check('edition_chain_ge_1', n >= 1, `${n} seeded BIP(s) with duplicated_from_bip_id`)
+    }
+  }
+
   // Render results
   let allPass = true
   console.log('\n--- verify-seed.ts D-17 distribution audit ---\n')

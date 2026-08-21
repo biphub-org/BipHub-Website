@@ -2,11 +2,9 @@ import { Inbox } from 'lucide-react'
 import {
   getAdminPendingSubmissions,
   getAdminPendingEdits,
-  type AdminBipEditItem,
 } from '@/lib/queries/bipEdits'
-import type { AdminBip } from '@/lib/queries/adminBips'
-import type { BipStatus } from '@/lib/utils/status'
-import { AdminBipCard } from '@/components/admin/AdminBipCard'
+import { AdminQueueClient } from '@/components/admin/AdminQueueClient'
+import { AdminQueueExportBar } from '@/components/admin/AdminQueueExportBar'
 
 /**
  * Admin pending queue (/admin) — unified view of new submissions + bip_edits
@@ -28,10 +26,6 @@ import { AdminBipCard } from '@/components/admin/AdminBipCard'
  * marks the segment dynamic.
  */
 
-type QueueItem =
-  | { kind: 'submission'; bip: AdminBip; sortKey: string }
-  | { kind: 'edit'; edit: AdminBipEditItem; sortKey: string }
-
 export default async function AdminQueuePage() {
   const [submissions, edits] = await Promise.all([
     getAdminPendingSubmissions(),
@@ -41,31 +35,28 @@ export default async function AdminQueuePage() {
   const count = submissions.length + edits.length
   const hasEdits = edits.length > 0
 
-  // Merge into one FIFO list and sort by created_at ascending
-  const queueItems: QueueItem[] = [
-    ...submissions.map((bip): QueueItem => ({
-      kind: 'submission',
-      bip,
-      sortKey: bip.created_at,
-    })),
-    ...edits.map((edit): QueueItem => ({
-      kind: 'edit',
-      edit,
-      sortKey: edit.created_at,
-    })),
-  ].sort((a, b) => a.sortKey.localeCompare(b.sortKey))
-
   return (
     <div>
-      <div className="bg-white border-b border-border px-6 py-5">
-        <h1 className="text-[22px] font-semibold text-ink">Pending review</h1>
-        <p className="text-sm text-muted">
-          {count === 0
-            ? "You're all caught up. New submissions and edits will appear here automatically."
-            : hasEdits
-              ? `${count} items awaiting review · includes new submissions and edits`
-              : `${count} BIP${count === 1 ? '' : 's'} awaiting review`}
-        </p>
+      <div className="bg-white border-b border-border px-6 py-5 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-[22px] font-semibold text-ink">Pending review</h1>
+          <p className="text-sm text-muted">
+            {count === 0
+              ? "You're all caught up. New submissions and edits will appear here automatically."
+              : hasEdits
+                ? `${count} items awaiting review · includes new submissions and edits`
+                : `${count} BIP${count === 1 ? '' : 's'} awaiting review`}
+          </p>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <AdminQueueExportBar count={count} />
+          <a
+            href="/admin/bips/new"
+            className="inline-flex items-center gap-2 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white hover:bg-ink/90"
+          >
+            <span aria-hidden>+</span> Add new BIP
+          </a>
+        </div>
       </div>
 
       {count === 0 ? (
@@ -79,29 +70,7 @@ export default async function AdminQueuePage() {
           </p>
         </div>
       ) : (
-        <div className="max-w-[1200px] mx-auto px-6 py-6 flex flex-col gap-4">
-          {queueItems.map((item) => {
-            if (item.kind === 'submission') {
-              return <AdminBipCard key={item.bip.id} bip={item.bip} />
-            }
-
-            // Edit items: override bip.status with the edit row status so the
-            // status badge reflects pending/changes_requested on the edit, not
-            // the parent BIP (which is always 'approved').
-            const editBip: AdminBip = {
-              ...item.edit.bip,
-              status: item.edit.status as BipStatus,
-            }
-            return (
-              <AdminBipCard
-                key={item.edit.id}
-                bip={editBip}
-                kind="edit"
-                reviewHref={`/admin/bip-edits/${item.edit.id}/review`}
-              />
-            )
-          })}
-        </div>
+        <AdminQueueClient submissions={submissions} edits={edits} />
       )}
     </div>
   )

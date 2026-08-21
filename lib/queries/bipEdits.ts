@@ -119,12 +119,13 @@ function mapPartnerInstitutions(raw: unknown): BipDraftData['partner_universitie
  * pre-fill share one data contract.
  */
 function mapEditRowToBipDraftData(row: RawBipEditContentRow): BipDraftData {
+  // Backfill for legacy bip_edits rows (see coordinatorBipById.ts) — same defaults.
   const isUrl = row.how_to_apply_type === 'url'
   return {
     title: row.title ?? undefined,
-    external_bip_id: row.external_bip_id ?? undefined,
+    external_bip_id: row.external_bip_id ?? 'LEGACY-BIP',
     target_group:
-      (row.target_group as BipDraftData['target_group']) ?? undefined,
+      (row.target_group as BipDraftData['target_group']) ?? 'students',
     subject_areas: row.subject_areas ?? undefined,
     description: row.description ?? undefined,
     learning_outcomes: row.learning_outcomes ?? undefined,
@@ -143,7 +144,7 @@ function mapEditRowToBipDraftData(row: RawBipEditContentRow): BipDraftData {
     language_of_instruction: row.language_of_instruction ?? undefined,
     language_level_min:
       (row.language_level_min as BipDraftData['language_level_min']) ?? undefined,
-    fees: row.fees ?? undefined,
+    fees: row.fees ?? 'No fees',
     eligibility_notes: row.eligibility_notes ?? undefined,
     how_to_apply_type:
       (row.how_to_apply_type as BipDraftData['how_to_apply_type']) ?? undefined,
