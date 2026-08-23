@@ -61,8 +61,6 @@ export function BulkActionBar({ selectedIds, onDone }: Props) {
     })
   }
 
-  const exportHref = `/admin/export.csv?ids=${selectedIds.join(',')}`
-
   return (
     <div className="sticky bottom-4 z-20 mx-auto max-w-[1200px] mt-4 rounded-full border border-border bg-white px-4 py-3 shadow-lg flex flex-wrap items-center gap-3">
       <span className="text-sm font-medium text-ink">
@@ -72,13 +70,6 @@ export function BulkActionBar({ selectedIds, onDone }: Props) {
       <div className="ml-auto flex items-center gap-2">
         {!showRejectNote ? (
           <>
-            <a
-              href={exportHref}
-              download
-              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-white px-3 py-1.5 text-sm font-medium text-ink hover:bg-bg-soft"
-            >
-              Export selected
-            </a>
             <div className="h-6 w-px bg-border hidden sm:block" aria-hidden />
             <Button variant="ghost" size="sm" onClick={() => onDone()} disabled={isPending} className="rounded-full">
               Clear

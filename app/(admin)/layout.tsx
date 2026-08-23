@@ -2,6 +2,8 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { Toaster } from '@/components/ui/sonner'
 import { AdminSidebar } from '@/components/admin/AdminSidebar'
+import { AdminSelectionProvider } from '@/components/admin/AdminSelectionContext'
+import { AdminTopBar } from '@/components/admin/AdminTopBar'
 
 /**
  * Admin route-group layout (ADMN-01 / 03-RESEARCH.md Pattern 1).
@@ -26,6 +28,10 @@ import { AdminSidebar } from '@/components/admin/AdminSidebar'
  *   - AdminSidebar: 240px sticky left column on desktop, Sheet drawer on mobile.
  *   - EC disclaimer footer (CLAUDE.md never-do compliance).
  *   - Toaster scoped to the route group.
+ *
+ * Top bar: single Export + Add new BIP across ALL admin subpages (no per-page duplicates).
+ * Selection state is provided via AdminSelectionProvider so the global Export menu
+ * can show "Export selected (N)" when rows are selected on queue / All BIPs.
  */
 export default async function AdminLayout({
   children,
@@ -75,7 +81,10 @@ export default async function AdminLayout({
         }
       />
       <div className="flex-1 flex flex-col min-w-0">
-        <main className="flex-1">{children}</main>
+        <AdminSelectionProvider>
+          <AdminTopBar />
+          <main className="flex-1">{children}</main>
+        </AdminSelectionProvider>
         <p className="px-6 py-4 text-[11px] text-muted">
           Independent project — not affiliated with the European Commission
         </p>

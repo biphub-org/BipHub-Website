@@ -1,5 +1,3 @@
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
 import { DashboardBipList } from '@/components/dashboard/DashboardBipList'
 import { getCoordinatorBips } from '@/lib/queries/coordinatorBips'
 import { AdminBipsTopFilters } from '@/components/admin/AdminBipsTopFilters'
@@ -15,6 +13,8 @@ import { BipFilterChips } from '@/components/bip/BipFilterChips'
  * availability, level, partnerOnly). The workflow status tabs remain inside
  * DashboardBipList (client-side), while the other filters are server-side
  * and share the URL with /bips-style ?country=&field=…&q= params.
+ *
+ * Chrome: Export + Add new BIP are now in the global AdminTopBar (layout) — single instance.
  */
 export const dynamic = 'force-dynamic'
 
@@ -76,19 +76,12 @@ export default async function AdminMyBipsPage(props: {
 
   return (
     <div>
-      <div className="flex items-center justify-between border-b border-border bg-white px-6 py-5">
-        <div>
-          <h1 className="text-[22px] font-semibold text-ink">My BIPs</h1>
-          <p className="text-sm text-muted">
-            {bips.length === 0 ? 'No BIPs yet' : `${bips.length} BIP${bips.length === 1 ? '' : 's'} total`}
-            {hasActiveOtherFilters ? ' · filtered' : ''}
-          </p>
-        </div>
-        <Link href="/admin/bips/new">
-          <Button variant="gold" size="md" className="font-semibold">
-            + Submit a BIP
-          </Button>
-        </Link>
+      <div className="border-b border-border bg-white px-6 py-5">
+        <h1 className="text-[22px] font-semibold text-ink">My BIPs</h1>
+        <p className="text-sm text-muted">
+          {bips.length === 0 ? 'No BIPs yet' : `${bips.length} BIP${bips.length === 1 ? '' : 's'} total`}
+          {hasActiveOtherFilters ? ' · filtered' : ''}
+        </p>
       </div>
 
       <AdminBipsTopFilters

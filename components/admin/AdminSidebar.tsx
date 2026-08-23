@@ -26,7 +26,7 @@ import {
   Inbox,
   ListChecks,
   BarChart3,
-  Plus,
+  Users,
   LogOut,
   Menu,
 } from 'lucide-react'
@@ -52,6 +52,7 @@ const NAV_ITEMS: ReadonlyArray<NavItem> = [
   { href: '/admin', label: 'Queue', icon: Inbox, matchExact: true },
   { href: '/admin/bips', label: 'All BIPs', icon: ListChecks },
   { href: '/admin/my-bips', label: 'My BIPs', icon: ListChecks },
+  { href: '/admin/coordinators', label: 'Coordinators', icon: Users },
   { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
 ]
 

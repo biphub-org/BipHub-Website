@@ -4,7 +4,6 @@ import {
   getAdminPendingEdits,
 } from '@/lib/queries/bipEdits'
 import { AdminQueueClient } from '@/components/admin/AdminQueueClient'
-import { AdminQueueExportBar } from '@/components/admin/AdminQueueExportBar'
 
 /**
  * Admin pending queue (/admin) — unified view of new submissions + bip_edits
@@ -24,6 +23,8 @@ import { AdminQueueExportBar } from '@/components/admin/AdminQueueExportBar'
  *
  * No `dynamic = 'force-dynamic'` needed — the layout's getClaims() call already
  * marks the segment dynamic.
+ *
+ * Chrome: Export + Add new BIP are now in the global AdminTopBar (layout) — single instance across all /admin subpages.
  */
 
 export default async function AdminQueuePage() {
@@ -37,26 +38,15 @@ export default async function AdminQueuePage() {
 
   return (
     <div>
-      <div className="bg-white border-b border-border px-6 py-5 flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-[22px] font-semibold text-ink">Pending review</h1>
-          <p className="text-sm text-muted">
-            {count === 0
-              ? "You're all caught up. New submissions and edits will appear here automatically."
-              : hasEdits
-                ? `${count} items awaiting review · includes new submissions and edits`
-                : `${count} BIP${count === 1 ? '' : 's'} awaiting review`}
-          </p>
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <AdminQueueExportBar count={count} />
-          <a
-            href="/admin/bips/new"
-            className="inline-flex items-center gap-2 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white hover:bg-ink/90"
-          >
-            <span aria-hidden>+</span> Add new BIP
-          </a>
-        </div>
+      <div className="bg-white border-b border-border px-6 py-5">
+        <h1 className="text-[22px] font-semibold text-ink">Pending review</h1>
+        <p className="text-sm text-muted">
+          {count === 0
+            ? "You're all caught up. New submissions and edits will appear here automatically."
+            : hasEdits
+              ? `${count} items awaiting review · includes new submissions and edits`
+              : `${count} BIP${count === 1 ? '' : 's'} awaiting review`}
+        </p>
       </div>
 
       {count === 0 ? (

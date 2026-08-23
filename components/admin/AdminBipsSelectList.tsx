@@ -2,12 +2,12 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { SearchX, Download, X } from 'lucide-react'
+import { SearchX, X } from 'lucide-react'
 import { AdminBipRow } from '@/components/admin/AdminBipRow'
-import { AdminExportMenu } from '@/components/admin/AdminExportMenu'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { bulkModerateBips } from '@/lib/actions/admin-bulk'
+import { useAdminSelection } from '@/components/admin/AdminSelectionContext'
 import type { AdminBip } from '@/lib/queries/adminBips'
 
 interface Props {
@@ -16,31 +16,23 @@ interface Props {
 
 export function AdminBipsSelectList({ bips }: Props) {
   const router = useRouter()
-  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const { selected, selectedIds, toggle, toggleAll, clear: clearSelection } = useAdminSelection()
   const [isPending, startBulk] = useTransition()
   const [showRejectNote, setShowRejectNote] = useState(false)
   const [note, setNote] = useState('')
 
   const allSelected = bips.length > 0 && selected.size === bips.length
-  const selectedIds = Array.from(selected)
   const hasSelection = selectedIds.length > 0
 
-  function toggle(id: string, checked: boolean) {
-    setSelected((prev) => {
-      const next = new Set(prev)
-      if (checked) next.add(id)
-      else next.delete(id)
-      return next
-    })
-  }
-
-  function toggleAll(checked: boolean) {
-    if (checked) setSelected(new Set(bips.map((b) => b.id)))
-    else setSelected(new Set())
+  function handleToggleAll(checked: boolean) {
+    toggleAll(
+      bips.map((b) => b.id),
+      checked,
+    )
   }
 
   function clear() {
-    setSelected(new Set())
+    clearSelection()
     setShowRejectNote(false)
     setNote('')
   }
@@ -75,11 +67,9 @@ export function AdminBipsSelectList({ bips }: Props) {
     })
   }
 
-  const selectedHref = hasSelection ? `/admin/export.csv?ids=${selectedIds.join(',')}` : null
-
   return (
     <>
-      {/* Selection + export bar */}
+      {/* Selection bar — Export moved to global AdminTopBar, only selection chrome remains here */}
       <div className="border-b border-border bg-white px-6 py-3">
         <div className="mx-auto max-w-[1200px] flex flex-wrap items-center gap-3 justify-between">
           <div className="flex items-center gap-3">
@@ -88,7 +78,7 @@ export function AdminBipsSelectList({ bips }: Props) {
                 <input
                   type="checkbox"
                   checked={allSelected}
-                  onChange={(e) => toggleAll(e.target.checked)}
+                  onChange={(e) => handleToggleAll(e.target.checked)}
                   className="h-4 w-4 accent-eu-blue"
                   aria-label="Select all BIPs"
                 />
@@ -110,10 +100,6 @@ export function AdminBipsSelectList({ bips }: Props) {
                 </button>
               </span>
             )}
-          </div>
-
-          <div className="flex items-center gap-2">
-            <AdminExportMenu selectedIds={selectedIds} filteredCount={bips.length} />
           </div>
         </div>
       </div>
@@ -140,25 +126,14 @@ export function AdminBipsSelectList({ bips }: Props) {
         )}
       </div>
 
-      {/* Bottom bulk + export bar when selection active */}
+      {/* Bottom bulk bar — bulk actions only. Export is in the global top bar (single instance). */}
       {hasSelection && (
         <div className="sticky bottom-4 z-20 mx-4 md:mx-auto max-w-[1200px] mt-4 rounded-2xl border border-border bg-white px-4 py-3 shadow-lg flex flex-wrap items-center gap-3">
           <span className="text-sm font-medium text-ink">
-            {selectedIds.length} selected <span className="text-xs text-muted font-normal">· bulk actions + export</span>
+            {selectedIds.length} selected <span className="text-xs text-muted font-normal">· bulk actions</span>
           </span>
 
           <div className="ml-auto flex flex-wrap items-center gap-2">
-            <a
-              href={selectedHref!}
-              download
-              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-white px-3 py-1.5 text-sm font-medium text-ink hover:bg-bg-soft"
-            >
-              <Download size={14} aria-hidden />
-              Export selected
-            </a>
-
-            <div className="h-6 w-px bg-border hidden sm:block" aria-hidden />
-
             {!showRejectNote ? (
               <>
                 <Button variant="ghost" size="sm" onClick={clear} disabled={isPending} className="rounded-full">

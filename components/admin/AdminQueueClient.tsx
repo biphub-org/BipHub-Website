@@ -1,12 +1,11 @@
 'use client'
 
-import { useState } from 'react'
 import type { AdminBip } from '@/lib/queries/adminBips'
 import type { AdminBipEditItem } from '@/lib/queries/bipEdits'
 import type { BipStatus } from '@/lib/utils/status'
 import { AdminBipCard } from '@/components/admin/AdminBipCard'
-import { AdminExportMenu } from '@/components/admin/AdminExportMenu'
 import { BulkActionBar } from '@/components/admin/BulkActionBar'
+import { useAdminSelection } from '@/components/admin/AdminSelectionContext'
 
 type QueueItem =
   | { kind: 'submission'; bip: AdminBip; sortKey: string; bulkId: string }
@@ -24,29 +23,10 @@ export function AdminQueueClient({
     ...edits.map((edit): QueueItem => ({ kind: 'edit', edit, sortKey: edit.created_at, bulkId: edit.bip.id })),
   ].sort((a, b) => a.sortKey.localeCompare(b.sortKey))
 
-  const [selected, setSelected] = useState<Set<string>>(new Set())
-
-  function toggle(id: string, checked: boolean) {
-    setSelected((prev) => {
-      const next = new Set(prev)
-      if (checked) next.add(id)
-      else next.delete(id)
-      return next
-    })
-  }
-
-  function clear() {
-    setSelected(new Set())
-  }
-
-  const selectedIds = Array.from(selected)
-  const count = queueItems.length
+  const { selected, selectedIds, toggle, clear } = useAdminSelection()
 
   return (
     <>
-      <div className="max-w-[1200px] mx-auto px-6 pt-4 flex justify-end">
-        <AdminExportMenu selectedIds={selectedIds} filteredCount={count} />
-      </div>
       <div className="max-w-[1200px] mx-auto px-6 py-6 flex flex-col gap-4">
         {queueItems.map((item) => {
           if (item.kind === 'submission') {
