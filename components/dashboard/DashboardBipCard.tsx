@@ -109,6 +109,16 @@ export function DashboardBipCard({ bip }: Props) {
           >
             {STATUS_LABELS[bip.status]}
           </span>
+          {bip.openEditStatus === 'pending' && (
+            <span className="inline-flex items-center rounded-full border px-2 py-1 text-xs font-semibold bg-amber-50 text-amber-700 border-amber-200">
+              Edit in review
+            </span>
+          )}
+          {bip.openEditStatus === 'changes_requested' && (
+            <span className="inline-flex items-center rounded-full border px-2 py-1 text-xs font-semibold bg-amber-50 text-amber-700 border-amber-200">
+              Changes requested
+            </span>
+          )}
           <p className="text-xs text-muted">
             {bip.status === 'draft'
               ? `Last saved ${formatDate(bip.updated_at)}`

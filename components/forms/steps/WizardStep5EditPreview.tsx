@@ -80,6 +80,7 @@ export function WizardStep5EditPreview({
         'Edit submitted for review. The public page stays live while it\'s being reviewed.',
         { duration: 5000 },
       )
+      router.push('/dashboard')
       router.refresh()
     })
   }
@@ -100,6 +101,7 @@ export function WizardStep5EditPreview({
       toast.success('Edit resubmitted. An admin will review it shortly.', {
         duration: 5000,
       })
+      router.push('/dashboard')
       router.refresh()
     })
   }
@@ -119,6 +121,7 @@ export function WizardStep5EditPreview({
       toast.success('Edit resubmitted. An admin will review it shortly.', {
         duration: 5000,
       })
+      router.push('/dashboard')
       router.refresh()
     })
   }

@@ -26,6 +26,8 @@ export type CoordinatorBip = {
   slug: string
   title: string
   status: CoordinatorBipStatus
+  openEditStatus: 'pending' | 'changes_requested' | null
+  openEditId: string | null
   subject_areas: string[]
   host_city: string | null
   application_deadline: string | null
@@ -127,8 +129,35 @@ export async function getCoordinatorBips(filter: CoordinatorBipsFilter = {}): Pr
       host_university: hostUniversity,
       // Populated below from bip_status_history for status='rejected' rows.
       rejection_reason: null,
+      openEditStatus: null,
+      openEditId: null,
     }
   })
+
+  // Phase 8 EDIT-02: wire open edit status for approved BIPs (State B/C indicator).
+  // Batched single query for approved rows to avoid N+1.
+  const approvedIds = rows.filter((r) => r.status === 'approved').map((r) => r.id)
+  if (approvedIds.length > 0) {
+    const { data: editRows } = await supabase
+      .from('bip_edits')
+      .select('id, bip_id, status')
+      .in('bip_id', approvedIds)
+      .in('status', ['pending', 'changes_requested'])
+      .order('created_at', { ascending: false })
+    if (editRows) {
+      const editMap = new Map<string, { id: string; status: 'pending' | 'changes_requested' }>()
+      for (const er of editRows as Array<{ id: string; bip_id: string; status: string }>) {
+        if (!editMap.has(er.bip_id)) editMap.set(er.bip_id, { id: er.id, status: er.status as 'pending' | 'changes_requested' })
+      }
+      for (const row of rows) {
+        const e = editMap.get(row.id)
+        if (e) {
+          row.openEditStatus = e.status
+          row.openEditId = e.id
+        }
+      }
+    }
+  }
 
   // Phase 3 D-09: wire the latest rejection reason from bip_status_history.
   // Only fetch when there is at least one rejected BIP — skip the round-trip

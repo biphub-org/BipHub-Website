@@ -34,7 +34,9 @@ export function DashboardNav({ initials, fullName }: DashboardNavProps) {
           <span aria-hidden className="text-muted">
             /
           </span>
-          <span className="text-sm text-muted">Dashboard</span>
+          <Link href="/dashboard" className="text-sm text-muted hover:text-ink transition-colors">
+            Dashboard
+          </Link>
         </div>
         <div className="flex items-center gap-3">
           {fullName && (
