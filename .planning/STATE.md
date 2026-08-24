@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Growth & Operational Efficiency
 status: active
-stopped_at: "v1.3 Phase 13 complete: BROW-15 + DISC-08/09 shortlist (bip-compare.spec.ts) + admin filter bar 6-tab. Phase 12 3/3. Day-0 gate still open (deferred)."
-last_updated: "2026-08-21T08:00:00.000Z"
-last_activity: 2026-08-21
+stopped_at: "v1.3 Phase 14 complete: TOOL-01 /admin/export.csv + TOOL-02 bulkModerateBips (per-row audit+ISR) verified 2026-08-24 (tsc 0, build 55/55). v1.3 3/3 phases. Day-0 gate still open (deferred)."
+last_updated: "2026-08-24T00:00:00.000Z"
+last_activity: 2026-08-24
 progress:
   total_phases: 3
-  completed_phases: 2
-  total_plans: 10
-  completed_plans: 6
-  percent: 60
+  completed_phases: 3
+  total_plans: 12
+  completed_plans: 8
+  percent: 100
 ---
 
 # Project State
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-08-12 for v1.3)
 
 ## Current Position
 
-Phase: 13 — Discovery (complete: BROW-15 + DISC-08/09 + GROW-01 shortlist)
-Plan: 14 — Admin Ops (next)
-Status: Phase 13 complete 2026-08-21 — BROW-15 ?partnerOnly=exclude (schema/query/sidebar/chips) + /bips/compare CompareCard + CompareBar/Toggle + lib/store/compare cap 3 + E2E bip-compare.spec.ts (2 tests) + admin filter bar 6-tab improvement. Phase 12 3/3 remains. Day-0 gate still deferred. Next: Phase 14 TOOL-01/02.
+Phase: 14 — Admin Ops (complete: TOOL-01 + TOOL-02)
+Plan: — (v1.3 3/3)
+Status: Phase 14 complete 2026-08-24 — TOOL-01 GET /admin/export.csv (filtered/selected/coordinators, getClaims guard, text/csv) + TOOL-02 bulkModerateBips (per-row validateTransition→UPDATE→bip_status_history→revalidatePath→sendEmail, BulkActionBar + AdminSelectionContext + AdminQueueClient selectable) — verified tsc 0 + build 55/55. Phases 12+13 remain complete. Day-0 gate still deferred (EDIT-04/07). Next: Day-0 verification + /gsd-complete-milestone archival.
 Last activity: 2026-08-21
 
 **Prior parallel-work contract (v1.2 Phases 10+11, now closed 2026-08-10).** Kept for history — both tracks shipped (Phase 10 0-code, Phase 11 7/7). Migration space from 00042 onward was Phase 11; next DDL is 00045 (Phase 12 duplicate) per v1.3 plan.
@@ -238,12 +238,12 @@ Items acknowledged and deferred at v1.1 milestone close on 2026-07-18:
 Last session: 2026-08-21T08:00:00.000Z
 Stopped at: Phase 13 complete (BROW-15 + DISC-08/09 + admin filter bar). Phase 12 3/3. Day-0 gate still open (deferred).
 Resume file: None
-Resume instructions: Next: Phase 14 Admin Ops — TOOL-01 /admin/export.csv + TOOL-02 bulk moderate (per-row audit + revalidatePath). Day-0 gate deferred, run with RESEND_API_KEY before v1.3 close.
+Resume instructions: Next: Day-0 Phase 8 gate (08-UAT + 08-VERIFICATION with RESEND_API_KEY) + /gsd-complete-milestone archival — v1.3 code 3/3, Day-0 still deferred per user.
 
 ## Operator Next Steps
 
 - **Day 0 — Phase 8 gate (still open, deferred):** manual 08-UAT: `RESEND_API_KEY` in `.env.local`, approved BIP → edit → admin approve → check ISR (seconds) + inbox (3 emails). Report `done` to flip `08-VERIFICATION.md` + deferred row before v1.3 close — user deferred to after Phase 13.
 - **Phase 12 (complete):** 12.1 DDL 00045 + 12.2 duplicateBipAction + 12.3 Edition N badge — all shipped 2026-08-21 (see Current Position).
 - **Phase 13 (complete):** BROW-15 + DISC-08/09 shortlist — all shipped 2026-08-21 (see Current Position) + admin filter bar 6-tab improvement .
-- **Phase 14 (next):** `/gsd-discuss-phase 14` → plan TOOL-01 CSV export + TOOL-02 bulk moderate — can start now, no dep on Day-0.
+- **Phase 14 (complete 2026-08-24):** TOOL-01 `/admin/export.csv` + TOOL-02 bulk moderate — code verified (`tsc --noEmit` 0 + `next build` 55/55), docs flipped in REQUIREMENTS/ROADMAP/STATE. No Day-0 dep for code; gate remains deferred for milestone close.
 - **Carried verification debt (still open):** Phase 08 Resend edit-outcome email (EDIT-07) + ISR revalidate-on-approve (EDIT-04) — Day-0 gate deferred. Phase 05 human-UAT closed 2026-08-12. Also unverified in-browser: the two-tab false-conflict fix (`239998b`).

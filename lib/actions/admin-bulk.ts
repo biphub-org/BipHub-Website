@@ -16,7 +16,6 @@ import { createClient } from '@/lib/supabase/server'
 import { validateTransition } from '@/lib/utils/status-transitions'
 import type { BipStatus } from '@/lib/utils/status'
 import { sendEmail } from '@/lib/email/send'
-import { getNextPendingBip } from '@/lib/queries/adminBips'
 
 type BulkDecision = 'approve' | 'reject'
 type BulkResultItem = { id: string; error?: string }

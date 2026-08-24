@@ -130,7 +130,7 @@ Full phase details, success criteria, and per-plan breakdown: [milestones/v1.1-R
 **Success Criteria**:
   1. `GET /admin/export.csv` admin-guarded, filter passthrough, `text/csv` attachment.
   2. Bulk action returns `{succeeded, failed}` per row with per-row `bip_status_history` + `revalidatePath`.
-**Plans**: TBD
+**Plans**: 2 plans — 14.1 CSV export Route Handler (done fcf464b/8e54017: filtered+selected+coordinators, `getClaims()` guard, `text/csv`) + 14.2 bulk moderate Server Action + `BulkActionBar` + `AdminSelectionContext` (done: per-row audit + ISR + email, `AdminQueueClient` selectable) — verified 2026-08-24 (`tsc --noEmit` 0, `next build` 55/55)
 **UI hint**: yes
 
 ## Progress
@@ -150,4 +150,4 @@ Full phase details, success criteria, and per-plan breakdown: [milestones/v1.1-R
 | 11. Alert Subscriptions + Email Pipeline | v1.2 | 7/7 | Complete | 2026-08-10 |
 | 12. Duplicate BIP + Program Maturity | v1.3 | 3/3 | Complete | 2026-08-21 |
 | 13. Discovery — Exclude Partner-Only + Compare + Shortlist | v1.3 | 3/3 | Complete | 2026-08-21 |
-| 14. Admin Ops — CSV Export + Bulk Moderate | v1.3 | 0/TBD | Planning | — |
+| 14. Admin Ops — CSV Export + Bulk Moderate | v1.3 | 2/2 | Complete | 2026-08-24 |

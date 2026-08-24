@@ -29,8 +29,8 @@ Each maps to a roadmap phase. REQ-IDs continue existing category numbering.
 
 ### Admin Operations (TOOL)
 
-- [ ] **TOOL-01**: An admin can export the currently-filtered BIP queue as CSV (`GET /admin/export.csv`, admin-guarded, `text/csv` attachment, filter passthrough)
-- [ ] **TOOL-02**: An admin can bulk approve / bulk reject (with note) from `/admin` — per-row `bip_status_history` audit + per-row `revalidatePath`, returns `{ succeeded, failed }` per row (no silent `WHERE id IN (...)` shortcut)
+- [x] **TOOL-01**: An admin can export the currently-filtered BIP queue as CSV (`GET /admin/export.csv`, admin-guarded, `text/csv` attachment, filter passthrough) — shipped 2026-08-24 (admin-guarded `getClaims()` + `role='admin'`, `text/csv` attachment, filter passthrough `status/q/country/field/lang/dates/availability/level/partnerOnly` + `ids` selected + `entity=coordinators`, `AdminExportMenu` in global `AdminTopBar`)
+- [x] **TOOL-02**: An admin can bulk approve / bulk reject (with note) from `/admin` — per-row `bip_status_history` audit + per-row `revalidatePath`, returns `{ succeeded, failed }` per row (no silent `WHERE id IN (...)` shortcut) — shipped 2026-08-24 (`bulkModerateBips` loops per-row with `validateTransition` → `UPDATE` → `INSERT bip_status_history` → `revalidatePath` per row → `sendEmail`, `BulkActionBar` sticky bottom, `AdminSelectionContext`)
 - [ ] **TOOL-03**: *Deferred to v1.4* — per-listing view/save counts (needs analytics instrumentation; not in v1.3 scope)
 
 ### Foundation / Compliance (FOUN — continuing)
@@ -78,8 +78,8 @@ Locked — same as `.agents/plans/2026-08-12-v1-3-growth-ops.md:Out of Scope`:
 | BROW-15 | Phase 13 — Discovery | Shipped 2026-08-21 (BROW-15 + chip + E2E) |
 | DISC-08 | Phase 13 — Compare | Shipped 2026-08-21 (/bips/compare + CompareBar/Toggle) |
 | DISC-09 / GROW-01 | Phase 13 — Shortlist (URL) | Shipped 2026-08-21 (incognito URL authority + E2E) |
-| TOOL-01 | Phase 14 — Admin CSV export | Pending |
-| TOOL-02 | Phase 14 — Admin bulk moderate | Pending |
+| TOOL-01 | Phase 14 — Admin CSV export | Shipped 2026-08-24 (`/admin/export.csv` filtered/selected/coordinators) |
+| TOOL-02 | Phase 14 — Admin bulk moderate | Shipped 2026-08-24 (per-row audit + ISR + `{succeeded,failed}`) |
 | TOOL-03 | — | Deferred to v1.4 |
 | FOUN-15 | Phase 12 (and TOOL RLS) | Shipped 2026-08-21 (3 seed sources + verify-seed) |
 
