@@ -33,6 +33,7 @@
  */
 
 import { createClient } from '@/lib/supabase/server'
+import { ISCED_FIELDS } from '@/lib/isced'
 import { generateDraftSlug } from '@/lib/utils/slug'
 
 export type DuplicateBipResult =
@@ -94,13 +95,23 @@ export async function duplicateBipAction(sourceId: string): Promise<DuplicateBip
 
   const newSlug = generateDraftSlug(source.title ?? 'untitled')
 
+  // Sanitize subject_areas: legacy seeds may contain 'computer-science' etc.
+  // which are not in the current 12-field ISCED taxonomy — step1Schema would
+  // reject them and block Save & continue on the duplicated draft.
+  const validIds = new Set(ISCED_FIELDS.map((f) => f.id))
+  const sanitizedAreas = Array.isArray(source.subject_areas)
+    ? (source.subject_areas as string[]).filter((a) => (validIds as Set<string>).has(a))
+    : []
+  // Fallback to at least one valid area if filtering emptied the array (prevents min(1) failure).
+  const finalAreas = sanitizedAreas.length > 0 ? sanitizedAreas : ['social-sciences']
+
   // Build the insert payload: copy all SUBM fields verbatim, reset lifecycle cols.
   const insertPayload: Record<string, unknown> = {
     slug: newSlug,
     title: source.title,
     external_bip_id: source.external_bip_id,
     target_group: source.target_group,
-    subject_areas: source.subject_areas,
+    subject_areas: finalAreas,
     subject_area: source.subject_area,
     isced_f_code: source.isced_f_code,
     description: source.description,
