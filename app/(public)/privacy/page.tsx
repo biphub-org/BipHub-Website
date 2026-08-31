@@ -13,7 +13,7 @@
  *  - Enumerates every storage surface: Supabase Auth cookies, biphub:bookmarks,
  *    bip-draft, bips table content, profiles table.
  *  - Documents zero analytics, no third-party trackers, no marketing pixels.
- *  - Names team@hexonasystems.com as the data controller contact.
+ *  - Names biphub.org@gmail.com as the data controller contact.
  *  - No consent banner is shipped or linked because no consent-requiring
  *    cookies/scripts are loaded.
  *
@@ -57,10 +57,10 @@ export default function PrivacyPage() {
             Hexona Systems. For privacy questions or to exercise your rights
             under GDPR Articles 15&ndash;17, contact us at{' '}
             <a
-              href="mailto:team@hexonasystems.com"
+              href="mailto:biphub.org@gmail.com"
               className="text-eu-blue underline"
             >
-              team@hexonasystems.com
+              biphub.org@gmail.com
             </a>
             .
           </p>
@@ -122,10 +122,10 @@ export default function PrivacyPage() {
             the public Erasmus+ directory.
           </p>
           <p>
-            <strong className="text-ink">Alert subscriptions.</strong> When a signed-in student creates an alert, we store a <code>bip_subscriptions</code> row with your user ID, your chosen field of study and/or country, frequency (<code>weekly</code> or{' '}<code>daily</code>), the explicit consent text you agreed to, and creation time. This is used solely to send you the digest emails you requested.
+            <strong className="text-ink">Alert preferences.</strong> When a signed-in student saves alert preferences, we store a single <code>bip_alert_preferences</code> row with your user ID, your chosen fields of study and/or countries (any number), frequency (<code>weekly</code> or{' '}<code>daily</code>), the explicit consent text you agreed to, and update time. This is used solely to send you the digest emails you requested.
           </p>
           <p>
-            <strong className="text-ink">Alert deliveries.</strong> Each time we send you a digest, we store a <code>bip_alert_deliveries</code> row (BIP ID + your user ID + delivery time) so the same BIP is never emailed twice for the same subscription. Both surfaces are retained until you delete the subscription or delete your account. All{' '}<code>bip_subscriptions</code> and <code>bip_alert_deliveries</code> rows are permanently deleted when you delete your account (cascading deletion via foreign key). You can unsubscribe at any time via the link in the email (no sign-in required) or from your dashboard.
+            <strong className="text-ink">Alert deliveries.</strong> Each time we send you a digest, we store a <code>bip_alert_deliveries</code> row (BIP ID + your user ID + delivery time) so the same BIP is never emailed twice. Both surfaces are retained until you clear your preferences or delete your account. All{' '}<code>bip_alert_preferences</code> and <code>bip_alert_deliveries</code> rows are permanently deleted when you delete your account (cascading deletion via foreign key). You can unsubscribe at any time via the link in the email (no sign-in required) or from your dashboard.
           </p>
           <p>
             <strong className="text-ink">No analytics.</strong> We run no
@@ -190,10 +190,10 @@ export default function PrivacyPage() {
             account button at <code>/dashboard/settings</code>. For access or
             rectification requests, email{' '}
             <a
-              href="mailto:team@hexonasystems.com"
+              href="mailto:biphub.org@gmail.com"
               className="text-eu-blue underline"
             >
-              team@hexonasystems.com
+              biphub.org@gmail.com
             </a>{' '}
             &mdash; we respond within 30 days.
           </p>
@@ -211,10 +211,10 @@ export default function PrivacyPage() {
             In-product: open <code>/dashboard/settings</code> while signed in
             and use the Danger zone &mdash; Delete account. By email: write to{' '}
             <a
-              href="mailto:team@hexonasystems.com"
+              href="mailto:biphub.org@gmail.com"
               className="text-eu-blue underline"
             >
-              team@hexonasystems.com
+              biphub.org@gmail.com
             </a>{' '}
             from the email address on your account. We may ask for additional
             information to verify your identity before acting on a request
@@ -252,10 +252,10 @@ export default function PrivacyPage() {
             top. We do not currently maintain a public change log; if you need
             to see past versions, write to{' '}
             <a
-              href="mailto:team@hexonasystems.com"
+              href="mailto:biphub.org@gmail.com"
               className="text-eu-blue underline"
             >
-              team@hexonasystems.com
+              biphub.org@gmail.com
             </a>
             .
           </p>

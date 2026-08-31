@@ -122,6 +122,11 @@ export function OnboardingForm({ initialEmail, initialUniversities }: Props) {
                       u.country as ProfileValues['country'],
                       { shouldValidate: true },
                     )
+                    // Auto-fill erasmus code from the selected university — same
+                    // behaviour as country. Clears when university has no code.
+                    form.setValue('erasmus_code', u.erasmus_code ?? '', {
+                      shouldValidate: true,
+                    })
                   }}
                   initialUniversities={initialUniversities}
                 />

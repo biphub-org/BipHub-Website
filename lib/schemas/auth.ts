@@ -33,6 +33,12 @@ export const passwordResetSchema = z.object({
 })
 export type PasswordResetValues = z.infer<typeof passwordResetSchema>
 
+// Unified login — step 1: resolve which method an email should use.
+export const resolveLoginSchema = z.object({
+  email: z.string().trim().email('Please enter a valid email address.'),
+})
+export type ResolveLoginValues = z.infer<typeof resolveLoginSchema>
+
 // AUTH-05b: update the password after the recovery callback.
 export const passwordUpdateSchema = z
   .object({

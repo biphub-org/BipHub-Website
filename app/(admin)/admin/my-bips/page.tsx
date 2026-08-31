@@ -32,7 +32,6 @@ export default async function AdminMyBipsPage(props: {
     dateTo: sp.dateTo,
     status: sp.availability as string | undefined,
     level: sp.level,
-    partnerOnly: sp.partnerOnly as string | undefined,
     q: sp.q as string | undefined,
   }
   const parsed = parseSearchParams(studentRaw as never)
@@ -46,7 +45,6 @@ export default async function AdminMyBipsPage(props: {
     dateTo: parsed.dateTo,
     availability: parsed.status as 'open' | 'closed' | 'any' | undefined,
     level: parsed.level,
-    partnerOnly: parsed.partnerOnly,
   }
 
   const bips = await getCoordinatorBips(filters)
@@ -59,7 +57,6 @@ export default async function AdminMyBipsPage(props: {
     dateTo: filters.dateTo,
     status: filters.availability,
     level: filters.level,
-    partnerOnly: filters.partnerOnly,
     q: filters.q,
   } as never
 
@@ -70,8 +67,7 @@ export default async function AdminMyBipsPage(props: {
       filters.dateFrom ||
       filters.dateTo ||
       (filters.availability && filters.availability !== 'any') ||
-      filters.level?.length ||
-      filters.partnerOnly,
+      filters.level?.length,
   )
 
   return (
@@ -93,7 +89,6 @@ export default async function AdminMyBipsPage(props: {
           dateTo: filters.dateTo,
           availability: filters.availability,
           level: filters.level,
-          partnerOnly: filters.partnerOnly,
         }}
         basePath="/admin/my-bips"
       />

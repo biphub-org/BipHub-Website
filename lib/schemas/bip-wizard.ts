@@ -1,5 +1,6 @@
 import { z } from 'zod' // Zod v3 — see CLAUDE.md (locked stack)
 import { ISCED_FIELDS } from '@/lib/isced'
+import { ISCED_CODES } from '@/lib/isced-codes'
 import { VIRTUAL_TIMINGS } from '@/lib/constants/virtual-timing'
 
 /**
@@ -20,6 +21,7 @@ import { VIRTUAL_TIMINGS } from '@/lib/constants/virtual-timing'
  */
 
 const ISCED_VALUES = ISCED_FIELDS.map((f) => f.id) as [string, ...string[]]
+const ISCED_CODE_VALUES = ISCED_CODES.map((c) => c.code) as [string, ...string[]]
 
 // Who a BIP is open to. Mirrors the bips.target_group CHECK in migration 00024.
 export const TARGET_GROUPS = ['students', 'staff', 'students_staff'] as const
@@ -39,6 +41,7 @@ export const step1Schema = z.object({
   subject_areas: z
     .array(z.enum(ISCED_VALUES))
     .min(1, 'Choose at least one field of study.'),
+  isced_codes: z.array(z.enum(ISCED_CODE_VALUES)).default([]),
   description: z
     .string()
     .trim()
@@ -197,6 +200,7 @@ export const fullBipSchema = z
     external_bip_id: step1Schema.shape.external_bip_id,
     target_group: step1Schema.shape.target_group,
     subject_areas: step1Schema.shape.subject_areas,
+    isced_codes: step1Schema.shape.isced_codes,
     description: step1Schema.shape.description,
     learning_outcomes: step1Schema.shape.learning_outcomes,
     // Step 2 — re-declare without per-step `.refine`s; they live below.

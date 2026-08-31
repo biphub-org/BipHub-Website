@@ -3,7 +3,7 @@
 /**
  * Wizard Step 1 — Basic information (UI-SPEC line 264-272).
  *
- * Fields: title, subject_areas (multi-select), description, learning_outcomes.
+ * Fields: title, subject_areas (multi-select), isced_codes (multi-select searchable), description, learning_outcomes.
  *
  * - RHF + zodResolver(step1Schema); mode 'onBlur' to avoid per-keystroke noise.
  * - Every blurred change is mirrored into the Zustand draft store via
@@ -12,9 +12,10 @@
  *   can target it via `<button form="wizard-step-1-form">`.
  */
 
-import { useEffect } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { X, Search } from 'lucide-react'
 import {
   Form,
   FormControl,
@@ -27,9 +28,11 @@ import {
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Badge } from '@/components/ui/badge'
 import { useBipDraft } from '@/lib/store/bip-draft'
 import { step1Schema, type Step1Values } from '@/lib/schemas/bip-wizard'
 import { ISCED_FIELDS } from '@/lib/isced'
+import { ISCED_CODES } from '@/lib/isced-codes'
 
 interface Props {
   onContinue: (values: Step1Values) => void
@@ -47,6 +50,7 @@ export function WizardStep1BasicInfo({ onContinue, onAutoSave }: Props) {
       external_bip_id: draft.external_bip_id ?? '',
       target_group: (draft.target_group ?? undefined) as Step1Values['target_group'],
       subject_areas: (draft.subject_areas ?? []) as Step1Values['subject_areas'],
+      isced_codes: (draft.isced_codes ?? []) as Step1Values['isced_codes'],
       description: draft.description ?? '',
       learning_outcomes: draft.learning_outcomes ?? '',
     },
@@ -181,6 +185,29 @@ export function WizardStep1BasicInfo({ onContinue, onAutoSave }: Props) {
         />
 
         <FormField
+          name="isced_codes"
+          control={form.control}
+          render={({ field }) => {
+            const current = (field.value ?? []) as string[]
+            return (
+              <FormItem>
+                <FormLabel>ISCED codes</FormLabel>
+                <FormDescription>
+                  Search by code or name and select all that apply.
+                </FormDescription>
+                <FormControl>
+                  <IscedCodesSelector
+                    value={current}
+                    onChange={field.onChange}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )
+          }}
+        />
+
+        <FormField
           name="description"
           control={form.control}
           render={({ field }) => (
@@ -216,5 +243,110 @@ export function WizardStep1BasicInfo({ onContinue, onAutoSave }: Props) {
         />
       </form>
     </Form>
+  )
+}
+
+function IscedCodesSelector({
+  value,
+  onChange,
+}: {
+  value: string[]
+  onChange: (next: string[]) => void
+}) {
+  const [query, setQuery] = useState('')
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return ISCED_CODES
+    return ISCED_CODES.filter(
+      (c) => c.code.toLowerCase().includes(q) || c.label.toLowerCase().includes(q),
+    )
+  }, [query])
+
+  const selectedSet = useMemo(() => new Set(value), [value])
+
+  return (
+    <div className="space-y-3">
+      {/* Selected chips */}
+      {value.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {value.map((code) => {
+            const label = ISCED_CODES.find((c) => c.code === code)?.label ?? ''
+            return (
+              <Badge
+                key={code}
+                variant="secondary"
+                className="gap-1 pr-1 font-normal text-xs"
+              >
+                <span className="font-medium">{code}</span>
+                <span className="max-w-[180px] truncate">{label}</span>
+                <button
+                  type="button"
+                  onClick={() => onChange(value.filter((v) => v !== code))}
+                  className="ml-1 rounded-full p-0.5 hover:bg-black/10"
+                  aria-label={`Remove ${code}`}
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            )
+          })}
+        </div>
+      )}
+
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="Search by code or name (e.g. 0613 or Software)…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="pl-8"
+        />
+      </div>
+
+      {/* List */}
+      <div className="rounded-md border border-border">
+        <div className="max-h-[260px] overflow-y-auto p-2">
+          {filtered.length === 0 ? (
+            <p className="px-2 py-6 text-center text-sm text-muted-foreground">
+              No codes match &ldquo;{query}&rdquo;.
+            </p>
+          ) : (
+            <div className="space-y-0.5">
+              {filtered.map((item) => {
+                const checked = selectedSet.has(item.code)
+                return (
+                  <label
+                    key={item.code}
+                    className="flex items-start gap-2 rounded px-2 py-1.5 text-sm hover:bg-muted cursor-pointer"
+                  >
+                    <Checkbox
+                      checked={checked}
+                      onCheckedChange={(next) => {
+                        if (next) {
+                          if (!value.includes(item.code)) onChange([...value, item.code])
+                        } else {
+                          onChange(value.filter((v) => v !== item.code))
+                        }
+                      }}
+                      className="mt-0.5"
+                    />
+                    <span className="flex-1 leading-tight">
+                      <span className="text-xs font-medium text-ink">{item.code}</span>
+                      <span className="mx-1.5 text-border">—</span>
+                      <span className="text-ink">{item.label}</span>
+                    </span>
+                  </label>
+                )
+              })}
+            </div>
+          )}
+        </div>
+        <div className="border-t border-border px-3 py-1.5 text-xs text-muted-foreground">
+          {value.length} selected · {filtered.length} of {ISCED_CODES.length} shown
+        </div>
+      </div>
+    </div>
   )
 }

@@ -2,12 +2,11 @@ import { Metadata } from 'next'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
-import { signOutStudentAction } from '@/lib/actions/auth'
 import { getSavedBipsCount } from '@/lib/queries/savedBips'
 import { DeleteAccountDialog } from '@/components/dashboard/DeleteAccountDialog'
+import { StudentChangePasswordForm } from '@/components/student/StudentChangePasswordForm'
 import { LegacySweepIsland } from '@/components/student/LegacySweepIsland'
-import { AlertSubscriptionForm } from '@/components/student/AlertSubscriptionForm'
-import { AlertSubscriptionList } from '@/components/student/AlertSubscriptionList'
+import { AlertPreferencesForm } from '@/components/student/AlertPreferencesForm'
 
 /**
  * /student-dashboard — D-14 minimal-but-real shell (STUD-03 / 05-UI-SPEC Surface 2).
@@ -68,26 +67,7 @@ export default async function StudentDashboardPage() {
         <p className="mt-1 text-sm text-muted">Signed in as {email}</p>
       </div>
 
-      {/* 2. Account card */}
-      <div className="rounded-lg border border-border bg-white shadow-sm p-6 flex flex-col gap-3">
-        <h2 className="text-base font-semibold text-ink">Account</h2>
-        <p className="text-sm text-ink-2">{email}</p>
-        <form action={signOutStudentAction}>
-          <button
-            type="submit"
-            aria-label="Sign out of BipHub"
-            className="text-sm text-muted hover:text-ink p-2 -m-2 min-h-[44px] inline-flex items-center"
-          >
-            Sign out
-          </button>
-        </form>
-        {/* Delete-my-account control — verbatim DeleteAccountDialog reuse (D-04) */}
-        <div className="border-t border-border mt-3 pt-3">
-          <DeleteAccountDialog accountEmail={email} />
-        </div>
-      </div>
-
-      {/* 3. Explore card */}
+      {/* 2. Explore card */}
       <div className="rounded-lg border border-border bg-white shadow-sm p-6 flex flex-col gap-4">
         <h2 className="text-base font-semibold text-ink">Browse Erasmus+ BIPs</h2>
         <p className="text-sm text-muted">
@@ -100,7 +80,7 @@ export default async function StudentDashboardPage() {
         </div>
       </div>
 
-      {/* 4. Saved BIPs summary card — replaces coming-soon paragraph (STUD-08 / UI-SPEC Surface 4) */}
+      {/* 3. Saved BIPs summary card */}
       <div className="rounded-lg border border-border bg-white shadow-sm p-6 flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-semibold text-ink">Saved BIPs</h2>
@@ -116,14 +96,29 @@ export default async function StudentDashboardPage() {
         </p>
       </div>
 
-      {/* Phase 11 — Alert subscriptions (ALRT-01/02/04/09) */}
+      {/* 4. Alert preferences — single Apply, multi-select fields/countries, no limits */}
       <div className="rounded-lg border border-border bg-white shadow-sm p-6 flex flex-col gap-4">
-        <h2 className="text-base font-semibold text-ink">Alert subscriptions</h2>
-        <p className="text-sm text-muted">Get a digest when new BIPs match your field or country. Weekly by default, daily if you prefer. Up to 5 active.</p>
-        {/* Server-fetched list + client form/list */}
-        {/* We fetch subscriptions server-side so the page is never empty on first paint */}
-        <AlertSubscriptionSection />
-        <AlertSubscriptionForm />
+        <h2 className="text-base font-semibold text-ink">Alert preferences</h2>
+        <p className="text-sm text-muted">Choose any fields and/or countries you want alerts for and hit Apply. No limits — update anytime.</p>
+        <AlertPreferencesSection />
+      </div>
+
+      {/* 5. Account — single combined section at the end, with change password + delete */}
+      <div className="rounded-lg border border-border bg-white shadow-sm p-6 flex flex-col gap-4">
+        <h2 className="text-base font-semibold text-ink">Account</h2>
+        <p className="text-sm text-ink-2">{email}</p>
+
+        <StudentChangePasswordForm />
+
+        <div className="border-t border-border pt-4 flex flex-col gap-3">
+          <h3 className="text-sm font-semibold text-ink">Delete account</h3>
+          <p className="text-sm text-muted">
+            Permanently delete your account and associated data. This cannot be undone.
+          </p>
+          <div className="pt-1">
+            <DeleteAccountDialog accountEmail={email} />
+          </div>
+        </div>
       </div>
 
       {/* STUD-06 / D-02 — one-time legacy localStorage sweep; renders null */}
@@ -132,16 +127,27 @@ export default async function StudentDashboardPage() {
   )
 }
 
-async function AlertSubscriptionSection() {
+async function AlertPreferencesSection() {
   const supabase = await createClient()
   const { data: claimsData } = await supabase.auth.getClaims()
   const claims = claimsData?.claims as unknown as { sub?: string } | undefined
   const userId = claims?.sub
   if (!userId) return <p className="text-sm text-muted">Sign in to manage alerts.</p>
   const { data } = await supabase
-    .from('bip_subscriptions')
-    .select('id, field, country, frequency, created_at')
+    .from('bip_alert_preferences')
+    .select('fields, countries, isced_codes, frequency')
     .eq('user_id', userId)
-    .order('created_at', { ascending: true })
-  return <AlertSubscriptionList subscriptions={(data as unknown as React.ComponentProps<typeof AlertSubscriptionList>['subscriptions']) ?? []} />
+    .maybeSingle()
+  if (!data) return <AlertPreferencesForm initial={null} />
+  const row = data as unknown as Record<string, unknown>
+  return (
+    <AlertPreferencesForm
+      initial={{
+        fields: (row.fields as string[]) ?? [],
+        countries: (row.countries as string[]) ?? [],
+        iscedCodes: (row.isced_codes as string[]) ?? [],
+        frequency: (row.frequency as string) ?? 'weekly',
+      }}
+    />
+  )
 }

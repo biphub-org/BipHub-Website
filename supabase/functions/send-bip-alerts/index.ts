@@ -52,16 +52,16 @@ Deno.serve(async (req) => {
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } })
   const resend = new Resend(RESEND_API_KEY)
 
-  // 1. Fetch subscriptions matching frequency (or all if no filter)
-  let subQuery = supabase.from("bip_subscriptions").select("*")
-  if (frequencyFilter) subQuery = subQuery.eq("frequency", frequencyFilter)
-  const { data: subs, error: subErr } = await subQuery
+  // 1. Fetch preferences matching frequency (or all if no filter) — single row per user, multi-select
+  let prefQuery = supabase.from("bip_alert_preferences").select("*")
+  if (frequencyFilter) prefQuery = prefQuery.eq("frequency", frequencyFilter)
+  const { data: subs, error: subErr } = await prefQuery
   if (subErr) {
-    console.error("Failed to fetch subscriptions", subErr)
+    console.error("Failed to fetch preferences", subErr)
     return new Response(JSON.stringify({ error: subErr.message }), { status: 500, headers: { "Content-Type": "application/json" } })
   }
   if (!subs || subs.length === 0) {
-    console.log("No subscriptions to process")
+    console.log("No preferences to process")
     return new Response(JSON.stringify({ processed: 0, sent: 0 }), { headers: { "Content-Type": "application/json" } })
   }
 
@@ -89,15 +89,15 @@ Deno.serve(async (req) => {
     }
     if (!candidates || candidates.length === 0) continue
 
-    // Filter by field/country
+    // Filter by fields/countries/iscedCodes (multi-select). Match if ANY dimension matches.
+    const prefFields: string[] = Array.isArray(sub.fields) ? sub.fields : []
+    const prefCountries: string[] = Array.isArray(sub.countries) ? sub.countries.map((c: string) => c.toUpperCase()) : []
+    const prefIsced: string[] = Array.isArray(sub.isced_codes) ? sub.isced_codes : []
     const matching = candidates.filter((b: any) => {
-      const fieldMatch = sub.field ? (b.subject_areas ?? []).includes(sub.field) : false
-      const countryMatch = sub.country ? (b.host_university?.country === sub.country || false) : false
-      // subscription has at least one: match if either matches when both set, or the single set matches
-      if (sub.field && sub.country) return fieldMatch || countryMatch
-      if (sub.field) return fieldMatch
-      if (sub.country) return countryMatch
-      return false
+      const fieldMatch = prefFields.length > 0 ? (b.subject_areas ?? []).some((v: string) => prefFields.includes(v)) : false
+      const countryMatch = prefCountries.length > 0 ? prefCountries.includes((b.host_university?.country ?? "").toUpperCase()) : false
+      const iscedMatch = prefIsced.length > 0 ? (b.isced_codes ?? []).some((v: string) => prefIsced.includes(v)) : false
+      return fieldMatch || countryMatch || iscedMatch
     })
     if (matching.length === 0) continue
 
@@ -151,10 +151,11 @@ Deno.serve(async (req) => {
       continue
     }
 
-    // 6. Build unsubscribe token + headers
-    const token = await hmacToken(sub.user_id, sub.id)
+    // 6. Build unsubscribe token + headers — preferences model uses user_id as token subject
+    const token = await hmacToken(sub.user_id, sub.user_id)
     const unsubscribeUrl = `${SITE_URL}/api/unsubscribe?token=${encodeURIComponent(token)}`
 
+    const prefSummary = [...prefFields, ...prefCountries, ...prefIsced].join(", ") || "your alert preferences"
     const bipListHtml = toSend.map((b: any) => {
       const uni = b.host_university?.name ?? "Host university"
       const city = b.host_city ? ` — ${escapeHtml(b.host_city)}` : ""
@@ -165,10 +166,10 @@ Deno.serve(async (req) => {
     const html = `
       <div style="font-family: Inter, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background: #ffffff; color: #0a1735;">
         <h1 style="font-size: 20px; font-weight: 700; color: #003399; margin: 0 0 8px;">New BIPs matching your alert</h1>
-        <p style="font-size: 14px; color: #555; margin: 0 0 16px;">You subscribed to ${escapeHtml(sub.field ?? "")}${sub.field && sub.country ? " or " : ""}${escapeHtml(sub.country ?? "")} — ${escapeHtml(sub.frequency)} digest.</p>
+        <p style="font-size: 14px; color: #555; margin: 0 0 16px;">You subscribed to ${escapeHtml(prefSummary)} — ${escapeHtml(sub.frequency)} digest.</p>
         <ul style="padding-left: 20px; margin: 0 0 16px;">${bipListHtml}</ul>
         <p style="font-size: 13px; color: #666; margin-top: 24px; border-top: 1px solid #eee; padding-top: 12px;">
-          <a href="${unsubscribeUrl}" style="color:#003399;">Unsubscribe from this alert</a> — or manage all alerts in your <a href="${SITE_URL}/student-dashboard" style="color:#003399;">dashboard</a>.
+          <a href="${unsubscribeUrl}" style="color:#003399;">Unsubscribe from alerts</a> — or manage preferences in your <a href="${SITE_URL}/student-dashboard" style="color:#003399;">dashboard</a>.
         </p>
         <p style="font-size: 11px; color: #888; margin-top: 8px;">BipHub · Independent project — not affiliated with the European Commission</p>
       </div>
@@ -181,7 +182,7 @@ Deno.serve(async (req) => {
       const { error: sendErr } = await resend.emails.send({
         from: "BipHub <alerts@biphub.eu>",
         to: [email],
-        subject: `New BIPs: ${toSend.length} matching your ${sub.field ?? sub.country} alert`,
+        subject: `New BIPs: ${toSend.length} matching your alert preferences`,
         html,
         headers: {
           "List-Unsubscribe": `<${unsubscribeUrl}>`,

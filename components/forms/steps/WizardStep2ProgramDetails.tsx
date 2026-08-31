@@ -41,7 +41,7 @@ const STUDY_LEVEL_OPTIONS: Array<{
   { value: 'bachelor', label: 'Bachelor · EQF level 6' },
   { value: 'master', label: 'Master · EQF level 7' },
   { value: 'phd', label: 'Doctorate · EQF level 8' },
-  { value: 'none', label: 'None (Staff)' },
+  { value: 'none', label: 'Staff' },
 ]
 
 const LANGUAGE_LEVEL_OPTIONS: Array<{
@@ -124,7 +124,7 @@ export function WizardStep2ProgramDetails({ onContinue, onAutoSave }: Props) {
           control={form.control}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Virtual Component Description</FormLabel>
+              <FormLabel>Virtual Mobility Description</FormLabel>
               <FormControl>
                 <Textarea
                   rows={3}
@@ -137,7 +137,7 @@ export function WizardStep2ProgramDetails({ onContinue, onAutoSave }: Props) {
                 />
               </FormControl>
               <FormDescription>
-                Required for every BIP. The virtual component is what makes a BIP &ldquo;blended&rdquo;.
+                Required for every BIP. The virtual mobility is what makes a BIP &ldquo;blended&rdquo;.
               </FormDescription>
               <FormMessage />
             </FormItem>

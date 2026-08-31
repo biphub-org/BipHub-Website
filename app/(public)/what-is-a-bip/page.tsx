@@ -241,7 +241,7 @@ export default function WhatIsABipPage() {
                     <Building2 size={24} strokeWidth={1.8} />
                   </div>
                   <h3 className="text-[20px] font-semibold tracking-tight text-ink">
-                    On-site mobility
+                    Physical Mobility
                   </h3>
                   <p className="mt-1 text-[13px] font-semibold uppercase tracking-wider text-ink">
                     5–10 days · in person

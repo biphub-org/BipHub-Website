@@ -13,7 +13,6 @@ import { BipPagination } from '@/components/bip/BipPagination'
 import { BipPaginationSkeleton } from '@/components/bip/BipPaginationSkeleton'
 import { BipsEmptyState } from '@/components/bip/BipsEmptyState'
 import { BipFilterChips } from '@/components/bip/BipFilterChips'
-import { CompareBar } from '@/components/bip/CompareBar'
 
 // PITFALLS Pitfall 14 — canonical points to /bips REGARDLESS of query params
 // to prevent duplicate-content indexing of every filter combination.
@@ -79,7 +78,6 @@ export default async function BipsPage(props: {
       filters.dateTo ||
       (filters.status && filters.status !== 'any') ||
       filters.level?.length ||
-      !!filters.partnerOnly ||
       filters.q,
   )
 
@@ -182,7 +180,6 @@ export default async function BipsPage(props: {
           </div>
         </div>
       </div>
-      <CompareBar />
     </>
   )
 }

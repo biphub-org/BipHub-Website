@@ -132,7 +132,7 @@ export default function AboutPage() {
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button asChild variant="primary">
-              <Link href="/register">List your BIP</Link>
+              <Link href="/register/coordinator">List your BIP</Link>
             </Button>
             <Button asChild variant="ghost">
               <Link href="/login">Sign in</Link>
@@ -160,10 +160,10 @@ export default function AboutPage() {
               For anything else — partnership questions, data corrections, or
               feedback &mdash; reach us at{' '}
               <a
-                href="mailto:team@hexonasystems.com"
+                href="mailto:biphub.org@gmail.com"
                 className="text-eu-blue underline"
               >
-                team@hexonasystems.com
+                biphub.org@gmail.com
               </a>
               .
             </p>

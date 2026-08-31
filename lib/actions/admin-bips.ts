@@ -361,6 +361,7 @@ export async function adminUpdateBipAction(
     subject_areas: parsed.data.subject_areas,
     subject_area: parsed.data.subject_areas[0],
     isced_f_code: parsed.data.subject_areas[0],
+    isced_codes: parsed.data.isced_codes ?? [],
     description: parsed.data.description,
     learning_outcomes: parsed.data.learning_outcomes,
     virtual_component_description: parsed.data.virtual_component_description,

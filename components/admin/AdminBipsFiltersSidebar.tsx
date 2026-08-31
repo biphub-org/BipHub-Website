@@ -9,7 +9,6 @@ import {
   GraduationCap,
   Languages,
   Layers,
-  ShieldCheck,
   SlidersHorizontal,
 } from 'lucide-react'
 import {
@@ -68,7 +67,6 @@ export type AdminFullFilterState = {
   dateTo?: string
   availability?: 'open' | 'closed' | 'any'
   level?: string[]
-  partnerOnly?: 'exclude' | 'only'
 }
 
 interface Props {
@@ -105,7 +103,6 @@ export function AdminBipsFiltersSidebar({ filters, basePath }: Props) {
     dates: Boolean(filters.dateFrom || filters.dateTo),
     availability: Boolean(filters.availability && filters.availability !== 'any'),
     level: (filters.level?.length ?? 0) > 0,
-    partnerOnly: !!filters.partnerOnly,
   } as const
 
   const activeCount =
@@ -115,8 +112,7 @@ export function AdminBipsFiltersSidebar({ filters, basePath }: Props) {
     (filters.dateFrom ? 1 : 0) +
     (filters.dateTo ? 1 : 0) +
     (filters.availability && filters.availability !== 'any' ? 1 : 0) +
-    (filters.level?.length ?? 0) +
-    (!!filters.partnerOnly ? 1 : 0)
+    (filters.level?.length ?? 0)
 
   const hasActive = activeCount > 0
 
@@ -289,54 +285,7 @@ export function AdminBipsFiltersSidebar({ filters, basePath }: Props) {
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem value="access">
-          <AccordionTrigger>
-            <SectionLabel icon={ShieldCheck} label="Access" active={sectionActive.partnerOnly} />
-          </AccordionTrigger>
-          <AccordionContent>
-            <div className="flex flex-col gap-2.5">
-              <label className="flex items-start gap-2 cursor-pointer rounded-md border border-transparent px-2 py-1.5 -mx-2 hover:bg-bg-soft transition-colors has-[input:checked]:border-eu-blue/20 has-[input:checked]:bg-eu-blue-50">
-                <input
-                  type="radio"
-                  name="partnerOnly"
-                  checked={!filters.partnerOnly}
-                  onChange={() => update('partnerOnly', undefined)}
-                  className="mt-0.5 w-4 h-4 accent-eu-blue shrink-0"
-                />
-                <span className="text-sm leading-tight">
-                  Show all
-                  <span className="block text-xs text-muted font-normal">All programmes, including partner-only.</span>
-                </span>
-              </label>
-              <label className="flex items-start gap-2 cursor-pointer rounded-md border border-transparent px-2 py-1.5 -mx-2 hover:bg-bg-soft transition-colors has-[input:checked]:border-eu-blue/20 has-[input:checked]:bg-eu-blue-50">
-                <input
-                  type="radio"
-                  name="partnerOnly"
-                  checked={filters.partnerOnly === 'exclude'}
-                  onChange={() => update('partnerOnly', 'exclude')}
-                  className="mt-0.5 w-4 h-4 accent-eu-blue shrink-0"
-                />
-                <span className="text-sm leading-tight">
-                  Hide partner-only
-                  <span className="block text-xs text-muted font-normal">Exclude programmes open only to partner institutions.</span>
-                </span>
-              </label>
-              <label className="flex items-start gap-2 cursor-pointer rounded-md border border-transparent px-2 py-1.5 -mx-2 hover:bg-bg-soft transition-colors has-[input:checked]:border-eu-blue/20 has-[input:checked]:bg-eu-blue-50">
-                <input
-                  type="radio"
-                  name="partnerOnly"
-                  checked={filters.partnerOnly === 'only'}
-                  onChange={() => update('partnerOnly', 'only')}
-                  className="mt-0.5 w-4 h-4 accent-eu-blue shrink-0"
-                />
-                <span className="text-sm leading-tight">
-                  Only partner-only
-                  <span className="block text-xs text-muted font-normal">Show only programmes for partner institutions.</span>
-                </span>
-              </label>
-            </div>
-          </AccordionContent>
-        </AccordionItem>
+
       </Accordion>
     </section>
   )

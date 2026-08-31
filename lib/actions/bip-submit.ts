@@ -144,6 +144,7 @@ export async function submitBipAction(
     subject_areas: parsed.data.subject_areas,
     subject_area: parsed.data.subject_areas[0],
     isced_f_code: parsed.data.subject_areas[0],
+    isced_codes: parsed.data.isced_codes ?? [],
     external_bip_id: parsed.data.external_bip_id,
     target_group: parsed.data.target_group,
     description: parsed.data.description,

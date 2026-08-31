@@ -66,7 +66,7 @@ export async function getCoordinatorBipById(
     .from('bips')
     .select(`
       id, slug, status, updated_at,
-      title, external_bip_id, target_group, subject_areas, description, learning_outcomes,
+      title, external_bip_id, target_group, subject_areas, isced_codes, description, learning_outcomes,
       virtual_component_description, virtual_timing, virtual_session_dates, host_city,
       physical_start_date, physical_end_date, application_deadline,
       ects_credits, max_participants, study_levels,

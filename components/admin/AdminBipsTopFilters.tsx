@@ -16,7 +16,6 @@ type FilterState = {
   dateTo?: string
   availability?: 'open' | 'closed' | 'any'
   level?: string[]
-  partnerOnly?: 'exclude' | 'only'
 }
 
 const LANGS = [
@@ -105,8 +104,7 @@ export function AdminBipsTopFilters({ filters, basePath }: { filters: FilterStat
     !!filters.dateFrom ||
     !!filters.dateTo ||
     (!!filters.availability && filters.availability !== 'any') ||
-    !!filters.level?.length ||
-    !!filters.partnerOnly
+    !!filters.level?.length
 
   return (
     <div className="border-b border-border bg-white px-6 py-3">
@@ -221,41 +219,7 @@ export function AdminBipsTopFilters({ filters, basePath }: { filters: FilterStat
           </div>
         </FilterDropdown>
 
-        {/* Access */}
-        <FilterDropdown label="Access" active={!!filters.partnerOnly}>
-          <div className="space-y-1">
-            <label className="flex items-center gap-2 cursor-pointer rounded px-2 py-1 hover:bg-bg-soft">
-              <input
-                type="radio"
-                name="partnerOnly"
-                checked={!filters.partnerOnly}
-                onChange={() => update('partnerOnly', undefined)}
-                className="w-4 h-4 accent-eu-blue"
-              />
-              <span className="text-sm">Show all</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer rounded px-2 py-1 hover:bg-bg-soft">
-              <input
-                type="radio"
-                name="partnerOnly"
-                checked={filters.partnerOnly === 'exclude'}
-                onChange={() => update('partnerOnly', 'exclude')}
-                className="w-4 h-4 accent-eu-blue"
-              />
-              <span className="text-sm">Hide partner-only</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer rounded px-2 py-1 hover:bg-bg-soft">
-              <input
-                type="radio"
-                name="partnerOnly"
-                checked={filters.partnerOnly === 'only'}
-                onChange={() => update('partnerOnly', 'only')}
-                className="w-4 h-4 accent-eu-blue"
-              />
-              <span className="text-sm">Only partner-only</span>
-            </label>
-          </div>
-        </FilterDropdown>
+
 
         {hasAnyActive && (
           <button

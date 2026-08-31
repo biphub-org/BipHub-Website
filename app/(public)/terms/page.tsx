@@ -208,10 +208,10 @@ export default function TermsPage() {
             acceptance of the new terms. For questions about these terms or to
             report content that violates them, email{' '}
             <a
-              href="mailto:team@hexonasystems.com"
+              href="mailto:biphub.org@gmail.com"
               className="text-eu-blue underline"
             >
-              team@hexonasystems.com
+              biphub.org@gmail.com
             </a>
             .
           </p>

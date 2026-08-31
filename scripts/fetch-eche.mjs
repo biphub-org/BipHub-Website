@@ -233,7 +233,7 @@ function sqlStr(v) {
 async function main() {
   process.stdout.write(`Fetching ${API_URL} …\n`)
   const res = await fetch(API_URL, {
-    headers: { 'User-Agent': 'BipHub catalog import (team@hexonasystems.com)' },
+    headers: { 'User-Agent': 'BipHub catalog import (biphub.org@gmail.com)' },
   })
   if (!res.ok) throw new Error(`ECHE API returned HTTP ${res.status}`)
   const raw = await res.json()

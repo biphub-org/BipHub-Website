@@ -11,7 +11,7 @@ import { parseSearchParams } from '@/lib/filters/parseSearchParams'
 /**
  * /admin/bips — all-listings page (D-19 / ADMN-06).
  *
- * Now with full student filters (country, field, lang, dates, availability, level, partnerOnly)
+ * Now with full student filters (country, field, lang, dates, availability, level)
  * plus the admin workflow status tabs. The sidebar is the same as /bips but
  * pushes to /admin/bips and uses `availability` for the open/closed deadline
  * filter so it doesn't collide with the workflow `status` tabs.
@@ -49,7 +49,6 @@ function parseAdminFilters(sp: Record<string, string | string[] | undefined>): A
   dateTo?: string
   availability?: 'open' | 'closed' | 'any'
   level?: string[]
-  partnerOnly?: 'exclude' | 'only'
 } {
   const workflowStatus = parseStatus(typeof sp.status === 'string' ? sp.status : Array.isArray(sp.status) ? sp.status[0] : undefined)
 
@@ -64,7 +63,6 @@ function parseAdminFilters(sp: Record<string, string | string[] | undefined>): A
     // student `status` (open/closed) is `availability` on admin
     status: sp.availability as string | undefined,
     level: sp.level,
-    partnerOnly: sp.partnerOnly as string | undefined,
     q: sp.q as string | undefined,
   }
   const parsed = parseSearchParams(studentRaw as never)
@@ -79,12 +77,11 @@ function parseAdminFilters(sp: Record<string, string | string[] | undefined>): A
     dateTo: parsed.dateTo,
     availability: parsed.status as 'open' | 'closed' | 'any' | undefined,
     level: parsed.level,
-    partnerOnly: parsed.partnerOnly,
   }
 }
 
 export default async function AdminBipsPage(props: {
-  searchParams: Promise<{ status?: string; q?: string; country?: string; field?: string; lang?: string; dateFrom?: string; dateTo?: string; availability?: string; level?: string; partnerOnly?: string }>
+  searchParams: Promise<{ status?: string; q?: string; country?: string; field?: string; lang?: string; dateFrom?: string; dateTo?: string; availability?: string; level?: string }>
 }) {
   const sp = await props.searchParams
   const filters = parseAdminFilters(sp as Record<string, string | string[] | undefined>)
@@ -99,7 +96,6 @@ export default async function AdminBipsPage(props: {
     dateTo: rest.dateTo,
     status: rest.availability,
     level: rest.level,
-    partnerOnly: rest.partnerOnly,
     q,
   } as never
 
@@ -113,8 +109,7 @@ export default async function AdminBipsPage(props: {
       rest.dateFrom ||
       rest.dateTo ||
       (rest.availability && rest.availability !== 'any') ||
-      rest.level?.length ||
-      rest.partnerOnly,
+      rest.level?.length,
   )
 
   return (
@@ -140,7 +135,6 @@ export default async function AdminBipsPage(props: {
           dateTo: rest.dateTo,
           availability: rest.availability,
           level: rest.level,
-          partnerOnly: rest.partnerOnly,
         }}
         basePath="/admin/bips"
       />

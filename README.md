@@ -83,7 +83,7 @@ import contract for `motion`, the EU emblem prohibition), and the PR checklist.
 By contributing you agree to the [Code of Conduct](./CODE_OF_CONDUCT.md)
 (Contributor Covenant v2.1).
 
-For security issues, contact <team@hexonasystems.com> directly rather than
+For security issues, contact <biphub.org@gmail.com> directly rather than
 filing a public issue.
 
 ## License

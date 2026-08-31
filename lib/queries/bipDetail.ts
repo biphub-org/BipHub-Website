@@ -47,6 +47,7 @@ export type BipDetail = {
   status: string
   created_at: string
   subject_areas: string[]
+  isced_codes: string[]
   accommodation_notes: string | null
   card_image_path: string | null
   partner_institutions_only: boolean | null
@@ -100,7 +101,7 @@ export async function getBipBySlug(slug: string): Promise<BipDetail | null> {
       study_levels, fees, eligibility_notes,
       how_to_apply_type, how_to_apply_value,
       contact_name, contact_email, contact_phone, application_deadline,
-      green_travel, inclusion_support, is_seed, status, created_at, subject_areas,
+      green_travel, inclusion_support, is_seed, status, created_at, subject_areas, isced_codes,
       accommodation_notes, partner_institutions_only, card_image_path, duplicated_from_bip_id,
       host_university:universities!host_university_id(id, name, country, city, erasmus_code),
       partners:bip_partner_universities(
@@ -154,7 +155,7 @@ export async function getBipById(id: string): Promise<BipDetail | null> {
       study_levels, fees, eligibility_notes,
       how_to_apply_type, how_to_apply_value,
       contact_name, contact_email, contact_phone, application_deadline,
-      green_travel, inclusion_support, is_seed, status, created_at, subject_areas,
+      green_travel, inclusion_support, is_seed, status, created_at, subject_areas, isced_codes,
       accommodation_notes, partner_institutions_only, card_image_path, duplicated_from_bip_id,
       host_university:universities!host_university_id(id, name, country, city, erasmus_code),
       partners:bip_partner_universities(

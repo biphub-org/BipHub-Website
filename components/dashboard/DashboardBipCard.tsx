@@ -97,6 +97,15 @@ export function DashboardBipCard({ bip }: Props) {
               </p>
             </div>
           )}
+          {(bip.status === 'approved' || bip.status === 'changes_requested') && (
+            <Link
+              href={`/bip/${bip.slug}`}
+              target="_blank"
+              className="mt-3 inline-block text-sm text-eu-blue hover:underline"
+            >
+              View public page →
+            </Link>
+          )}
         </div>
 
         {/* Right column: status badge + timestamp + per-status actions */}
@@ -165,13 +174,6 @@ export function DashboardBipCard({ bip }: Props) {
                   <Button variant="ghost" size="sm">
                     Edit
                   </Button>
-                </Link>
-                <Link
-                  href={`/bip/${bip.slug}`}
-                  target="_blank"
-                  className="text-sm text-eu-blue hover:underline"
-                >
-                  View public page →
                 </Link>
                 {canDuplicate && (
                   <Button

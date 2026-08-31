@@ -35,6 +35,7 @@ const NAV_LINKS = [
   { href: '/bips', label: 'Browse BIPs' },
   { href: '/what-is-a-bip', label: 'What is a BIP?' },
   { href: '/guides', label: 'Guides' },
+  { href: '/about', label: 'About' },
 ] as const
 
 // Pages whose top-of-page hero is dark — nav starts transparent over them and
@@ -177,7 +178,7 @@ export function StickyNav({ hasClaims = false, initials = null, dashboardHref = 
               </span>
             </>
           ) : (
-            <Link href="/register">
+            <Link href="/login">
               <Button
                 variant="primary"
                 size="sm"
@@ -187,7 +188,7 @@ export function StickyNav({ hasClaims = false, initials = null, dashboardHref = 
                     'bg-white text-eu-blue border-white hover:bg-white/90 hover:shadow-[0_6px_20px_rgba(255,255,255,0.25)]',
                 )}
               >
-                List your BIP
+                Register / Sign in
               </Button>
             </Link>
           )}
@@ -237,8 +238,8 @@ export function StickyNav({ hasClaims = false, initials = null, dashboardHref = 
                   ) : (
                     <SheetClose
                       render={
-                        <Link href="/register" className="inline-flex">
-                          <Button variant="primary" className="w-full">List your BIP</Button>
+                        <Link href="/login" className="inline-flex">
+                          <Button variant="primary" className="w-full">Sign in</Button>
                         </Link>
                       }
                     />

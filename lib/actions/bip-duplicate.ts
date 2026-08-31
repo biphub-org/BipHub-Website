@@ -114,6 +114,7 @@ export async function duplicateBipAction(sourceId: string): Promise<DuplicateBip
     subject_areas: finalAreas,
     subject_area: source.subject_area,
     isced_f_code: source.isced_f_code,
+    isced_codes: (source as unknown as { isced_codes?: string[] }).isced_codes ?? [],
     description: source.description,
     learning_outcomes: source.learning_outcomes,
     virtual_component_description: source.virtual_component_description,

@@ -47,7 +47,6 @@ export type CoordinatorBipsFilter = {
   dateTo?: string
   availability?: 'open' | 'closed' | 'any'
   level?: string[]
-  partnerOnly?: 'exclude' | 'only'
 }
 
 export async function getCoordinatorBips(filter: CoordinatorBipsFilter = {}): Promise<CoordinatorBip[]> {
@@ -63,7 +62,7 @@ export async function getCoordinatorBips(filter: CoordinatorBipsFilter = {}): Pr
   let query = supabase
     .from('bips')
     .select(`
-      id, slug, title, status, subject_areas, host_city,
+      id, slug, title, status, subject_areas, isced_codes, host_city,
       application_deadline, physical_start_date, language_of_instruction, study_levels, partner_institutions_only, ects_credits,
       updated_at, created_at,
       ${universityJoin}
@@ -90,11 +89,6 @@ export async function getCoordinatorBips(filter: CoordinatorBipsFilter = {}): Pr
   }
   if (filter.level?.length) {
     query = query.overlaps('study_levels', filter.level)
-  }
-  if (filter.partnerOnly === 'exclude') {
-    query = query.eq('partner_institutions_only', false)
-  } else if (filter.partnerOnly === 'only') {
-    query = query.eq('partner_institutions_only', true)
   }
   const q = filter.q?.trim()
   if (q) {

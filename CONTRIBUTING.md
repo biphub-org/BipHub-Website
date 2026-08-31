@@ -228,7 +228,7 @@ Copy this checklist into your PR description and tick every applicable box.
 ## Section 8 — Code of Conduct
 
 This project follows the [Contributor Covenant v2.1](./CODE_OF_CONDUCT.md).
-Reports of unacceptable behaviour go to **team@hexonasystems.com**.
+Reports of unacceptable behaviour go to **biphub.org@gmail.com**.
 
 By participating in this project, you agree to abide by its terms.
 

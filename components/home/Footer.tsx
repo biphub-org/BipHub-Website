@@ -46,7 +46,7 @@ export function Footer() {
               For Universities
             </h2>
             <ul className="mt-4 space-y-2 text-sm">
-              <li><Link href="/register" className="text-white/80 transition-colors hover:text-eu-gold">List your BIP</Link></li>
+              <li><Link href="/register/coordinator" className="text-white/80 transition-colors hover:text-eu-gold">List your BIP</Link></li>
               <li><Link href="/login" className="text-white/80 transition-colors hover:text-eu-gold">Sign in</Link></li>
               <li><Link href="/guides/for-coordinators" className="text-white/80 transition-colors hover:text-eu-gold">Coordinator guide</Link></li>
             </ul>

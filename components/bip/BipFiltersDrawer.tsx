@@ -31,8 +31,7 @@ export function BipFiltersDrawer({
     (filters.dateFrom ? 1 : 0) +
     (filters.dateTo ? 1 : 0) +
     (filters.status && filters.status !== 'any' ? 1 : 0) +
-    (filters.level?.length ?? 0) +
-    (!!filters.partnerOnly ? 1 : 0)
+    (filters.level?.length ?? 0)
 
   return (
     <Drawer open={open} onOpenChange={setOpen}>

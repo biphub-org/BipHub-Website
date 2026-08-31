@@ -75,9 +75,7 @@ export default function GuidesHubPage() {
             the directory evolve.
           </p>
 
-          {/* Topic tiles — taxonomy preview. Non-clickable in v1: pure
-              visual category indicators. Topics without guides yet show
-              "Coming soon"; topics with content show their guide count. */}
+          {/* Topic tiles — clickable anchors that scroll to the guide sections. */}
           <div className="mt-14 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4">
             {TOPICS.map((topic) => (
               <TopicTile key={topic.id} topic={topic} />
@@ -88,7 +86,7 @@ export default function GuidesHubPage() {
 
       {/* === Cards body === */}
       <div className="container mx-auto max-w-[1100px] px-4 lg:px-6 py-16 lg:py-24">
-        <section className="mb-20">
+        <section id="for-students" className="mb-20 scroll-mt-24">
           <Eyebrow className="mb-3">For students</Eyebrow>
           <h2 className="mb-8 text-[clamp(24px,3vw,32px)] font-bold tracking-tight text-ink">
             Find and apply
@@ -100,7 +98,7 @@ export default function GuidesHubPage() {
           </div>
         </section>
 
-        <section>
+        <section id="for-coordinators" className="scroll-mt-24">
           <Eyebrow className="mb-3">For coordinators</Eyebrow>
           <h2 className="mb-8 text-[clamp(24px,3vw,32px)] font-bold tracking-tight text-ink">
             List and maintain
@@ -116,62 +114,66 @@ export default function GuidesHubPage() {
   )
 }
 
+function topicHref(topicId: TopicMeta['id']): string {
+  // Student-focused topics scroll to the student section; coordinator topic to its section.
+  // Funding / Travel & stay have no dedicated guides yet, so they scroll to the
+  // student section as the closest relevant content.
+  if (topicId === 'coordinators') return '#for-coordinators'
+  return '#for-students'
+}
+
 function TopicTile({ topic }: { topic: TopicMeta }) {
   const Icon = TOPIC_ICONS[topic.icon]
   const count = countGuidesByTopic(topic.id)
   const hasContent = count > 0
 
-  return (
-    <div
-      className={
-        hasContent
-          ? 'group relative flex flex-col gap-3 overflow-hidden rounded-lg border border-white/15 bg-white/5 p-5 backdrop-blur-sm transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-eu-gold/40 hover:bg-white/[0.08] hover:shadow-[0_8px_24px_rgba(0,0,0,0.25)]'
-          : 'group relative flex flex-col gap-3 overflow-hidden rounded-lg border border-white/10 bg-white/[0.025] p-5 opacity-70 backdrop-blur-sm transition-all duration-300 ease-out hover:border-white/20 hover:bg-white/[0.05] hover:opacity-90'
-      }
-    >
-      {/* Soft gold halo on hover — populated tiles only */}
-      {hasContent && (
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-eu-gold/0 opacity-0 blur-2xl transition-all duration-500 group-hover:bg-eu-gold/20 group-hover:opacity-100"
-        />
-      )}
-
-      <div className="relative flex items-center justify-between">
-        <span
-          className={
-            hasContent
-              ? 'inline-flex h-9 w-9 items-center justify-center rounded-md bg-eu-gold/15 text-eu-gold transition-all duration-300 ease-out group-hover:scale-110 group-hover:bg-eu-gold/25 group-hover:shadow-[0_0_16px_rgba(255,204,0,0.4)]'
-              : 'inline-flex h-9 w-9 items-center justify-center rounded-md bg-white/5 text-white/40 transition-colors duration-300 group-hover:bg-white/10 group-hover:text-white/60'
-          }
-        >
-          <Icon size={18} strokeWidth={1.9} aria-hidden="true" />
-        </span>
-        {hasContent ? (
-          <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-eu-gold transition-colors duration-300 group-hover:text-eu-gold">
-            {count} {count === 1 ? 'guide' : 'guides'}
+  if (!hasContent) {
+    return (
+      <div
+        aria-label={`${topic.label} — Coming soon`}
+        className="group relative flex flex-col gap-3 overflow-hidden rounded-lg border border-white/10 bg-white/[0.025] p-5 opacity-70 backdrop-blur-sm transition-all duration-300 ease-out hover:border-white/20 hover:bg-white/[0.05] hover:opacity-90"
+      >
+        <div className="relative flex items-center justify-between">
+          <span className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-white/5 text-white/40 transition-colors duration-300 group-hover:bg-white/10 group-hover:text-white/60">
+            <Icon size={18} strokeWidth={1.9} aria-hidden="true" />
           </span>
-        ) : (
           <span className="rounded-full border border-white/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em] text-white/50 transition-colors duration-300 group-hover:text-white/70">
             Coming soon
           </span>
-        )}
-      </div>
-      <h3
-        className={
-          hasContent
-            ? 'relative text-[16px] font-semibold leading-snug text-white transition-colors duration-300'
-            : 'relative text-[16px] font-semibold leading-snug text-white/70 transition-colors duration-300 group-hover:text-white/85'
-        }
-      >
-        {topic.label}
-      </h3>
-      {!hasContent && (
+        </div>
+        <h3 className="relative text-[16px] font-semibold leading-snug text-white/70 transition-colors duration-300 group-hover:text-white/85">
+          {topic.label}
+        </h3>
         <p className="relative text-[13px] leading-snug text-white/50 transition-colors duration-300 group-hover:text-white/65">
           {topic.comingSoon}
         </p>
-      )}
-    </div>
+      </div>
+    )
+  }
+
+  return (
+    <a
+      href={topicHref(topic.id)}
+      aria-label={`${topic.label} — ${count} ${count === 1 ? 'guide' : 'guides'}`}
+      className="group relative flex flex-col gap-3 overflow-hidden rounded-lg border border-white/15 bg-white/5 p-5 backdrop-blur-sm transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-eu-gold/40 hover:bg-white/[0.08] hover:shadow-[0_8px_24px_rgba(0,0,0,0.25)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eu-gold focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a1735]"
+    >
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-eu-gold/0 opacity-0 blur-2xl transition-all duration-500 group-hover:bg-eu-gold/20 group-hover:opacity-100"
+      />
+
+      <div className="relative flex items-center justify-between">
+        <span className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-eu-gold/15 text-eu-gold transition-all duration-300 ease-out group-hover:scale-110 group-hover:bg-eu-gold/25 group-hover:shadow-[0_0_16px_rgba(255,204,0,0.4)]">
+          <Icon size={18} strokeWidth={1.9} aria-hidden="true" />
+        </span>
+        <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-eu-gold">
+          {count} {count === 1 ? 'guide' : 'guides'}
+        </span>
+      </div>
+      <h3 className="relative text-[16px] font-semibold leading-snug text-white">
+        {topic.label}
+      </h3>
+    </a>
   )
 }
 

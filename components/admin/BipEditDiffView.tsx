@@ -180,7 +180,7 @@ const FIELDS: FieldDef[] = [
     getProposed: (d) => formatLongDate(d.application_deadline),
   },
   {
-    label: 'Virtual component',
+    label: 'Virtual mobility',
     getLive: (b) => b.virtual_component_description,
     getProposed: (d) => d.virtual_component_description ?? null,
   },

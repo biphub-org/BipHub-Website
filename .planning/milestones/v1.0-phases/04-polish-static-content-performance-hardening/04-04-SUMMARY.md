@@ -9,7 +9,7 @@ requires:
     provides: prior plans established the public Footer privacy link (04-02) and the EU-emblem 11-star LogoMark (Phase 1 Plan 01-04) referenced from CONTRIBUTING.md
 provides:
   - CONTRIBUTING.md with 8 mandated sections (D-25) including EU emblem prohibition, locked stack rules, RLS USING+WITH CHECK template, PR checklist, and CoC reference
-  - CODE_OF_CONDUCT.md as Contributor Covenant v2.1 verbatim (D-26) with team@hexonasystems.com as the report contact
+  - CODE_OF_CONDUCT.md as Contributor Covenant v2.1 verbatim (D-26) with biphub.org@gmail.com as the report contact
   - Annotated .env.example (D-23) with placeholder-only audit and a header explaining population from `npx supabase status`
   - .gitleaks.toml extending the v8 default ruleset with a path-scoped allowlist (D-22) for known-safe demo fixtures only
   - .github/workflows/secret-scan.yml running gitleaks-action@v2 on every PR and main push with fetch-depth: 0
@@ -34,7 +34,7 @@ key-files:
 
 key-decisions:
   - "CONTRIBUTING.md uses checkbox-style code conventions list so contributors can copy it into PR descriptions; 11-star LogoMark constraint stated as a hard MUST NOT in Section 3"
-  - "CODE_OF_CONDUCT.md is the Contributor Covenant v2.1 source verbatim, only changing the [INSERT CONTACT METHOD] placeholder to team@hexonasystems.com (per D-26 interoperability requirement with the CC reporting ecosystem)"
+  - "CODE_OF_CONDUCT.md is the Contributor Covenant v2.1 source verbatim, only changing the [INSERT CONTACT METHOD] placeholder to biphub.org@gmail.com (per D-26 interoperability requirement with the CC reporting ecosystem)"
   - ".env.example header block written above existing vars (not as an inline comment) so the populate-from-supabase-status instructions are unmissable; no real-key prefixes found during audit"
   - ".gitleaks.toml path-scoped allowlist forward-declares supabase/seed.e2e.sql (Plan 04-07 will create the file) so the allowlist is stable across Phase 4"
   - "secret-scan workflow uses fetch-depth: 0 to scan all commits in a PR (not just the merge commit); no continue-on-error so findings block the merge; tag-pinned to gitleaks-action@v2 — SHA pinning deferred to v1.1 hardening pass with Dependabot"
@@ -64,7 +64,7 @@ completed: 2026-05-14
 ## Accomplishments
 
 - CONTRIBUTING.md now matches D-25 verbatim: all 8 sections present, EU emblem prohibition cites EC visual-identity rules and the 11-star LogoMark, code conventions list mirrors CLAUDE.md "Critical never-do items", RLS template includes both `USING` and `WITH CHECK`, and the PR checklist covers Tailwind static classes, `getClaims()`, `framer-motion` ban, `.env.example` updates, and the 12-star artwork prohibition.
-- CODE_OF_CONDUCT.md adopts Contributor Covenant v2.1 verbatim (D-26), starting with the canonical `# Contributor Covenant Code of Conduct` heading; only the `[INSERT CONTACT METHOD]` placeholder was substituted with `team@hexonasystems.com`.
+- CODE_OF_CONDUCT.md adopts Contributor Covenant v2.1 verbatim (D-26), starting with the canonical `# Contributor Covenant Code of Conduct` heading; only the `[INSERT CONTACT METHOD]` placeholder was substituted with `biphub.org@gmail.com`.
 - `.env.example` audit (D-23) verified every value is a placeholder (no `eyJ...` JWTs, no `re_*` Resend keys, no `sb_publishable_*` / `sb_secret_*` Supabase keys) and added a 23-line header comment block explaining how to populate from `npx supabase status` plus the gitleaks deterrent.
 - `.gitleaks.toml` (D-22) extends gitleaks v8 defaults with a strictly path-scoped allowlist for `supabase/seed.sql`, `supabase/seed.e2e.sql` (forward-declared for Plan 04-07), all numbered migrations, `public/fonts/*.ttf`, and `.env.example`. No pattern-scoped allowlists, no `app/` or `lib/` exclusions.
 - `.github/workflows/secret-scan.yml` runs gitleaks-action@v2 on every PR and main push with `fetch-depth: 0`, minimum permissions (`contents: read`, `pull-requests: write`), and no `continue-on-error` — so a finding blocks the merge.

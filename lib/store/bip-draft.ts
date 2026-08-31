@@ -32,6 +32,7 @@ export type BipDraftData = {
   external_bip_id?: string
   target_group?: 'students' | 'staff' | 'students_staff'
   subject_areas?: string[]
+  isced_codes?: string[]
   description?: string
   learning_outcomes?: string
   // Step 2

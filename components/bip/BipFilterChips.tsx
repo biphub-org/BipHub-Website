@@ -46,11 +46,6 @@ export function BipFilterChips({ filters }: { filters: BipFilterState }) {
   filters.level?.forEach((l) =>
     chips.push({ key: 'level', value: l, label: l[0].toUpperCase() + l.slice(1) }),
   )
-  if (filters.partnerOnly === 'exclude') {
-    chips.push({ key: 'partnerOnly', label: 'Exclude partner-only' })
-  } else if (filters.partnerOnly === 'only') {
-    chips.push({ key: 'partnerOnly', label: 'Only partner-only' })
-  }
   if (filters.q) chips.push({ key: 'q', label: `"${filters.q}"` })
 
   if (chips.length === 0) return null

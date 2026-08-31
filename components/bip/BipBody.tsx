@@ -287,7 +287,7 @@ export function BipBody({ bip }: { bip: BipDetail }) {
                     <Laptop size={22} strokeWidth={1.8} aria-hidden="true" />
                   </div>
                   <h3 className="text-[17px] font-semibold tracking-tight text-ink">
-                    Online component
+                    Virtual Mobility
                   </h3>
                   <p className="mt-1 text-[13px] font-semibold uppercase tracking-wider text-eu-blue">
                     {virtualTimingLabel(bip.virtual_timing) ?? 'Virtual learning'}
@@ -313,7 +313,7 @@ export function BipBody({ bip }: { bip: BipDetail }) {
                     <Building2 size={22} strokeWidth={1.8} aria-hidden="true" />
                   </div>
                   <h3 className="text-[17px] font-semibold tracking-tight text-ink">
-                    On-site mobility
+                    Physical Mobility
                   </h3>
                   <p className="mt-1 text-[13px] font-semibold uppercase tracking-wider text-ink">
                     {mobilityDates ?? 'In person'}
@@ -341,7 +341,7 @@ export function BipBody({ bip }: { bip: BipDetail }) {
               <div className="mt-4 rounded-r-lg border-l-[3px] border-eu-blue bg-eu-blue-50 px-5 py-4">
                 <p className="mb-1.5 inline-flex items-center gap-2 text-[13px] font-semibold uppercase tracking-wider text-eu-blue">
                   <Laptop size={15} strokeWidth={1.9} aria-hidden="true" />
-                  About the online component
+                  About the virtual mobility
                 </p>
                 <p className="text-base leading-relaxed text-ink-2 whitespace-pre-line">
                   {bip.virtual_component_description}
@@ -414,7 +414,7 @@ export function BipBody({ bip }: { bip: BipDetail }) {
                     key={level}
                     className="inline-flex items-center px-3 py-1 rounded-pill bg-eu-blue-50 text-eu-blue text-xs font-semibold capitalize"
                   >
-                    {level}
+                    {level === 'none' ? 'Staff' : level}
                   </span>
                 ))}
               </div>

@@ -58,12 +58,7 @@ export function applyFilters(
     q = q.overlaps('study_levels', filters.level)
   }
 
-  // BROW-15 Partner filter (?partnerOnly=exclude → hide partner-only, =only → show only partner-only)
-  if (filters.partnerOnly === 'exclude') {
-    q = q.eq('partner_institutions_only', false)
-  } else if (filters.partnerOnly === 'only') {
-    q = q.eq('partner_institutions_only', true)
-  }
+
 
   // BROW-09 Full-text search via the search_vector tsvector + GIN index from 01-02
   if (filters.q) {

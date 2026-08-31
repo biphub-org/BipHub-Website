@@ -271,7 +271,7 @@ function HeroInner() {
             Browse all BIPs
           </Link>
           <Link
-            href="/register"
+            href="/register/coordinator"
             className={cn(
               'inline-flex h-12 items-center justify-center gap-2 rounded-pill px-7 text-base font-semibold whitespace-nowrap',
               'bg-white/5 text-white border border-white/25 transition-all duration-200 ease-out',

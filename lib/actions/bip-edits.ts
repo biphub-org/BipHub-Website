@@ -34,6 +34,7 @@ function buildContentPayload(data: {
   external_bip_id: string
   target_group: string
   subject_areas: string[]
+  isced_codes?: string[]
   description: string
   learning_outcomes: string
   virtual_component_description: string
@@ -70,6 +71,7 @@ function buildContentPayload(data: {
     // bips); subject_area (bips-only) is not set here to keep the payload valid
     // for bip_edits inserts.
     subject_areas: data.subject_areas,
+    isced_codes: data.isced_codes ?? [],
     isced_f_code: data.subject_areas[0] ?? null,
     description: data.description,
     learning_outcomes: data.learning_outcomes,

@@ -5,12 +5,12 @@ import { createClient } from '@/lib/supabase/server'
  * GET /admin/export.csv — admin-guarded CSV export
  *
  * Extended to support three user-requested export scopes:
- *  1. Filtered BIPs — respects ALL admin/bips filters (status, q, country, field, lang, dates, availability, level, partnerOnly)
+ *  1. Filtered BIPs — respects ALL admin/bips filters (status, q, country, field, lang, dates, availability, level)
  *  2. Selected BIPs — via `ids` param (comma-separated UUIDs). When present, restricts to those IDs (intersected with admin RLS).
  *  3. Coordinator profiles — via `entity=coordinators` (alias `dataset`). Exports profiles with role=coordinator.
  *
  * Query params (BIPs):
- *  - status, q, country, field, lang, dateFrom, dateTo, availability, level, partnerOnly, ids
+ *  - status, q, country, field, lang, dateFrom, dateTo, availability, level, ids
  *  - entity: 'bips' (default) | 'coordinators'
  *
  * Auth: getClaims() + role='admin' — defense in depth; RLS also scopes.
@@ -192,8 +192,6 @@ export async function GET(req: NextRequest) {
   const dateTo = sp.get('dateTo')?.trim() || undefined
   const availabilityRaw = sp.get('availability')?.trim().toLowerCase()
   const availability = availabilityRaw && VALID_AVAILABILITY.has(availabilityRaw) ? availabilityRaw : undefined
-  const partnerOnlyRaw = sp.get('partnerOnly')?.trim().toLowerCase()
-  const partnerOnly = partnerOnlyRaw === 'exclude' || partnerOnlyRaw === 'only' ? partnerOnlyRaw : undefined
 
   // Support repeated keys for arrays (country=DE&country=FR)
   // URLSearchParams.get merges only first; we merge getAll for those keys
@@ -255,11 +253,6 @@ export async function GET(req: NextRequest) {
     }
     if (levelFinal?.length) {
       query = query.overlaps('study_levels', levelFinal)
-    }
-    if (partnerOnly === 'exclude') {
-      query = query.eq('partner_institutions_only', false)
-    } else if (partnerOnly === 'only') {
-      query = query.eq('partner_institutions_only', true)
     }
     if (q) {
       query = query.textSearch('search_vector', q, { type: 'websearch', config: 'english' })
@@ -344,7 +337,7 @@ export async function GET(req: NextRequest) {
   const csv = lines.join('\n')
   let suffix: string
   if (ids) suffix = `selected-${ids.length}`
-  else if (q || countryFinal?.length || fieldFinal?.length || langFinal?.length || dateFrom || dateTo || availability || levelFinal?.length || partnerOnly || status !== 'all')
+  else if (q || countryFinal?.length || fieldFinal?.length || langFinal?.length || dateFrom || dateTo || availability || levelFinal?.length || status !== 'all')
     suffix = `filtered-${status}`
   else suffix = `${status}`
 

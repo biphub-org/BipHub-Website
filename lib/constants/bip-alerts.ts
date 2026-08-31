@@ -14,15 +14,16 @@ export const ALERT_FREQUENCY_LABEL: Record<AlertFrequency, string> = {
   daily: 'Daily',
 }
 
-export const ALERT_SUBSCRIPTION_CAP = 5
+export const ALERT_SUBSCRIPTION_CAP = 5 // deprecated — preferences model has no cap
 
 /**
- * Explicit consent text captured at subscription creation (ALRT-08).
- * Stored verbatim in bip_subscriptions.consent_text so the dashboard and
- * any audit can show what the student agreed to.
+ * Explicit consent text captured when saving alert preferences (ALRT-08).
+ * Stored verbatim in bip_alert_preferences.consent_text so the dashboard and
+ * any audit can show what the student agreed to. Updated to reflect the
+ * multi-select preferences model (any combination of fields/countries).
  */
 export const ALERT_CONSENT_TEXT =
-  'I agree to receive email alerts about newly approved BIPs matching my subscription (field of study and/or country) at the frequency I selected, and I can unsubscribe at any time via the link in the email or from my dashboard.'
+  'I agree to receive email alerts about newly approved BIPs matching my selected fields of study and/or countries at the frequency I selected, and I can unsubscribe at any time via the link in the email or from my dashboard.'
 
 /**
  * Unsubscribe HMAC helper — Node `crypto` (no new dep).

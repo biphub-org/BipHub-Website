@@ -16,13 +16,32 @@ export async function GET(req: NextRequest) {
 
   const { subscriptionId, hmac } = parsed
 
-  // Need to find the subscription to get its user_id for HMAC verification
-  // We have to use service_role to read it (public, no session)
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
   if (!supabaseUrl || !serviceKey) return new NextResponse('Server misconfigured', { status: 500 })
 
   const admin = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } })
+
+  // New preferences model: token may be userId-based (hamming userId:userId) or legacy subscriptionId-based.
+  // Try preferences first: verify HMAC as userId:userId.
+  // If that matches a preferences row, delete the whole preferences row.
+  // Otherwise fall back to legacy bip_subscriptions lookup.
+  const { data: pref } = await admin.from('bip_alert_preferences').select('user_id').eq('user_id', subscriptionId).maybeSingle()
+  if (pref) {
+    const okPref = verifyUnsubscribeHmac(pref.user_id, pref.user_id, hmac)
+    if (okPref) {
+      const { error: delPrefErr } = await admin.from('bip_alert_preferences').delete().eq('user_id', pref.user_id)
+      if (delPrefErr) return new NextResponse(delPrefErr.message, { status: 500 })
+      return new NextResponse(
+        `<html><body style="font-family: Inter, Arial, sans-serif; max-width: 600px; margin: 40px auto; padding: 24px;">
+          <h1 style="color:#003399;">Unsubscribed</h1>
+          <p>You have been unsubscribed from alerts. Manage alert preferences in your <a href="/student-dashboard" style="color:#003399;">dashboard</a>.</p>
+          <p style="font-size:11px;color:#888;">BipHub · Independent project — not affiliated with the European Commission</p>
+        </body></html>`,
+        { status: 200, headers: { 'Content-Type': 'text/html' } },
+      )
+    }
+  }
 
   const { data: sub, error: fetchErr } = await admin.from('bip_subscriptions').select('id, user_id').eq('id', subscriptionId).maybeSingle()
 

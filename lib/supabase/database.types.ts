@@ -147,6 +147,7 @@ export type Database = {
           status: string
           study_levels: string[] | null
           subject_areas: string[] | null
+          isced_codes: string[] | null
           target_group: string | null
           title: string | null
           updated_at: string
@@ -191,6 +192,7 @@ export type Database = {
           status?: string
           study_levels?: string[] | null
           subject_areas?: string[] | null
+          isced_codes?: string[] | null
           target_group?: string | null
           title?: string | null
           updated_at?: string
@@ -235,6 +237,7 @@ export type Database = {
           status?: string
           study_levels?: string[] | null
           subject_areas?: string[] | null
+          isced_codes?: string[] | null
           target_group?: string | null
           title?: string | null
           updated_at?: string
@@ -348,6 +351,36 @@ export type Database = {
           },
         ]
       }
+      bip_alert_preferences: {
+        Row: {
+          consent_text: string
+          countries: string[]
+          fields: string[]
+          frequency: string
+          isced_codes: string[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          consent_text: string
+          countries?: string[]
+          fields?: string[]
+          frequency?: string
+          isced_codes?: string[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          consent_text?: string
+          countries?: string[]
+          fields?: string[]
+          frequency?: string
+          isced_codes?: string[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       bip_subscriptions: {
         Row: {
           consent_text: string
@@ -418,6 +451,7 @@ export type Database = {
           study_levels: string[]
           subject_area: string | null
           subject_areas: string[]
+          isced_codes: string[] | null
           target_group: string | null
           title: string
           updated_at: string
@@ -467,6 +501,7 @@ export type Database = {
           study_levels?: string[]
           subject_area?: string | null
           subject_areas?: string[]
+          isced_codes?: string[] | null
           target_group?: string | null
           title: string
           updated_at?: string
@@ -516,6 +551,7 @@ export type Database = {
           study_levels?: string[]
           subject_area?: string | null
           subject_areas?: string[]
+          isced_codes?: string[] | null
           target_group?: string | null
           title?: string
           updated_at?: string

@@ -199,14 +199,14 @@ This phase has no `/gsd-spec-phase`-generated SPEC.md. Requirements are captured
 <specifics>
 ## Specific Ideas
 
-- **Bootstrapping the first admin in v1:** No `/admin/users` UI in Phase 3. The first admin is promoted by running `update profiles set role = 'admin' where email = 'team@hexonasystems.com'` directly against the local/prod DB (the `00008` mirror trigger handles `app_metadata.role` sync). Document this in CONTRIBUTING.md (Phase 4 deliverable).
+- **Bootstrapping the first admin in v1:** No `/admin/users` UI in Phase 3. The first admin is promoted by running `update profiles set role = 'admin' where email = 'biphub.org@gmail.com'` directly against the local/prod DB (the `00008` mirror trigger handles `app_metadata.role` sync). Document this in CONTRIBUTING.md (Phase 4 deliverable).
 - **`is_seed` BIPs in admin views:** The seeded demo BIPs (`is_seed = true`) ARE visible in `/admin/bips` (status = approved). They should NOT count in Analytics `Total BIPs` or `Submissions this month` (D-20 filters them out). Planner should add `is_seed = false` to analytics queries explicitly.
 - **Email send timing — fire-and-forget vs await:** Server Actions should `await resend.emails.send()` but catch+log errors without re-throwing. Reasoning: latency budget for admin approve is ~300ms; Resend typically responds in 100-200ms; awaiting gives correct error attribution. If Resend latency becomes a problem, switch to `after()` from `next/server` (deferred work primitive).
 - **`bip_status_history.note` length:** No SQL-level length limit, but the Server Action validates: approve note ≤ 500 chars (UI hint); reject reason 10..1000 chars (UI enforced).
 - **Resend webhook for delivery status:** Not in v1 scope. v2 can subscribe to Resend events to surface "email bounced" status to admin if needed.
 - **Admin sidebar layout viewport:** Sidebar fixed at 240px desktop; collapses to a top burger menu below `md` (60rem per Plan 01-04 theme override). Use Tailwind responsive utility classes only — no JS for the breakpoint switch.
 - **Auto-advance edge cases:** When the just-actioned BIP is the only pending one, `getNextPendingBip()` returns null → redirect to `/admin` with the empty-state component. When `getNextPendingBip()` excludes the just-actioned one (filtered by `id != currentId`), it correctly grabs the next oldest.
-- **`AdminNotificationEmail` recipient resolution:** `ADMIN_NOTIFICATION_EMAIL` env var. In v1 with one admin, this is `team@hexonasystems.com`. v2 may query `profiles` for all admins and BCC them.
+- **`AdminNotificationEmail` recipient resolution:** `ADMIN_NOTIFICATION_EMAIL` env var. In v1 with one admin, this is `biphub.org@gmail.com`. v2 may query `profiles` for all admins and BCC them.
 - **Coordinator email "edit and resubmit" link target:** `/dashboard/bips/[id]/edit` — already exists from Phase 2 Plan 02-07. Opens the wizard at last completed step; coordinator edits, saves (RLS flips to draft per D-10), clicks resubmit.
 
 </specifics>

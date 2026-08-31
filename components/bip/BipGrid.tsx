@@ -1,6 +1,5 @@
 import type { BipWithRelations } from '@/lib/types/bip'
 import { BipCard } from '@/components/bip/BipCard'
-import { CompareToggle } from '@/components/bip/CompareToggle'
 
 /**
  * BipGrid — renders a responsive 3-column card grid.
@@ -15,9 +14,8 @@ export function BipGrid({ bips }: { bips: BipWithRelations[] }) {
       aria-label="BIP search results"
     >
       {bips.map((bip) => (
-        <li key={bip.id} className="relative">
+        <li key={bip.id}>
           <BipCard bip={bip} />
-          <CompareToggle bipId={bip.id} bipTitle={bip.title} />
         </li>
       ))}
     </ul>

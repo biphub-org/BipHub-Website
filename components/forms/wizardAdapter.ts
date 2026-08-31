@@ -84,6 +84,7 @@ export function draftToBipDetail(
     status: ctx.status,
     created_at: ctx.createdAt,
     subject_areas: draft.subject_areas ?? [],
+    isced_codes: draft.isced_codes ?? [],
     accommodation_notes: draft.accommodation_notes ?? null,
     card_image_path: draft.card_image_path ?? null,
     partner_institutions_only: draft.partner_institutions_only ?? false,

@@ -32,7 +32,7 @@ key-files:
 
 key-decisions:
   - "Single-column 800px layout (no jump-link sidebar) because privacy policies are read top-to-bottom"
-  - "Inline mailto links to team@hexonasystems.com in 4 places (Data Controller, Your rights, How to exercise, Updates) so the contact channel is unmissable"
+  - "Inline mailto links to biphub.org@gmail.com in 4 places (Data Controller, Your rights, How to exercise, Updates) so the contact channel is unmissable"
   - "No consent banner shipped — documented in the 'No analytics' paragraph and 'Legal basis' section; the absence is the FOUN-05 mitigation"
   - "Date '2026-05-13' hard-coded as a literal string (no dynamic Date computation) so force-static prerender stays stable"
 
@@ -62,7 +62,7 @@ completed: 2026-05-14
 ## Accomplishments
 - Shipped `/privacy` as a static (○) route — 772-word body inside the locked 600–900 range
 - Documented every storage surface by name with its legal basis and retention behaviour
-- Named team@hexonasystems.com as data controller contact across four sections
+- Named biphub.org@gmail.com as data controller contact across four sections
 - Established zero-analytics posture in writing, removing the requirement for a consent banner in v1 (FOUN-05 mitigated by absence-of-trackers)
 - Linked the privacy page from the public Footer Project column on every (public) route while preserving the INFO-03 disclaimer verbatim
 
@@ -79,7 +79,7 @@ Each task was committed atomically:
 
 ## Decisions Made
 - **Single-column 800px layout** instead of the 2-column jump-link layout used by /what-is-a-bip — long-form legal copy reads top-to-bottom and a sticky sidebar would distract.
-- **Mailto link, not plain text**, for team@hexonasystems.com — friction-free exercise of GDPR rights is a soft UX requirement on top of the strict GDPR Art 13 transparency obligation.
+- **Mailto link, not plain text**, for biphub.org@gmail.com — friction-free exercise of GDPR rights is a soft UX requirement on top of the strict GDPR Art 13 transparency obligation.
 - **Hard-coded "Last updated: 2026-05-13"** — `force-static` prerender must be stable; future updates bump the literal manually.
 - **No consent banner** — the privacy page itself is the artefact that proves no consent-requiring data is collected, so a cookie banner would be both unnecessary and misleading.
 

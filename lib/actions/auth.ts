@@ -21,6 +21,7 @@ import { createClient } from '@/lib/supabase/server'
 import {
   loginSchema,
   registerSchema,
+  resolveLoginSchema,
   passwordResetSchema,
   passwordUpdateSchema,
 } from '@/lib/schemas/auth'
@@ -60,12 +61,18 @@ export async function signInAction(formData: FormData): Promise<{ error?: string
     return { error: 'Something went wrong. Please try again.' }
   }
 
-  // Pick the final destination here so we skip the /dashboard → /onboarding
-  // redirect bounce, which previously left the browser blank between two
-  // server navigations. Mirrors the same profile-complete check that
-  // (dashboard)/layout.tsx runs.
+    // Role-aware redirect: students go straight to their dashboard,
+  // coordinators/admins keep the profile-complete gate.
   const { data: claimsData } = await supabase.auth.getClaims()
-  const claims = claimsData?.claims
+  const claims = claimsData?.claims as { sub?: string; app_metadata?: { role?: string } } | undefined
+  const role = claims?.app_metadata?.role
+
+  if (role === 'student') {
+    redirect('/student-dashboard')
+  }
+  if (role === 'admin') {
+    redirect('/admin')
+  }
 
   if (claims?.sub) {
     const { data: profile } = await supabase
@@ -88,6 +95,7 @@ export async function signInAction(formData: FormData): Promise<{ error?: string
 
 // AUTH-01 + AUTH-02: register + dispatch verification email via Supabase mailer.
 // emailRedirectTo points at /auth/callback so the PKCE code returns to our route handler.
+// Coordinator path — requires email verification via /verify-email.
 export async function signUpAction(formData: FormData): Promise<{ error?: string }> {
   const parsed = registerSchema.safeParse({
     email: formData.get('email'),
@@ -112,6 +120,53 @@ export async function signUpAction(formData: FormData): Promise<{ error?: string
     return { error: 'Something went wrong. Please try again.' }
   }
   redirect('/verify-email?email=' + encodeURIComponent(parsed.data.email))
+}
+
+// Student registration: email + password, no email confirmation, auto-approved.
+// Creates the user with role='student' so handle_new_user sets profiles.role.
+// With enable_confirmations=false the user is immediately confirmed, so we
+// sign in directly and redirect to /student-dashboard.
+export async function signUpStudentAction(formData: FormData): Promise<{ error?: string }> {
+  const parsed = registerSchema.safeParse({
+    email: formData.get('email'),
+    password: formData.get('password'),
+    confirmPassword: formData.get('confirmPassword'),
+  })
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? 'Invalid input.' }
+  }
+
+  const supabase = await createClient()
+  const { error: signUpError } = await supabase.auth.signUp({
+    email: parsed.data.email,
+    password: parsed.data.password,
+    options: { data: { role: 'student' } },
+  })
+  if (signUpError) {
+    const msg = signUpError.message.toLowerCase()
+    if (msg.includes('already registered') || msg.includes('user already')) {
+      return { error: 'An account with this email already exists. Sign in instead?' }
+    }
+    return { error: 'Something went wrong. Please try again.' }
+  }
+
+  // Establishes the SSR session cookie. With confirmations disabled this
+  // succeeds immediately; if confirmations were enabled it would surface
+  // 'email not confirmed' which we surface as a generic error.
+  const { error: signInError } = await supabase.auth.signInWithPassword({
+    email: parsed.data.email,
+    password: parsed.data.password,
+  })
+  if (signInError) {
+    const msg = signInError.message.toLowerCase()
+    if (msg.includes('email not confirmed')) {
+      return { error: 'Account created. Please verify your email before signing in.' }
+    }
+    return { error: 'Account created. Please sign in.' }
+  }
+
+  revalidatePath('/', 'layout')
+  redirect('/student-dashboard')
 }
 
 // Resend the signup verification email for users who didn't receive (or lost) the
@@ -204,10 +259,35 @@ export async function updatePasswordAction(
   redirect('/dashboard')
 }
 
-// STUD-01 / D-01: single entry for new signup + returning sign-in via magic link.
-// options.data.role → raw_user_meta_data at creation; the handle_new_user trigger
-// (00015) reads it to set profiles.role='student'. emailRedirectTo carries
-// type=magiclink so the callback routes to /student-dashboard (D-04).
+// Inline change-password for an already-signed-in user (student dashboard Account section).
+// No email link — uses the current SSR session cookie. Returns success/error for inline display.
+export async function changePasswordAction(
+  formData: FormData,
+): Promise<{ error?: string; success?: true }> {
+  const parsed = passwordUpdateSchema.safeParse({
+    password: formData.get('password'),
+    confirmPassword: formData.get('confirmPassword'),
+  })
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? 'Invalid password.' }
+  }
+
+  const supabase = await createClient()
+  const { data, error: authError } = await supabase.auth.getClaims()
+  if (authError || !data?.claims) {
+    return { error: 'You must be signed in to change your password.' }
+  }
+
+  const { error } = await supabase.auth.updateUser({ password: parsed.data.password })
+  if (error) {
+    return { error: 'Failed to update password. Please try again.' }
+  }
+  return { success: true }
+}
+
+// Legacy magic-link action — retained for backward compat with old student
+// links/bookmarks but no longer used for new sign-ins. Students now use
+// email+password via signUpStudentAction / signInAction (password).
 export async function signInWithOtpAction(
   formData: FormData,
 ): Promise<{ error?: string; success?: true }> {
@@ -235,6 +315,30 @@ export async function signInWithOtpAction(
     return { error: 'Something went wrong. Please try again.' }
   }
   return { success: true }
+}
+
+// Unified login — step 1: resolve which auth method an email should use.
+// Uses the SECURITY DEFINER function public.resolve_login_method (00047) so anon
+// can check role without service-role key. All known roles now use password
+// (students migrated from magiclink to email+password); 'unknown' for no account.
+// 'magiclink' is retained as a deprecated return value for backward compat.
+export async function resolveLoginMethodAction(
+  formData: FormData,
+): Promise<{ method?: 'magiclink' | 'password' | 'unknown'; error?: string }> {
+  const parsed = resolveLoginSchema.safeParse({ email: formData.get('email') })
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? 'Invalid email.' }
+  }
+  const supabase = await createClient()
+  const { data, error } = await supabase.rpc('resolve_login_method', {
+    p_email: parsed.data.email,
+  })
+  if (error) {
+    console.error('[resolveLoginMethodAction] rpc error:', error.message)
+    return { error: 'Something went wrong. Please try again.' }
+  }
+  if (data === 'student' || data === 'coordinator' || data === 'admin') return { method: 'password' }
+  return { method: 'unknown' }
 }
 
 // D-15: student sign-out lands on / (public home), NOT /login. Separate export
