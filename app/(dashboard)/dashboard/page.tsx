@@ -9,10 +9,11 @@
  * The (dashboard) route group's layout (Plan 02-04) provides the chrome,
  * profile-complete gate, and Toaster. This page assumes those are mounted.
  */
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
 import { DashboardBipList } from '@/components/dashboard/DashboardBipList'
 import { getCoordinatorBips } from '@/lib/queries/coordinatorBips'
+import { NewBipButton } from '@/components/dashboard/NewBipButton'
+
+export const dynamic = 'force-dynamic'
 
 export default async function DashboardPage(props: {
   searchParams: Promise<{ status?: string; submitted?: string }>
@@ -31,11 +32,7 @@ export default async function DashboardPage(props: {
               : `${bips.length} BIP${bips.length === 1 ? '' : 's'} total`}
           </p>
         </div>
-        <Link href="/dashboard/bips/new">
-          <Button variant="gold" size="md" className="font-semibold">
-            + Submit a BIP
-          </Button>
-        </Link>
+        <NewBipButton />
       </div>
 
       <DashboardBipList

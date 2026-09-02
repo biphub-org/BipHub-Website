@@ -108,6 +108,14 @@ export default defineConfig({
       // no storageState — public routes
     },
     {
+      name: 'verify',
+      testMatch: /submission-verify\.spec\.ts$/,
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'tests/e2e/fixtures/storageState.coordinator.json',
+      },
+    },
+    {
       name: 'student-authed',
       // student-auth.spec.ts and saved-bips.spec.ts both manage their own session
       // setup via signInStudent() / the admin generate_link + OTP verify helpers —

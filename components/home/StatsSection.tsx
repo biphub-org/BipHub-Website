@@ -21,7 +21,7 @@ import {
 } from 'motion/react'
 import { useInView } from 'motion/react'
 import { Eyebrow } from './Eyebrow'
-import { BipGrowthChart } from './BipGrowthChart'
+import { BipGrowthChart, type GrowthDatum } from './BipGrowthChart'
 
 interface Stats {
   bipsListed: number
@@ -32,6 +32,7 @@ interface Stats {
 
 interface StatsSectionProps {
   stats: Stats
+  growth: GrowthDatum[]
 }
 
 // Subtitle copy under each stat card. These are intentionally NOT real deltas —
@@ -61,7 +62,7 @@ const STAT_CONFIGS = [
   },
 ]
 
-export function StatsSection({ stats }: StatsSectionProps) {
+export function StatsSection({ stats, growth }: StatsSectionProps) {
   const sectionRef = useRef<HTMLElement>(null)
   const isInView = useInView(sectionRef, { once: true, amount: 0.5 })
   const prefersReducedMotion = useReducedMotion()
@@ -168,14 +169,14 @@ export function StatsSection({ stats }: StatsSectionProps) {
               ))}
             </div>
 
-            {/* Growth sparkline — MOCK data, replace with real series in Phase 4+ */}
+            {/* Growth — real approved BIPs per month (last 12) */}
             <m.div
               className="mt-6"
               initial={{ opacity: 0, y: 20 }}
               animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
               transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
             >
-              <BipGrowthChart />
+              <BipGrowthChart data={growth} />
             </m.div>
           </div>
         </section>

@@ -33,7 +33,7 @@
  * Animations: only `motion/react` + `LazyMotion` (CLAUDE.md never-do).
  */
 
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback, useRef, useLayoutEffect } from 'react'
 import { useDebouncedCallback } from 'use-debounce'
 import { toast } from 'sonner'
 import { LazyMotion, domAnimation, m } from 'motion/react'
@@ -166,6 +166,7 @@ export function BipSubmissionWizard({
     currentStep,
     draft,
     hydrated,
+    lastKnownUpdatedAt,
     hydrate,
     hydrateFromServer,
     setBipId,
@@ -174,6 +175,7 @@ export function BipSubmissionWizard({
     setLastKnownUpdatedAt,
     setSaveStatus,
     persistToLocalStorage,
+    clearDraft,
   } = useBipDraft()
 
   const [conflictOpen, setConflictOpen] = useState(false)
@@ -198,15 +200,67 @@ export function BipSubmissionWizard({
   //     localStorage so admin edits do not collide with coordinator drafts
   //     cached under the same browser profile.
   //   - coordinator edit mode: hydrate from DB (initialBip).
-  //   - coordinator new mode: hydrate from localStorage.
-  useEffect(() => {
+  //   - coordinator new mode: hydrate from localStorage. Refresh (reload)
+  //     resumes the same draft; a fresh navigation to /new (navigate, not
+  //     reload) starts blank even if a stale draft sits in localStorage.
+  //     An explicit "Submit a BIP" click clears via sessionStorage flag +
+  //     localStorage removal in NewBipButton.
+  useLayoutEffect(() => {
     if (mode === 'admin') {
       if (initialBip) hydrateFromServer(initialBip)
       return
     }
-    if (initialBip) hydrateFromServer(initialBip)
-    else hydrate()
-  }, [initialBip, hydrate, hydrateFromServer, mode])
+    if (initialBip) {
+      hydrateFromServer(initialBip)
+      return
+    }
+    // New BIP: check explicit fresh flag first
+    try {
+      const flag = window.sessionStorage.getItem('biphub:clearNextDraft')
+      if (flag) {
+        try {
+          window.sessionStorage.removeItem('biphub:clearNextDraft')
+        } catch {}
+        clearDraft()
+        return
+      }
+    } catch {}
+    // Distinguish reload (resume) vs fresh navigation (clear stale draft that
+    // would otherwise auto-fill BIP ID / target_group from a previous session).
+    try {
+      const raw = window.localStorage.getItem('biphub:draft')
+      const parsed = raw ? (JSON.parse(raw) as { bipId?: string | null; draft?: Record<string, unknown> }) : null
+      const hasPersisted = !!(parsed?.bipId || (parsed?.draft && Object.keys(parsed.draft).length > 0))
+      const navEntry = typeof performance !== 'undefined' ? (performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined) : undefined
+      const isReload = navEntry?.type === 'reload'
+      if (hasPersisted && !isReload) {
+        // Fresh navigation to /new — discard stale draft so the form opens
+        // blank instead of auto-filling BIP ID / target_group from the
+        // previous draft. The DB row remains and is reachable via dashboard
+        // edit; only the builder's local resume is cleared.
+        clearDraft()
+        return
+      }
+      // Has persisted and is reload -> need to ensure hydrate runs even if
+      // the store is already marked hydrated (SPA edit -> new without reload
+      // leaves stale edit state in memory). Force re-hydrate when ids differ.
+      if (hasPersisted && isReload) {
+        const { bipId: currentBipId, hydrated: isHydrated } = useBipDraft.getState()
+        if (isHydrated && currentBipId !== (parsed?.bipId ?? null)) {
+          useBipDraft.setState({ hydrated: false })
+        }
+      }
+      // No persisted draft but memory holds stale edit (edit -> new via SPA)
+      if (!hasPersisted) {
+        const { bipId: currentBipId, hydrated: isHydrated } = useBipDraft.getState()
+        if (isHydrated && currentBipId) {
+          clearDraft()
+          return
+        }
+      }
+    } catch {}
+    hydrate()
+  }, [initialBip, hydrate, hydrateFromServer, mode, clearDraft])
 
   // (b) Session-expiry recovery (SUBM-07).
   // Admin mode (Plan 03-07): no localStorage persistence — admin edits are
@@ -231,6 +285,17 @@ export function BipSubmissionWizard({
     })
     return () => subscription.unsubscribe()
   }, [persistToLocalStorage, mode])
+
+  // (b2) Auto-persist draft to localStorage so a refresh resumes the same
+  // draft (bipId + lock + step + draft). Without this, saveDraftAction's
+  // bipId lived only in memory and was lost on reload, opening a fresh BIP.
+  // Suppressed for admin/editMode (server-authoritative) and before hydration.
+  useEffect(() => {
+    if (mode === 'admin' || editMode) return
+    if (!hydrated) return
+    if (initialBip) return
+    persistToLocalStorage()
+  }, [draft, bipId, lastKnownUpdatedAt, currentStep, hydrated, mode, editMode, initialBip, persistToLocalStorage])
 
   // (c) Persist Server Action result back into the store.
   //
@@ -465,7 +530,7 @@ export function BipSubmissionWizard({
               `previewStep` element (owned by the edit page). A ternary yields
               exactly one element per step, so no array is ever validated. */}
           <m.div
-            key={currentStep}
+            key={`${currentStep}-${bipId ?? 'new'}`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.2 }}

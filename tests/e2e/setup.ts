@@ -46,6 +46,8 @@ const FIXTURES: Record<'coordinator' | 'coordinatorFresh' | 'admin', FixtureUser
 async function signInAndPersist(page: Page, user: FixtureUser): Promise<void> {
   await page.goto('/login')
   await page.getByLabel(/email/i).fill(user.email)
+  await page.getByRole('button', { name: /continue/i }).click()
+  // Two-step login: email -> password step
   await page.getByLabel(/password/i).fill(user.password)
   await page.getByRole('button', { name: /sign in/i }).click()
   // Coordinator → /dashboard; fresh coordinator → /onboarding;

@@ -154,9 +154,15 @@ export async function saveDraftAction(
       : rest
 
   const persistableRaw = { ...withDates, ...howToApply }
-  const persistable = Object.fromEntries(
+  const rawPersistable = Object.fromEntries(
     Object.entries(persistableRaw).map(([k, v]) => [k, v === '' ? null : v]),
   ) as typeof persistableRaw
+  // Autosave leniency: title is NOT NULL but autosave sends '' -> null when still empty. Strip it on update so partial drafts save without spam. Manual Save & continue stays strict via Zod.
+  const persistable = (() => {
+    const p = { ...rawPersistable } as Record<string, unknown>
+    if (p.title == null || String(p.title).trim() === '') delete p.title
+    return p as typeof persistableRaw
+  })()
 
   // An existing draft must NEVER fall through to the INSERT branch — that
   // creates a duplicate row and orphans the original. The lock can legitimately
@@ -211,7 +217,22 @@ export async function saveDraftAction(
         }
       }
       // Timestamp moved on → a real concurrent write.
+      // For autosave (often silent), retry once with fresh lock instead of surfacing conflict
       if (new Date(probe.updated_at).getTime() !== new Date(lockValue).getTime()) {
+        // Retry once with fresh lock to make autosave lenient
+        const retryNow = new Date().toISOString()
+        const { data: retryData, error: retryError } = await supabase
+          .from('bips')
+          .update({ ...persistable, updated_at: retryNow })
+          .eq('id', bipId)
+          .eq('created_by', userId)
+          .eq('updated_at', probe.updated_at)
+          .select('id, updated_at')
+          .maybeSingle()
+        if (!retryError && retryData) {
+          const warning = hasPartners ? await reconcilePartners(supabase, retryData.id, partner_universities ?? []) : undefined
+          return { success: true, bipId: retryData.id, updatedAt: retryData.updated_at, warning }
+        }
         return { error: 'conflict' }
       }
       // Row still there, lock still current → the UPDATE itself was refused.
@@ -251,7 +272,8 @@ export async function saveDraftAction(
     }
   }
 
-  const draftSlug = generateDraftSlug(stepData.title ?? 'untitled')
+  const draftTitle = (typeof stepData.title === 'string' && stepData.title.trim() !== '' ? stepData.title : 'Untitled BIP')
+  const draftSlug = generateDraftSlug(draftTitle)
   const { data, error } = await supabase
     .from('bips')
     .insert({
@@ -260,7 +282,7 @@ export async function saveDraftAction(
       host_university_id: profile.university_id,
       status: 'draft',
       slug: draftSlug,
-      title: stepData.title ?? 'Untitled BIP',
+      title: draftTitle,
     })
     .select('id, updated_at')
     .single()

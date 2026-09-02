@@ -114,6 +114,55 @@ export async function getRecentBips(
 }
 
 /**
+ * Returns monthly growth for the sparkline (last 12 months, approved BIPs).
+ * Buckets by approved_at (fallback to created_at for legacy seed rows) so the
+ * chart reflects when BIPs actually went live.
+ */
+export async function getBipGrowthByMonth(
+  supabase: SbClient,
+): Promise<{ month: string; label: string; count: number }[]> {
+  // Build 12 month buckets ending with current month
+  const now = new Date()
+  const buckets: { key: string; label: string; start: Date; end: Date; count: number }[] = []
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+    const start = new Date(d.getFullYear(), d.getMonth(), 1)
+    const end = new Date(d.getFullYear(), d.getMonth() + 1, 1)
+    const label = d.toLocaleString('en-US', { month: 'short' })
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    buckets.push({ key, label, start, end, count: 0 })
+  }
+
+  const earliest = buckets[0].start.toISOString()
+
+  const { data } = await supabase
+    .from('bips')
+    .select('approved_at, created_at')
+    .eq('status', 'approved')
+    .gte('created_at', earliest)
+    .order('created_at', { ascending: true })
+
+  for (const row of (data ?? []) as { approved_at: string | null; created_at: string }[]) {
+    const raw = row.approved_at ?? row.created_at
+    if (!raw) continue
+    const d = new Date(raw)
+    // Find bucket where d >= start && d < end
+    for (const b of buckets) {
+      if (d >= b.start && d < b.end) {
+        b.count += 1
+        break
+      }
+    }
+  }
+
+  return buckets.map(({ label, count, key }) => ({
+    month: key,
+    label,
+    count,
+  }))
+}
+
+/**
  * Returns live stats for the StatsSection (DISC-04).
  *
  * Uses Promise.all for parallel queries (performance).

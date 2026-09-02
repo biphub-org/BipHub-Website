@@ -22,6 +22,7 @@ import {
   getApprovedBipCount,
   getBipCountsByCountry,
   getBipCountsByField,
+  getBipGrowthByMonth,
   getRecentBips,
   getStatsSnapshot,
 } from '@/lib/queries/homepage'
@@ -78,12 +79,13 @@ export default async function HomePage() {
   const supabase = await createClient()
 
   // Parallel data fetching — all queries run concurrently via Promise.all
-  const [count, countsByCountry, countsByField, recentBips, stats] = await Promise.all([
+  const [count, countsByCountry, countsByField, recentBips, stats, growth] = await Promise.all([
     getApprovedBipCount(supabase),
     getBipCountsByCountry(supabase),
     getBipCountsByField(supabase),
     getRecentBips(supabase, 3),
     getStatsSnapshot(supabase),
+    getBipGrowthByMonth(supabase),
   ])
 
   // First seed slug for UniversityCTA "See sample listing" CTA.
@@ -133,7 +135,7 @@ export default async function HomePage() {
       <CategoriesBar countsByField={countsByField} />
 
       {/* DISC-04: Live stats with count-up animation (LazyMotion inside StatsSection) */}
-      <StatsSection stats={stats} />
+      <StatsSection stats={stats} growth={growth} />
 
       {/* DISC-05: Recent BIPs with ≥6 threshold gate */}
       <RecentBips totalApprovedCount={count} bips={recentBips} />

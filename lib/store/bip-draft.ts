@@ -115,6 +115,7 @@ export const useBipDraft = create<BipDraftStore>((set, get) => ({
         draft?: BipDraftData
         bipId?: string | null
         lastKnownUpdatedAt?: string | null
+        currentStep?: number
       }
       set({
         draft: parsed.draft ?? {},
@@ -123,6 +124,7 @@ export const useBipDraft = create<BipDraftStore>((set, get) => ({
         // path when BOTH are present, so a bipId without its lock silently fell
         // through to INSERT and created a duplicate draft on every reload.
         lastKnownUpdatedAt: parsed.lastKnownUpdatedAt ?? null,
+        currentStep: typeof parsed.currentStep === 'number' ? parsed.currentStep : 1,
         hydrated: true,
       })
     } catch {
@@ -155,11 +157,11 @@ export const useBipDraft = create<BipDraftStore>((set, get) => ({
 
   persistToLocalStorage: () => {
     if (typeof window === 'undefined') return
-    const { draft, bipId, lastKnownUpdatedAt } = get()
+    const { draft, bipId, lastKnownUpdatedAt, currentStep } = get()
     try {
       window.localStorage.setItem(
         DRAFT_STORAGE_KEY,
-        JSON.stringify({ draft, bipId, lastKnownUpdatedAt }),
+        JSON.stringify({ draft, bipId, lastKnownUpdatedAt, currentStep }),
       )
     } catch {
       // Quota exceeded or storage access blocked — best-effort (SUBM-07).
@@ -180,6 +182,7 @@ export const useBipDraft = create<BipDraftStore>((set, get) => ({
       draft: {},
       lastKnownUpdatedAt: null,
       saveStatus: 'idle',
+      hydrated: true,
     })
   },
 }))

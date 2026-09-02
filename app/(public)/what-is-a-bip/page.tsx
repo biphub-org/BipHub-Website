@@ -217,8 +217,8 @@ export default function WhatIsABipPage() {
               {/* Two-column split */}
               <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2">
                 {/* Online card */}
-                <div className="relative flex flex-col rounded-xl border border-eu-blue-100 bg-white p-7 shadow-[0_4px_16px_rgba(10,23,53,0.06)]">
-                  <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-eu-blue-50 text-eu-blue">
+                <div className="group relative flex flex-col rounded-xl border border-eu-blue-100 bg-white p-7 shadow-[0_4px_16px_rgba(10,23,53,0.06)] transition-all duration-300 hover:-translate-y-1 hover:border-eu-blue-200 hover:shadow-[0_12px_28px_rgba(10,23,53,0.10)]">
+                  <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-eu-blue-50 text-eu-blue transition-colors duration-300 group-hover:bg-eu-blue group-hover:text-white">
                     <Laptop size={24} strokeWidth={1.8} />
                   </div>
                   <h3 className="text-[20px] font-semibold tracking-tight text-ink">
@@ -236,8 +236,8 @@ export default function WhatIsABipPage() {
                 </div>
 
                 {/* Physical card */}
-                <div className="relative flex flex-col rounded-xl border border-eu-gold/50 bg-eu-gold-soft/30 p-7 shadow-[0_4px_16px_rgba(10,23,53,0.06)]">
-                  <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-eu-gold text-ink">
+                <div className="group relative flex flex-col rounded-xl border border-eu-gold/50 bg-eu-gold-soft/30 p-7 shadow-[0_4px_16px_rgba(10,23,53,0.06)] transition-all duration-300 hover:-translate-y-1 hover:border-eu-gold hover:shadow-[0_12px_28px_rgba(255,204,0,0.20)]">
+                  <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-eu-gold text-ink transition-transform duration-300 group-hover:scale-105">
                     <Building2 size={24} strokeWidth={1.8} />
                   </div>
                   <h3 className="text-[20px] font-semibold tracking-tight text-ink">
@@ -309,8 +309,8 @@ export default function WhatIsABipPage() {
 
               <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-3">
                 {/* Credits */}
-                <div className="flex flex-col rounded-xl border border-eu-blue-100 bg-white p-6 shadow-[0_4px_16px_rgba(10,23,53,0.06)]">
-                  <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-lg bg-eu-blue-50 text-eu-blue">
+                <div className="group flex flex-col rounded-xl border border-eu-blue-100 bg-white p-6 shadow-[0_4px_16px_rgba(10,23,53,0.06)] transition-all duration-300 hover:-translate-y-1 hover:border-eu-blue-200 hover:shadow-[0_12px_28px_rgba(10,23,53,0.10)]">
+                  <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-lg bg-eu-blue-50 text-eu-blue transition-colors duration-300 group-hover:bg-eu-blue group-hover:text-white">
                     <GraduationCap size={22} strokeWidth={1.8} />
                   </div>
                   <h3 className="text-[17px] font-semibold tracking-tight text-ink">
@@ -328,8 +328,8 @@ export default function WhatIsABipPage() {
                 </div>
 
                 {/* Who can apply */}
-                <div className="flex flex-col rounded-xl border border-eu-blue-100 bg-white p-6 shadow-[0_4px_16px_rgba(10,23,53,0.06)]">
-                  <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-lg bg-eu-blue-50 text-eu-blue">
+                <div className="group flex flex-col rounded-xl border border-eu-blue-100 bg-white p-6 shadow-[0_4px_16px_rgba(10,23,53,0.06)] transition-all duration-300 hover:-translate-y-1 hover:border-eu-blue-200 hover:shadow-[0_12px_28px_rgba(10,23,53,0.10)]">
+                  <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-lg bg-eu-blue-50 text-eu-blue transition-colors duration-300 group-hover:bg-eu-blue group-hover:text-white">
                     <UserCheck size={22} strokeWidth={1.8} />
                   </div>
                   <h3 className="text-[17px] font-semibold tracking-tight text-ink">
@@ -347,8 +347,8 @@ export default function WhatIsABipPage() {
                 </div>
 
                 {/* Language */}
-                <div className="flex flex-col rounded-xl border border-eu-blue-100 bg-white p-6 shadow-[0_4px_16px_rgba(10,23,53,0.06)]">
-                  <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-lg bg-eu-blue-50 text-eu-blue">
+                <div className="group flex flex-col rounded-xl border border-eu-blue-100 bg-white p-6 shadow-[0_4px_16px_rgba(10,23,53,0.06)] transition-all duration-300 hover:-translate-y-1 hover:border-eu-blue-200 hover:shadow-[0_12px_28px_rgba(10,23,53,0.10)]">
+                  <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-lg bg-eu-blue-50 text-eu-blue transition-colors duration-300 group-hover:bg-eu-blue group-hover:text-white">
                     <Languages size={22} strokeWidth={1.8} />
                   </div>
                   <h3 className="text-[17px] font-semibold tracking-tight text-ink">

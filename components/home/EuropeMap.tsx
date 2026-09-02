@@ -69,7 +69,7 @@ interface TooltipState {
 // viewBox below at the new container height.
 const MAP_PROJECTION_CONFIG: ProjectionConfig = {
   rotate: [-20, -52, 0] as unknown as ProjectionConfig['rotate'],
-  scale: 620,
+  scale: 820,
 }
 
 export function EuropeMap({ countsByCountry }: EuropeMapProps) {
@@ -237,7 +237,7 @@ export function EuropeMap({ countsByCountry }: EuropeMapProps) {
             {/* SVG map */}
             {geoData ? (
               <m.div
-                className="aspect-[16/10] max-h-[680px] w-full"
+                className="aspect-[16/10] max-h-[840px] w-full"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.6, ease: EASE_OUT }}
@@ -246,7 +246,7 @@ export function EuropeMap({ countsByCountry }: EuropeMapProps) {
               projection="geoMercator"
               projectionConfig={MAP_PROJECTION_CONFIG}
               width={900}
-              height={560}
+              height={680}
               style={{ width: '100%', height: '100%' }}
             >
               <Geographies geography={geoData}>
@@ -291,7 +291,7 @@ export function EuropeMap({ countsByCountry }: EuropeMapProps) {
         ) : (
           /* Loading skeleton while TopoJSON fetches */
           <div
-            className="aspect-[16/10] max-h-[680px] w-full animate-pulse rounded-lg bg-bg-soft"
+            className="aspect-[16/10] max-h-[840px] w-full animate-pulse rounded-lg bg-bg-soft"
             role="progressbar"
             aria-label="Loading map…"
             aria-busy="true"

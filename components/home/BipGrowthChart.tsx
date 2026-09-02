@@ -1,194 +1,255 @@
 'use client'
 
 /**
- * BipGrowthChart — sparkline showing BIPs added per month.
- *
- * MOCK DATA: replace MOCK_GROWTH with a real time-series query in a future phase
- * (e.g. SELECT date_trunc('month', created_at), count(*) FROM bips GROUP BY 1).
- *
- * Lives inside StatsSection — assumes a parent <LazyMotion features={domAnimation}>
- * boundary, so only the `m` namespace is used here.
+ * BipGrowthChart — approved BIPs per month (last 12).
+ * Real data: wired to lib/queries/homepage.getBipGrowthByMonth via StatsSection props.
+ * Empty state: when all counts are 0, shows a dashed baseline instead of a flat line.
  */
 
-import { useRef } from 'react'
+import { useRef, useState, useCallback } from 'react'
 import { m, useInView } from 'motion/react'
 
-// Mock — 12 months ending May 2026. Swap with real series in Phase 4+.
-const MOCK_GROWTH = [3, 5, 4, 8, 11, 14, 18, 21, 27, 31, 36, 42]
-const MONTH_LABELS = [
-  'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov',
-  'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May',
-]
+export type GrowthDatum = { month: string; label: string; count: number }
 
 const W = 800
-const H = 200
-const PAD = { L: 12, R: 12, T: 24, B: 36 }
+const H = 220
+const PAD = { L: 48, R: 32, T: 16, B: 34 }
 const innerW = W - PAD.L - PAD.R
 const innerH = H - PAD.T - PAD.B
 
-export function BipGrowthChart() {
+export function BipGrowthChart({ data }: { data: GrowthDatum[] }) {
   const ref = useRef<HTMLDivElement>(null)
+  const chartWrapRef = useRef<HTMLDivElement>(null)
   const inView = useInView(ref, { once: true, amount: 0.3 })
+  const [hoverIdx, setHoverIdx] = useState<number | null>(null)
 
-  const maxV = Math.max(...MOCK_GROWTH)
-  const points = MOCK_GROWTH.map((v, i) => {
-    const x = PAD.L + (i / (MOCK_GROWTH.length - 1)) * innerW
-    const y = PAD.T + innerH - (v / maxV) * innerH
-    return { x, y, v }
+  const counts = data.map((d) => d.count)
+  const maxV = Math.max(...counts, 1)
+  const tickMax = Math.max(4, Math.ceil(maxV / 4) * 4)
+  const yTicks = [0, tickMax / 4, tickMax / 2, (tickMax * 3) / 4, tickMax]
+
+  const points = data.map((d, i) => {
+    const x = PAD.L + (i / Math.max(data.length - 1, 1)) * innerW
+    const y = PAD.T + innerH - (d.count / tickMax) * innerH
+    return { x, y, count: d.count, label: d.label, month: d.month }
   })
 
-  const linePath = points
-    .map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(2)} ${p.y.toFixed(2)}`)
-    .join(' ')
-  const last = points[points.length - 1]!
-  const first = points[0]!
-  const baseY = PAD.T + innerH
-  const areaPath = `${linePath} L ${last.x.toFixed(2)} ${baseY} L ${first.x.toFixed(2)} ${baseY} Z`
+  const linePath =
+    points.length > 1
+      ? points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ')
+      : ''
 
-  const totalAdded = MOCK_GROWTH.reduce((a, b) => a + b, 0)
+  const last = points[points.length - 1]
+  const first = points[0]
+  const baseY = PAD.T + innerH
+  const areaPath =
+    points.length > 1 ? `${linePath} L ${last.x.toFixed(1)} ${baseY} L ${first.x.toFixed(1)} ${baseY} Z` : ''
+
+  const total = counts.reduce((a, b) => a + b, 0)
+  const hasData = total > 0
+  const maxMonth = data.reduce(
+    (acc, d) => (d.count > acc.count ? d : acc),
+    data[0] ?? { count: 0, label: '' },
+  )
+
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent) => {
+      const el = chartWrapRef.current
+      if (!el || points.length === 0) return
+      const rect = el.getBoundingClientRect()
+      // Map clientX to SVG viewBox X
+      const relX = ((e.clientX - rect.left) / rect.width) * W
+      // Find nearest point
+      let bestIdx = 0
+      let bestDist = Infinity
+      for (let i = 0; i < points.length; i++) {
+        const d = Math.abs(points[i].x - relX)
+        if (d < bestDist) {
+          bestDist = d
+          bestIdx = i
+        }
+      }
+      setHoverIdx(bestIdx)
+    },
+    [points],
+  )
+
+  const handleMouseLeave = useCallback(() => setHoverIdx(null), [])
 
   return (
     <div
       ref={ref}
-      className="relative overflow-hidden rounded-lg border border-white/12 bg-white/6 p-6 backdrop-blur md:p-7"
+      className="relative overflow-hidden rounded-xl border border-white/10 bg-white/[0.06] p-5 backdrop-blur md:p-6"
     >
-      {/* Header row */}
-      <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+      {/* Header */}
+      <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-eu-gold">
-            Last 12 months
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-eu-gold">Last 12 months</p>
+          <h3 className="mt-1 text-[16px] font-semibold leading-none text-white">Approved BIPs per month</h3>
+          <p className="mt-1 text-[12px] text-white/55">
+            {hasData ? (
+              <>
+                Peak <span className="font-medium text-white/80">{maxMonth.label}</span> · {maxMonth.count} BIPs
+              </>
+            ) : (
+              'No approved BIPs in this window yet'
+            )}
           </p>
-          <h3 className="mt-1 text-[18px] font-semibold text-white">
-            BIPs added per month
-          </h3>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-[22px] font-bold text-white">{totalAdded}</span>
-            <span className="text-[12px] text-white/60">total added</span>
+        <div className="flex items-center gap-3">
+          <div className="text-right">
+            <div className="flex items-baseline justify-end gap-1.5">
+              <span className="text-[24px] font-bold leading-none tracking-[-0.02em] text-white">{total}</span>
+              <span className="text-[11px] font-medium uppercase tracking-wide text-white/60">total</span>
+            </div>
+            <p className="text-[11px] text-white/50">in last 12 months</p>
           </div>
-          <div className="flex items-center gap-2 text-[12px] font-medium text-white/70">
-            <span className="relative inline-flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-eu-gold opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-eu-gold" />
+          <span className="hidden h-8 w-px bg-white/10 sm:block" aria-hidden />
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-medium text-white/80">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
             </span>
             Live
-          </div>
+          </span>
         </div>
       </div>
 
       {/* Chart */}
-      <svg
-        viewBox={`0 0 ${W} ${H}`}
-        className="block h-auto w-full"
-        role="img"
-        aria-label={`Mock BIP growth — ${totalAdded} BIPs added over the last 12 months`}
+      <div
+        ref={chartWrapRef}
+        className="relative"
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
       >
-        <defs>
-          <linearGradient id="bip-growth-fill" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="#FFCC00" stopOpacity="0.45" />
-            <stop offset="100%" stopColor="#FFCC00" stopOpacity="0" />
-          </linearGradient>
-        </defs>
+        <svg
+          viewBox={`0 0 ${W} ${H}`}
+          className="block h-auto w-full"
+          role="img"
+          aria-label={`Approved BIPs per month — ${total} total, peak ${maxMonth.label} with ${maxMonth.count}`}
+        >
+          <defs>
+            <linearGradient id="bip-growth-fill" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stopColor="#FFCC00" stopOpacity="0.38" />
+              <stop offset="100%" stopColor="#FFCC00" stopOpacity="0" />
+            </linearGradient>
+          </defs>
 
-        {/* Horizontal guide lines (4 ticks) — static */}
-        {[0, 0.25, 0.5, 0.75].map((frac) => {
-          const y = PAD.T + innerH - frac * innerH
-          return (
+          {/* Y grid + labels */}
+          {yTicks.map((v) => {
+            const y = PAD.T + innerH - (v / tickMax) * innerH
+            return (
+              <g key={v}>
+                <line x1={PAD.L} x2={W - PAD.R} y1={y} y2={y} stroke="rgba(255,255,255,0.07)" strokeWidth="1" />
+                <text x={PAD.L - 8} y={y + 3} textAnchor="end" fill="rgba(255,255,255,0.45)" fontSize="10" fontWeight="500">
+                  {v}
+                </text>
+              </g>
+            )
+          })}
+
+          {/* Baseline when empty */}
+          {!hasData && (
+            <line x1={PAD.L} x2={W - PAD.R} y1={baseY} y2={baseY} stroke="rgba(255,204,0,0.35)" strokeWidth="1.5" strokeDasharray="6 6" />
+          )}
+
+          {/* Area */}
+          {hasData && areaPath && (
+            <m.path
+              d={areaPath}
+              fill="url(#bip-growth-fill)"
+              initial={{ opacity: 0 }}
+              animate={inView ? { opacity: 1 } : { opacity: 0 }}
+              transition={{ duration: 0.8, delay: 0.3, ease: 'easeOut' }}
+            />
+          )}
+
+          {/* Line */}
+          {hasData && linePath && (
+            <m.path
+              d={linePath}
+              fill="none"
+              stroke="#FFCC00"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              initial={{ pathLength: 0 }}
+              animate={inView ? { pathLength: 1 } : { pathLength: 0 }}
+              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+            />
+          )}
+
+          {/* Vertical guide on hover */}
+          {hoverIdx !== null && hasData && (
             <line
-              key={frac}
-              x1={PAD.L}
-              x2={W - PAD.R}
-              y1={y}
-              y2={y}
-              stroke="rgba(255,255,255,0.06)"
+              x1={points[hoverIdx].x}
+              x2={points[hoverIdx].x}
+              y1={PAD.T}
+              y2={baseY}
+              stroke="rgba(255,255,255,0.14)"
               strokeWidth="1"
+              strokeDasharray="4 4"
             />
-          )
-        })}
+          )}
 
-        {/* Area fill */}
-        <m.path
-          d={areaPath}
-          fill="url(#bip-growth-fill)"
-          initial={{ opacity: 0 }}
-          animate={inView ? { opacity: 1 } : { opacity: 0 }}
-          transition={{ duration: 0.9, delay: 0.6, ease: 'easeOut' }}
-        />
+          {/* Data points */}
+          {points.map((p, i) => {
+            const isLast = i === points.length - 1
+            const isHover = hoverIdx === i
+            return (
+              <m.circle
+                key={p.month}
+                cx={p.x}
+                cy={p.y}
+                r={isLast && hasData ? 4.5 : 3}
+                fill={hasData ? '#FFCC00' : 'rgba(255,255,255,0.35)'}
+                stroke={isHover || isLast ? '#0a1735' : 'none'}
+                strokeWidth={isHover || isLast ? 2 : 0}
+                initial={{ opacity: 0, scale: 0 }}
+                animate={inView ? { opacity: 1, scale: isHover ? 1.35 : 1 } : { opacity: 0, scale: 0 }}
+                transition={{ duration: 0.25, delay: 0.25 + (i / points.length) * 0.6, ease: 'easeOut' }}
+                style={{ transformOrigin: `${p.x}px ${p.y}px` }}
+              />
+            )
+          })}
 
-        {/* Line — draws in left to right */}
-        <m.path
-          d={linePath}
-          fill="none"
-          stroke="#FFCC00"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          initial={{ pathLength: 0 }}
-          animate={inView ? { pathLength: 1 } : { pathLength: 0 }}
-          transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
-        />
+          {/* Month labels */}
+          {points.map((p, i) => (
+            <text
+              key={p.month}
+              x={p.x}
+              y={baseY + 20}
+              textAnchor="middle"
+              fill={hoverIdx === i ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.5)'}
+              fontSize="11"
+              fontWeight={hoverIdx === i ? '600' : '500'}
+            >
+              {p.label}
+            </text>
+          ))}
+        </svg>
 
-        {/* Data points — stagger pop-in */}
-        {points.map((p, i) => {
-          const isLast = i === points.length - 1
-          return (
-            <m.circle
-              key={i}
-              cx={p.x}
-              cy={p.y}
-              r={isLast ? 4.5 : 3}
-              fill="#FFCC00"
-              stroke={isLast ? '#0a1735' : 'none'}
-              strokeWidth={isLast ? 2 : 0}
-              initial={{ opacity: 0, scale: 0 }}
-              animate={inView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0 }}
-              transition={{
-                duration: 0.3,
-                delay: 0.4 + (i / points.length) * 1.2,
-                ease: 'easeOut',
-              }}
-            />
-          )
-        })}
-
-        {/* Pulsing ring on the latest data point */}
-        <m.circle
-          cx={last.x}
-          cy={last.y}
-          r={6}
-          fill="none"
-          stroke="#FFCC00"
-          strokeWidth="2"
-          initial={{ opacity: 0, scale: 1 }}
-          animate={
-            inView
-              ? { opacity: [0, 0.6, 0], scale: [1, 2.5, 2.5] }
-              : { opacity: 0 }
-          }
-          transition={{
-            duration: 2,
-            delay: 1.8,
-            repeat: Infinity,
-            ease: 'easeOut',
-          }}
-        />
-
-        {/* Month labels */}
-        {points.map((p, i) => (
-          <text
-            key={i}
-            x={p.x}
-            y={baseY + 22}
-            textAnchor="middle"
-            fill="rgba(255,255,255,0.55)"
-            fontSize="11"
-            fontWeight="500"
+        {/* Hover tooltip — positioned relative to chart wrapper */}
+        {hoverIdx !== null && (
+          <div
+            className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full rounded-lg border border-white/10 bg-[#0a1735] px-3 py-2 shadow-xl"
+            style={{
+              left: `${(points[hoverIdx].x / W) * 100}%`,
+              top: `${(points[hoverIdx].y / H) * 100}%`,
+              marginTop: -12,
+            }}
           >
-            {MONTH_LABELS[i]}
-          </text>
-        ))}
-      </svg>
+            <p className="whitespace-nowrap text-[11px] font-medium text-white/60">
+              {points[hoverIdx].label} · {points[hoverIdx].month}
+            </p>
+            <p className="whitespace-nowrap text-[13px] font-semibold text-white">
+              {points[hoverIdx].count} {points[hoverIdx].count === 1 ? 'BIP' : 'BIPs'}
+            </p>
+          </div>
+        )}
+      </div>
+
+      <p className="mt-3 text-center text-[11px] text-white/40">Hover a point for details · Counts approved BIPs only</p>
     </div>
   )
 }
