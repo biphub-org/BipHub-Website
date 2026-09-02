@@ -7,7 +7,8 @@
  * review queue. Re-validates the entire draft server-side via `fullBipSchema`
  * (NEVER trusts the wizard's per-step client validation), finalizes the slug,
  * writes `bip_partner_universities` rows, and flips `bips.status` to
- * `'pending'`.
+ * `'pending'` — or straight to `'approved'` for an admin direct-publish
+ * (admin "Add new BIP" builder: trusted at creation, no review step).
  *
  * Plan 09-02 (Pitfall 0 fix): this action used to keep its own hand-copied
  * `submitSchema` twin of `fullBipSchema` — fixing a bug in one left the other
@@ -45,6 +46,9 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { sendEmail } from '@/lib/email/send'
 import { finalizeSlug } from '@/lib/utils/slug'
+import { resolveHostUniversityId } from '@/lib/utils/host-university'
+import { validateTransition } from '@/lib/utils/status-transitions'
+import type { BipStatus } from '@/lib/utils/status'
 import { fullBipSchema } from '@/lib/schemas/bip-wizard'
 import type { BipDraftData, Step3PartnerDraft } from '@/lib/store/bip-draft'
 
@@ -97,6 +101,18 @@ export async function submitBipAction(
     return { error: 'Only draft and pending BIPs can be submitted.' }
   }
 
+  // Admin direct-publish: a BIP created via the admin "Add new BIP" builder
+  // is trusted at creation time, so it goes straight to 'approved' — no
+  // review queue, no request-changes / reject loop.
+  const isAdminPublish = role === 'admin'
+  if (isAdminPublish) {
+    try {
+      validateTransition(existing.status as BipStatus, 'approved', 'admin')
+    } catch {
+      return { error: `Cannot publish from status ${existing.status}.` }
+    }
+  }
+
   // Slug finalization. The user's profile may carry an Erasmus code, but at
   // submission time the wizard does not have it on the draft — use a stable
   // user-id-prefix surrogate so the URL still looks meaningful and remains
@@ -118,21 +134,23 @@ export async function submitBipAction(
   const safeSlug = slugMatch ? `${finalSlug}-${bipId.slice(0, 8)}` : finalSlug
 
   // host_university_id is server-authoritative — resolved from the
-  // coordinator's profile-locked university, never trusted from client input.
+  // profile-locked university, never trusted from client input.
   // Also self-heals any draft created before host_university_id was written
-  // on insert (saveDraftAction).
-  const { data: hostProfile } = await supabase
-    .from('profiles')
-    .select('university_id')
-    .eq('id', userId)
-    .maybeSingle()
-  if (!hostProfile?.university_id) {
+  // on insert (saveDraftAction). Admins commonly have no profile university
+  // (bootstrapped via SQL, skip onboarding), so resolveHostUniversityId
+  // falls back to the first university for them, mirroring the admin
+  // "Add new BIP" page — otherwise an admin-saved draft could never submit.
+  const hostUniversityId = await resolveHostUniversityId(supabase, userId, role)
+  if (!hostUniversityId) {
     return {
-      error: 'Your profile has no host university. Complete onboarding first.',
+      error:
+        role === 'admin'
+          ? 'No universities exist yet — create one before submitting a BIP.'
+          : 'Your profile has no host university. Complete onboarding first.',
     }
   }
 
-  // 1. Promote the BIP row to status='pending' and persist the canonical
+  // 1. Promote the BIP row to status='pending' (or 'approved' for an admin direct-publish) and persist the canonical
   //    field set. RLS `bips_update_own_draft_or_pending` enforces the
   //    coordinator owns this row and that the status transition is allowed.
   const updatePayload = {
@@ -177,8 +195,8 @@ export async function submitBipAction(
     card_image_path: parsed.data.card_image_path || null,
     partner_institutions_only: parsed.data.partner_institutions_only ?? false,
     slug: safeSlug,
-    host_university_id: hostProfile.university_id,
-    status: 'pending',
+    host_university_id: hostUniversityId,
+    status: isAdminPublish ? 'approved' : 'pending',
     updated_at: new Date().toISOString(),
   }
 
@@ -234,6 +252,42 @@ export async function submitBipAction(
           'BIP submitted but partners could not be saved. Edit the BIP to add partners.',
       }
     }
+  }
+
+  if (isAdminPublish) {
+    // Explicit audit row: the 00010 trigger deliberately does NOT log
+    // draft→approved (admin transitions are written by Server Actions), so
+    // without this the publish would leave no forensic trail. The 00043
+    // approved_at trigger fires on the status flip above. Fire-and-forget
+    // per D-11 — the publish already committed.
+    const { error: auditError } = await supabase
+      .from('bip_status_history')
+      .insert({
+        bip_id: bipId,
+        from_status: existing.status,
+        to_status: 'approved',
+        actor_id: userId,
+        note: 'Admin direct-publish from Add new BIP.',
+        action_kind: 'approve',
+      })
+    if (auditError) {
+      console.error(
+        '[submitBipAction] audit insert failed (non-blocking):',
+        auditError.message,
+      )
+    }
+
+    // Newly-approved BIPs are publicly visible — bust public + admin caches,
+    // including '/' (hourly-ISR homepage hosts "recently added").
+    // No admin notification email: the admin just published it themselves.
+    revalidatePath('/')
+    revalidatePath('/bips')
+    revalidatePath(`/bip/${safeSlug}`)
+    revalidatePath('/admin')
+    revalidatePath('/admin/bips')
+    revalidatePath('/admin/my-bips')
+
+    return { success: true, bipId, slug: safeSlug }
   }
 
   // Bust the dashboard cache so the newly-pending BIP appears under the

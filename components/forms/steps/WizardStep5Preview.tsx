@@ -13,10 +13,13 @@
  * Submit flow:
  *   1. Read `bipId` + `draft` from the wizard's Zustand store.
  *   2. Call `submitBipAction(bipId, draft, partners)` — re-validates server-
- *      side, finalizes the slug, writes partner rows, flips status='pending'.
+ *      side, finalizes the slug, writes partner rows, flips status='pending'
+ *      (or straight to 'approved' when `mode="admin"` — admin direct-publish).
  *   3. On success: clearDraft() (resets local store + localStorage), fire a
  *      Sonner toast, redirect to `/dashboard?submitted=true` so the
  *      dashboard's mount-toast handshake (Plan 02-05) confirms receipt.
+ *      In admin mode the toast confirms publication and redirects to
+ *      `/admin/bips` instead.
  *   4. On error: surface inline alert; the draft data stays put so the user
  *      can navigate back to edit and retry.
  */
@@ -37,11 +40,19 @@ import { WizardFooterSlot } from '@/components/forms/WizardFooterSlot'
 
 interface Props {
   hostUniversity: { id: string; name: string; country: string }
+  /**
+   * Admin direct-publish: the admin "Add new BIP" page passes `mode="admin"`.
+   * The server action publishes straight to `approved` (no review step), so
+   * the banner, CTA, toast, and post-publish redirect all say "publish"
+   * instead of "submit for review". Defaults to `'coordinator'`.
+   */
+  mode?: 'coordinator' | 'admin'
 }
 
-export function WizardStep5Preview({ hostUniversity }: Props) {
+export function WizardStep5Preview({ hostUniversity, mode = 'coordinator' }: Props) {
   const router = useRouter()
   const { bipId, draft, clearDraft } = useBipDraft()
+  const isAdmin = mode === 'admin'
   const [serverError, setServerError] = useState<string | null>(null)
   const [isSubmitting, startSubmit] = useTransition()
 
@@ -51,7 +62,7 @@ export function WizardStep5Preview({ hostUniversity }: Props) {
       hostUniversity,
       bipId,
       slug: null,
-      status: 'pending',
+      status: isAdmin ? 'approved' : 'pending',
       createdAt: new Date().toISOString(),
     }),
     attachments,
@@ -77,10 +88,12 @@ export function WizardStep5Preview({ hostUniversity }: Props) {
       }
       clearDraft()
       toast.success(
-        "Your BIP has been submitted for review. We'll notify you by email once it's been reviewed.",
+        isAdmin
+          ? 'Your BIP has been published and is now visible publicly.'
+          : "Your BIP has been submitted for review. We'll notify you by email once it's been reviewed.",
         { duration: 5000 },
       )
-      router.push('/dashboard?submitted=true')
+      router.push(isAdmin ? '/admin/bips' : '/dashboard?submitted=true')
     })
   }
 
@@ -89,8 +102,9 @@ export function WizardStep5Preview({ hostUniversity }: Props) {
       {/* Preview banner — UI-SPEC line 300-307 */}
       <div className="flex flex-col gap-3 rounded-md border border-eu-blue/20 bg-eu-blue/5 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-eu-blue">
-          This is a preview of your BIP. It won&apos;t be visible publicly until
-          reviewed and approved by the BipHub team.
+          {isAdmin
+            ? 'This is a preview of your BIP. Publishing will make it visible publicly immediately — no review step.'
+          : "This is a preview of your BIP. It won't be visible publicly until reviewed and approved by the BipHub team."}
         </p>
         <FullPagePreview bip={previewBip} />
       </div>
@@ -118,7 +132,7 @@ export function WizardStep5Preview({ hostUniversity }: Props) {
           variant="gold"
         >
           {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Submit for review →
+          {isAdmin ? 'Publish BIP →' : 'Submit for review →'}
         </Button>
       </WizardFooterSlot>
     </div>

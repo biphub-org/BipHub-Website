@@ -24,6 +24,7 @@ export const ALLOWED_TRANSITIONS: ReadonlyArray<{
 }> = [
   { from: null,       to: 'draft',    actor: 'coordinator' }, // create
   { from: 'draft',    to: 'pending',  actor: 'coordinator' }, // submit / resubmit
+  { from: 'draft',    to: 'approved', actor: 'admin' },       // admin direct-publish from Add new BIP
   { from: 'pending',  to: 'approved', actor: 'admin' },       // approve
   { from: 'pending',  to: 'rejected', actor: 'admin' },       // reject
   { from: 'rejected', to: 'draft',              actor: 'coordinator' }, // edit-after-reject

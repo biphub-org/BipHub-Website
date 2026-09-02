@@ -30,6 +30,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
 import { generateDraftSlug } from '@/lib/utils/slug'
 import { toPartnerRows } from '@/lib/utils/partners'
+import { resolveHostUniversityId } from '@/lib/utils/host-university'
 import type { BipDraftData } from '@/lib/store/bip-draft'
 
 export type SaveDraftResult =
@@ -102,6 +103,8 @@ export async function saveDraftAction(
     return { error: 'auth' }
   }
   const userId = claimsData.claims.sub
+  const role = (claimsData.claims as { app_metadata?: { role?: string } })
+    ?.app_metadata?.role
 
   // Reshape the wizard's flat draft into bips columns:
   //   - partner_universities: a separate table — lifted out of the column
@@ -256,19 +259,21 @@ export async function saveDraftAction(
   }
 
   // First INSERT — generate a draft slug to satisfy bips.slug NOT NULL.
-  // host_university_id is server-authoritative: it comes from the coordinator's
-  // profile-locked university, never from client input. The (dashboard) layout
-  // + bips/new page already gate on a complete profile, so this is normally
-  // guaranteed — the guard is defense-in-depth.
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('university_id')
-    .eq('id', userId)
-    .maybeSingle()
-  if (!profile?.university_id) {
+  // host_university_id is server-authoritative: it comes from the
+  // profile-locked university, never from client input. The (dashboard)
+  // layout + bips/new page already gate on a complete profile, so this is
+  // normally guaranteed for coordinators — the guard is defense-in-depth.
+  // Admins commonly have no profile university (bootstrapped via SQL, skip
+  // onboarding), so resolveHostUniversityId falls back to the first
+  // university for them, mirroring the admin "Add new BIP" page.
+  const hostUniversityId = await resolveHostUniversityId(supabase, userId, role)
+  if (!hostUniversityId) {
     return {
       error: 'unknown',
-      message: 'No host university on your profile — complete onboarding first.',
+      message:
+        role === 'admin'
+          ? 'No universities exist yet — create one before adding a BIP.'
+          : 'No host university on your profile — complete onboarding first.',
     }
   }
 
@@ -279,7 +284,7 @@ export async function saveDraftAction(
     .insert({
       ...persistable,
       created_by: userId,
-      host_university_id: profile.university_id,
+      host_university_id: hostUniversityId,
       status: 'draft',
       slug: draftSlug,
       title: draftTitle,

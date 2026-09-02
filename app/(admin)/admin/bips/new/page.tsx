@@ -11,6 +11,8 @@ import { WizardStep5Preview } from '@/components/forms/steps/WizardStep5Preview'
  * (admin) route group so the admin layout/sidebar chrome is kept.
  * The wizard already allows admin via lib/actions/bip-submit (role check
  * allows coordinator|admin), so no new Server Action is needed.
+ * The Step 5 preview runs with `mode="admin"` so submitting publishes the
+ * BIP straight to `approved` — trusted at creation, no review step.
  * The admin's host university is resolved from profiles → universities
  * exactly like the coordinator flow; if the admin has no university
  * (common for bootstrapped admins) we fall back to the first university
@@ -54,13 +56,13 @@ export default async function AdminNewBipPage() {
     <div className="max-w-[1200px] mx-auto px-6 py-6">
       <div className="mb-6">
         <h1 className="text-[22px] font-semibold text-ink">Add new BIP</h1>
-        <p className="text-sm text-muted">Create a Blended Intensive Programme directly as admin. It will be saved as your draft and follow the normal review flow.</p>
+        <p className="text-sm text-muted">Create a Blended Intensive Programme directly as admin. It will be published immediately as approved — no review step.</p>
       </div>
       <section className="py-2">
         <BipSubmissionWizard
           hostUniversity={host}
           initialUniversities={initialUniversities}
-          previewStep={<WizardStep5Preview hostUniversity={host} />}
+          previewStep={<WizardStep5Preview hostUniversity={host} mode="admin" />}
         />
       </section>
     </div>

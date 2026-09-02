@@ -34,6 +34,9 @@ describe('validateTransition (D-06 state machine)', () => {
   it('throws on draft → approved by coordinator (privilege escalation)', () => {
     expect(() => validateTransition('draft', 'approved', 'coordinator')).toThrow(/Invalid status transition/)
   })
+  it('allows draft → approved by admin (direct-publish from Add new BIP)', () => {
+    expect(() => validateTransition('draft', 'approved', 'admin')).not.toThrow()
+  })
   it('throws on approved → approved (idempotent re-approve — not in D-06)', () => {
     expect(() => validateTransition('approved', 'approved', 'admin')).toThrow(/Invalid status transition/)
   })

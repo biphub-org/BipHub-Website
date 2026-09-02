@@ -137,7 +137,7 @@ export default async function HomePage() {
       {/* DISC-04: Live stats with count-up animation (LazyMotion inside StatsSection) */}
       <StatsSection stats={stats} growth={growth} />
 
-      {/* DISC-05: Recent BIPs with ≥6 threshold gate */}
+      {/* DISC-05: Recent BIPs (teaser only when zero approved) */}
       <RecentBips totalApprovedCount={count} bips={recentBips} />
 
       {/* DISC-06 + DISC-07: Students "How it works" and Universities CTA shown

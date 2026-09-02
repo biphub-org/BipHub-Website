@@ -1,7 +1,8 @@
 /**
  * RecentBips — DISC-05, UI-SPEC line 330.
  *
- * Server-side threshold gate: if totalApprovedCount < 6, renders RecentBipsTeaser.
+ * Gate: renders RecentBipsTeaser only when the catalog has zero approved
+ * BIPs — any approved BIP shows as cards immediately (no minimum).
  * Otherwise: renders RecentBipsAnimated (client) with the server-rendered BipCards
  * passed as children. The threshold logic stays on the server so the teaser path
  * doesn't get bundled into client JS.
@@ -18,8 +19,8 @@ interface RecentBipsProps {
 }
 
 export function RecentBips({ totalApprovedCount, bips }: RecentBipsProps) {
-  // DISC-05 threshold: render teaser when fewer than 6 approved BIPs
-  if (totalApprovedCount < 6) {
+  // Render the teaser only when the catalog is empty — every approved BIP shows as a card.
+  if (totalApprovedCount === 0) {
     return <RecentBipsTeaser />
   }
 

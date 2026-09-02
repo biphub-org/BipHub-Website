@@ -1,7 +1,7 @@
 /**
  * RecentBipsTeaser — UI-SPEC line 331.
  *
- * Shown when count(approved bips) < 6 (DISC-05 threshold).
+ * Shown only when the catalog has zero approved BIPs.
  * NOT used in Phase 1 with the 20-BIP seed catalog (always ≥6),
  * but ships for runtime correctness when the catalog may be pruned.
  *

@@ -115,7 +115,9 @@ export async function approveBipAction(
     console.error('[approveBipAction] audit insert failed:', auditError.message)
   }
 
-  // 7. ISR cache bust
+  // 7. ISR cache bust — including '/' (hourly-ISR homepage hosts
+  // "recently added", so a fresh approval must bust it to appear there).
+  revalidatePath('/')
   revalidatePath('/bips')
   revalidatePath(`/bip/${existing.slug}`)
   revalidatePath('/admin')
