@@ -107,7 +107,11 @@ test.describe('alert subscriptions', () => {
 
   test('empty selection shows validation error (no cap in preferences model)', async ({ page }) => {
     await page.getByRole('button', { name: 'Apply', exact: true }).click()
-    await expect(page.getByText('Choose at least one field')).toBeVisible({ timeout: 10_000 })
+    // Scope to the Sonner toast: the same copy also lives as an inline hint
+    // under the form, so an unscoped assertion trips strict mode.
+    await expect(
+      page.locator('[data-sonner-toast]', { hasText: 'Choose at least one field' }),
+    ).toBeVisible({ timeout: 10_000 })
   })
 
   test('no-login unsubscribe via signed token (ALRT-05/06)', async ({ page }) => {

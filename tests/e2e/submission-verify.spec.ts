@@ -72,7 +72,10 @@ test('verify draft listed under My BIPs and Add new BIP is blank', async ({ page
   // 6. Verify Edit from My BIPs resumes correctly with all fields
   await page.goto('/dashboard')
   await expect(page.getByText(draftTitle).first()).toBeVisible({ timeout: 10000 })
-  const editLink = page.getByRole('link', { name: /Edit/i }).first()
+  // Click this draft's own Edit link (known bipId from autosave), not the
+  // page-first one — the dashboard also lists seeded fixture BIPs.
+  const { bipId: savedBipId } = JSON.parse(beforeReload as string)
+  const editLink = page.locator(`a[href="/dashboard/bips/${savedBipId}/edit"]`)
   await expect(editLink).toBeVisible({ timeout: 5000 })
   await editLink.click()
   await page.waitForURL(/\/dashboard\/bips\/.*\/edit/, { timeout: 10000 })

@@ -175,7 +175,7 @@ test.describe('submission wizard', () => {
 
     // ----- Step 2: Programme details -----
     await page
-      .getByRole('textbox', { name: /virtual component/i })
+      .getByRole('textbox', { name: /virtual mobility description/i })
       .fill(
         'Four online lectures (90 min each) across the 4 weeks before physical mobility plus a group project handover.',
       )
