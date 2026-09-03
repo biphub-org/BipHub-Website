@@ -84,6 +84,7 @@ test.describe('auth flow', () => {
     // 3. Login. Freshly confirmed user has no profile → /onboarding.
     await page.goto('/login')
     await page.getByLabel(/email/i).fill(NEW_USER.email)
+    await page.getByRole('button', { name: /continue/i }).click()
     await page.getByLabel(/password/i).fill(NEW_USER.password)
     await page.getByRole('button', { name: /sign in/i }).click()
     await expect(page).toHaveURL(/onboarding/, { timeout: 10_000 })
@@ -92,11 +93,11 @@ test.describe('auth flow', () => {
   test('invalid credentials show error', async ({ page }) => {
     await page.goto('/login')
     await page.getByLabel(/email/i).fill('not-a-real-user@biphub.test')
-    await page.getByLabel(/password/i).fill('Wrong!Password1')
-    await page.getByRole('button', { name: /sign in/i }).click()
-    // signInAction maps Supabase 'invalid login' → "Email or password is incorrect."
-    await expect(page.getByText(/incorrect|invalid/i)).toBeVisible({
-      timeout: 5_000,
+    await page.getByRole('button', { name: /continue/i }).click()
+    // Two-step login: an email with no account lands on the 'No account
+    // found' screen — there is no password step to show an error on.
+    await expect(page.getByText(/no account found/i)).toBeVisible({
+      timeout: 10_000,
     })
   })
 
@@ -104,6 +105,7 @@ test.describe('auth flow', () => {
     // Login as the fixture coordinator.
     await page.goto('/login')
     await page.getByLabel(/email/i).fill('e2e-coordinator@biphub.test')
+    await page.getByRole('button', { name: /continue/i }).click()
     await page.getByLabel(/password/i).fill('Coordinator!Test1')
     await page.getByRole('button', { name: /sign in/i }).click()
     await page.waitForURL(/\/dashboard/, { timeout: 10_000 })
@@ -197,6 +199,7 @@ test.describe('auth flow', () => {
     // Step 4: sign in through the real login UI. Complete profile → /dashboard.
     await page.goto('/login')
     await page.getByLabel(/email/i).fill(accountEmail)
+    await page.getByRole('button', { name: /continue/i }).click()
     await page.getByLabel(/password/i).fill(accountPassword)
     await page.getByRole('button', { name: /sign in/i }).click()
     await page.waitForURL(/\/dashboard/, { timeout: 15_000 })
@@ -243,10 +246,11 @@ test.describe('auth flow', () => {
     // And the UI login path rejects the deleted credentials.
     await page.goto('/login')
     await page.getByLabel(/email/i).fill(accountEmail)
-    await page.getByLabel(/password/i).fill(accountPassword)
-    await page.getByRole('button', { name: /sign in/i }).click()
-    await expect(page.getByText(/incorrect|invalid/i)).toBeVisible({
-      timeout: 5_000,
+    await page.getByRole('button', { name: /continue/i }).click()
+    // Two-step login: the deleted email is now unknown, so the 'No account
+    // found' screen (not a password error) proves the credentials are gone.
+    await expect(page.getByText(/no account found/i)).toBeVisible({
+      timeout: 10_000,
     })
   })
 })

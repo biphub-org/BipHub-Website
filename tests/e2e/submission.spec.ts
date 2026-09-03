@@ -152,13 +152,14 @@ test.describe('submission wizard', () => {
     // Fields of study — a multi-select checkbox group (min 1). Each field label
     // from lib/isced.ts wraps a Checkbox, so the checkbox's accessible name is
     // the field label. Check two to exercise the multi-field capability.
+    // Scope to the subject_areas labels (items-center): the ISCED code list
+    // below renders its own 'Medicine' (0912) label, so unscoped selectors
+    // trip Playwright strict mode.
     for (const field of ['Medicine', 'Law']) {
-      const box = page.getByRole('checkbox', { name: field })
-      try {
-        await box.check()
-      } catch {
-        await page.getByText(field, { exact: true }).click()
-      }
+      const box = page
+        .locator('label.flex.items-center.gap-2', { hasText: new RegExp(`^${field}$`) })
+        .getByRole('checkbox')
+      await box.check()
     }
     await page
       .getByLabel(/description/i)

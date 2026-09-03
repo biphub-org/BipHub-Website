@@ -248,9 +248,11 @@ test.describe('bip edit flow', () => {
           coordPage.getByText(/edit submitted for review/i),
         ).toBeVisible({ timeout: 10_000 })
 
-        // State B: disabled "Edit in review" button appears
+        // State B: submit redirects to /dashboard, where the BIP card carries
+        // the "Edit in review" status badge (a pill, not a button).
+        await coordPage.waitForURL(/\/dashboard/, { timeout: 10_000 })
         await expect(
-          coordPage.getByRole('button', { name: /edit in review/i }),
+          coordPage.getByText('Edit in review'),
         ).toBeVisible({ timeout: 10_000 })
 
         // EDIT-08: audit row for submit_edit
@@ -463,8 +465,10 @@ test.describe('bip edit flow', () => {
         await coordPage
           .getByRole('button', { name: /submit edit for review/i })
           .click()
+        // Submit redirects to /dashboard — assert the status badge there.
+        await coordPage.waitForURL(/\/dashboard/, { timeout: 10_000 })
         await expect(
-          coordPage.getByRole('button', { name: /edit in review/i }),
+          coordPage.getByText('Edit in review'),
         ).toBeVisible({ timeout: 10_000 })
 
         // EDIT-08: audit row for submit_edit
@@ -550,8 +554,10 @@ test.describe('bip edit flow', () => {
         coordPage.getByRole('button', { name: /submit edit for review/i }),
       ).toBeVisible({ timeout: 10_000 })
       await coordPage.getByRole('button', { name: /submit edit for review/i }).click()
+      // Submit redirects to /dashboard — assert the status badge there.
+      await coordPage.waitForURL(/\/dashboard/, { timeout: 10_000 })
       await expect(
-        coordPage.getByRole('button', { name: /edit in review/i }),
+        coordPage.getByText('Edit in review'),
       ).toBeVisible({ timeout: 10_000 })
     } finally {
       await coordCtx.close()
@@ -701,8 +707,10 @@ test.describe('bip edit flow', () => {
           coordPage.getByRole('button', { name: /submit edit for review/i }),
         ).toBeVisible({ timeout: 10_000 })
         await coordPage.getByRole('button', { name: /submit edit for review/i }).click()
+        // Submit redirects to /dashboard — assert the status badge there.
+        await coordPage.waitForURL(/\/dashboard/, { timeout: 10_000 })
         await expect(
-          coordPage.getByRole('button', { name: /edit in review/i }),
+          coordPage.getByText('Edit in review'),
         ).toBeVisible({ timeout: 10_000 })
       } finally {
         await coordCtx.close()
