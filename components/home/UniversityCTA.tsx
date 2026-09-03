@@ -26,6 +26,7 @@ import {
 } from 'motion/react'
 import { Eyebrow } from './Eyebrow'
 import { cn } from '@/lib/utils/cn'
+import { ClipboardList, BadgeCheck, Users } from 'lucide-react'
 
 const EASE_OUT: Transition['ease'] = [0.16, 1, 0.3, 1]
 
@@ -50,18 +51,21 @@ interface UniversityCTAProps {
   sampleSlug: string
 }
 
-const FEATURE_ROWS = [
+const STEPS = [
   {
-    title: '10-minute setup',
-    subtitle: 'From signup to live listing',
+    icon: ClipboardList,
+    heading: 'List',
+    body: 'Submit your BIP in about 10 minutes with our guided form — from signup to live listing.',
   },
   {
-    title: 'European reach',
-    subtitle: 'Students from 27+ countries',
+    icon: BadgeCheck,
+    heading: 'Get reviewed',
+    body: 'Our team checks every listing for quality before it goes live, so students can trust what they find.',
   },
   {
-    title: 'Quality reviewed',
-    subtitle: 'Every listing checked by our team',
+    icon: Users,
+    heading: 'Welcome students',
+    body: 'Reach students from 27+ countries across Europe once your BIP is published.',
   },
 ]
 
@@ -74,7 +78,7 @@ export function UniversityCTA({ sampleSlug }: UniversityCTAProps) {
       <MotionConfig reducedMotion="user">
         <div
           ref={cardRef}
-          className="relative flex h-full flex-col overflow-hidden rounded-lg bg-ink p-10 lg:p-12"
+          className="relative flex h-full flex-col overflow-hidden rounded-xl border border-white/10 bg-ink p-10 shadow-[0_4px_16px_rgba(10,23,53,0.06)] lg:p-12"
         >
           {/* Radial accent top-right (blue) — gentle drift */}
           <m.div
@@ -105,7 +109,7 @@ export function UniversityCTA({ sampleSlug }: UniversityCTAProps) {
           >
             <m.div variants={fadeUpItem}>
               <Eyebrow className="mb-3 text-white/70 [&>span:first-child]:bg-eu-gold">
-                <span className="text-white/70">For universities</span>
+                <span className="text-white/70">For coordinators</span>
               </Eyebrow>
             </m.div>
             <m.h2
@@ -117,28 +121,32 @@ export function UniversityCTA({ sampleSlug }: UniversityCTAProps) {
               }}
               variants={fadeUpItem}
             >
-              List your BIP and reach thousands of students
+              List your BIP
             </m.h2>
             <m.p
               className="mt-3 text-[16px] leading-[1.6] text-white/70"
               variants={fadeUpItem}
             >
-              A free, modern platform designed by Erasmus+ coordinators, for Erasmus+ coordinators.
-              Submit your BIP, manage applications, and get visibility across Europe.
+              The free platform for Erasmus+ coordinators. Publish in minutes
+              and put your programme in front of students across Europe.
             </m.p>
 
-            {/* Feature rows */}
-            <div className="mt-8 flex flex-col gap-4">
-              {FEATURE_ROWS.map((row) => (
-                <m.div key={row.title} variants={rowItem}>
-                  <FeatureRow title={row.title} subtitle={row.subtitle} />
+            {/* Journey timeline — same structure as HowItWorks, gold on navy */}
+            <div className="relative mt-8 flex flex-1 flex-col">
+              <span
+                aria-hidden="true"
+                className="absolute bottom-[38px] left-[21px] top-[38px] w-0.5 rounded-full bg-white/15"
+              />
+              {STEPS.map((step) => (
+                <m.div key={step.heading} variants={rowItem} className="relative">
+                  <Step step={step} />
                 </m.div>
               ))}
             </div>
 
-            {/* CTA buttons — pushed to bottom of card */}
+            {/* CTA buttons — pinned to the card bottom so both cards' buttons share a baseline */}
             <m.div
-              className="mt-8 flex flex-wrap items-center gap-3"
+              className="mt-auto flex flex-wrap items-center gap-3 pt-8"
               variants={fadeUpItem}
             >
               <Link
@@ -171,18 +179,38 @@ export function UniversityCTA({ sampleSlug }: UniversityCTAProps) {
   )
 }
 
-function FeatureRow({ title, subtitle }: { title: string; subtitle: string }) {
+interface StepData {
+  icon: React.ComponentType<{ size?: number; strokeWidth?: number; className?: string }>
+  heading: string
+  body: string
+}
+
+/**
+ * Icon step — dark-card mirror of HowItWorks' Step:
+ * same timeline layout, gold nodes on navy (ink ring masks the rail).
+ */
+function Step({ step }: { step: StepData }) {
+  const Icon = step.icon
   return (
-    <div className="group flex items-start gap-4">
-      {/* Gold icon square — subtle rotate on group hover */}
-      <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-md bg-eu-gold transition-transform duration-200 ease-out group-hover:-rotate-6 group-hover:scale-105">
-        <span className="text-[20px] text-ink font-bold" aria-hidden="true">
-          ✓
-        </span>
+    <div
+      className={[
+        'group relative flex cursor-default items-start gap-4 py-4',
+        'transition-[background-color] duration-200 ease-out',
+      ].join(' ')}
+    >
+      {/* Icon node — ink ring masks the timeline rail behind it */}
+      <div className="z-10 flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-eu-gold text-ink ring-4 ring-ink transition-transform duration-200 ease-out group-hover:scale-110">
+        <Icon size={20} strokeWidth={1.8} />
       </div>
-      <div>
-        <div className="text-[15px] font-semibold text-white">{title}</div>
-        <div className="mt-0.5 text-[13px] text-white/60">{subtitle}</div>
+
+      <div className="pt-1.5">
+        <h4
+          className="mb-1.5 text-[18px] font-semibold text-white transition-colors duration-200 group-hover:text-eu-gold"
+          style={{ letterSpacing: '-0.3px' }}
+        >
+          {step.heading}
+        </h4>
+        <p className="text-[15px] leading-[1.6] text-white/70">{step.body}</p>
       </div>
     </div>
   )

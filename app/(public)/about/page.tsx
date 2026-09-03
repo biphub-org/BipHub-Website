@@ -10,7 +10,7 @@
 
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { Search, MapPinned, Bookmark, Share2, Mail, ShieldCheck, Code2, ExternalLink, Target, Compass, HeartHandshake } from 'lucide-react'
+import { Search, MapPinned, Bookmark, Share2, Mail, ShieldCheck, Code2, Target, Compass, HeartHandshake } from 'lucide-react'
 import { Eyebrow } from '@/components/home/Eyebrow'
 import { PageSidebar } from '@/components/what-is-a-bip/PageSidebar'
 import { Button } from '@/components/ui/button'
@@ -177,7 +177,7 @@ export default function AboutPage() {
                 <PrincipleCard
                   icon={Code2}
                   title="Free and open source"
-                  body="The full source code is on GitHub under the MIT licence. Anyone can fork it, audit it, or contribute a fix. There is no paid tier and there will not be one."
+                  body="Published as open source under the MIT licence — free forever and open to community contributions. There is no paid tier and there will not be one."
                 />
                 <PrincipleCard
                   icon={ShieldCheck}
@@ -220,23 +220,21 @@ export default function AboutPage() {
               <h2 className="text-[clamp(28px,3.5vw,40px)] font-bold tracking-tight text-ink">Built in the open.</h2>
               <div className="mt-4 space-y-4 leading-relaxed text-ink-2">
                 <p>
-                  BipHub is a Next.js + Supabase application maintained by Hexona Systems and external contributors. Issues, pull requests, and fixes are welcome through the GitHub repository — see <code>CONTRIBUTING.md</code> for setup instructions and the project conventions.
+                  BipHub is maintained by Hexona Systems and external contributors. The codebase is open source under the MIT licence — see <code>CONTRIBUTING.md</code> for setup instructions and the project conventions.
                 </p>
                 <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <a
-                    href="https://github.com/biphub/biphub"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <Link
+                    href="/coming-soon"
                     className="group flex items-center gap-4 rounded-xl border border-eu-blue-100 bg-white p-5 shadow-[0_4px_16px_rgba(10,23,53,0.06)] transition-all duration-300 hover:-translate-y-1 hover:border-eu-blue-200 hover:shadow-[0_12px_28px_rgba(10,23,53,0.10)]"
                   >
                     <span className="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-ink text-white">
-                      <ExternalLink size={20} />
+                      <Compass size={20} />
                     </span>
                     <span>
-                      <span className="block text-[14px] font-semibold text-ink group-hover:text-eu-blue">Source on GitHub</span>
-                      <span className="block text-[12px] text-muted">MIT · open to contributions</span>
+                      <span className="block text-[14px] font-semibold text-ink group-hover:text-eu-blue">See what&apos;s next</span>
+                      <span className="block text-[12px] text-muted">Features on the roadmap</span>
                     </span>
-                  </a>
+                  </Link>
                   <a
                     href="mailto:biphub.org@gmail.com"
                     className="group flex items-center gap-4 rounded-xl border border-eu-blue-100 bg-white p-5 shadow-[0_4px_16px_rgba(10,23,53,0.06)] transition-all duration-300 hover:-translate-y-1 hover:border-eu-blue-200 hover:shadow-[0_12px_28px_rgba(10,23,53,0.10)]"

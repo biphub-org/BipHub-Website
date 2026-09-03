@@ -144,7 +144,7 @@ export default function TermsPage() {
               <h2 className="text-[clamp(28px,3.5vw,40px)] font-bold tracking-tight text-ink">Open source and intellectual property</h2>
               <div className="mt-4 space-y-4 leading-relaxed text-ink-2">
                 <p>
-                  The BipHub software is published under the MIT licence and the source code is available on GitHub. The MIT licence covers the code only — it does not transfer rights to the BipHub name, logo, or content submitted by coordinators. The visual identity uses the standard Erasmus+ colour palette; the logo deliberately uses a star count different from the 12-star European emblem to avoid implying EU endorsement.
+                  The BipHub software is published as open source under the MIT licence. The MIT licence covers the code only — it does not transfer rights to the BipHub name, logo, or content submitted by coordinators. The visual identity uses the standard Erasmus+ colour palette; the logo deliberately uses a star count different from the 12-star European emblem to avoid implying EU endorsement.
                 </p>
               </div>
             </section>

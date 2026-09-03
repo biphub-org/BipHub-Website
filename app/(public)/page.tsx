@@ -33,6 +33,7 @@ import { RecentBips } from '@/components/home/RecentBips'
 import { SavedBipsHydrator } from '@/components/bip/SavedBipsHydrator'
 import { HowItWorks } from '@/components/home/HowItWorks'
 import { UniversityCTA } from '@/components/home/UniversityCTA'
+import { Eyebrow } from '@/components/home/Eyebrow'
 // EuropeMapWrapper is a 'use client' component that hosts the dynamic({ ssr: false }) import.
 // Next.js 15 requires ssr:false dynamic() to live in a client component boundary.
 import { EuropeMapWrapper } from '@/components/home/EuropeMapWrapper'
@@ -140,13 +141,36 @@ export default async function HomePage() {
       {/* DISC-05: Recent BIPs (teaser only when zero approved) */}
       <RecentBips totalApprovedCount={count} bips={recentBips} />
 
-      {/* DISC-06 + DISC-07: Students "How it works" and Universities CTA shown
-          side-by-side on lg+; stacked on mobile. */}
+      {/* DISC-06 + DISC-07: Students "How it works" and Coordinators CTA shown
+          side-by-side on lg+; stacked on mobile. A shared header frames the
+          pair so the two cards read as one section, not two adverts. */}
       <section
         id="how-it-works"
-        className="border-t border-border bg-white py-24"
+        className="border-t border-border bg-bg-soft py-24"
+        style={{
+          backgroundImage:
+            'radial-gradient(rgba(0, 51, 153, 0.05) 1px, transparent 1px)',
+          backgroundSize: '24px 24px',
+        }}
       >
         <div className="mx-auto max-w-[1200px] px-4 md:px-6">
+          <div className="mx-auto mb-14 max-w-[720px] text-center">
+            <Eyebrow className="mb-3">Get started</Eyebrow>
+            <h2
+              className="font-bold text-ink"
+              style={{
+                fontSize: 'clamp(30px, 4vw, 44px)',
+                lineHeight: '1.1',
+                letterSpacing: '-1px',
+              }}
+            >
+              Students find. Coordinators list.
+            </h2>
+            <p className="mt-4 text-[17px] leading-relaxed text-muted">
+              One free, open-source platform for Erasmus+ Blended Intensive
+              Programmes — whichever side you&apos;re on.
+            </p>
+          </div>
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8">
             <HowItWorks />
             <UniversityCTA sampleSlug={firstSampleSlug} />

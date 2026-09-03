@@ -36,11 +36,13 @@ const NAV_LINKS = [
   { href: '/what-is-a-bip', label: 'What is a BIP?' },
   { href: '/guides', label: 'Guides' },
   { href: '/about', label: 'About' },
+  { href: '/contact', label: 'Contact' },
+  { href: '/coming-soon', label: 'Coming Soon' },
 ] as const
 
 // Pages whose top-of-page hero is dark — nav starts transparent over them and
 // flips to solid white on scroll. All other public pages stay solid by default.
-const DARK_HERO_ROUTES = ['/', '/bips', '/what-is-a-bip', '/guides', '/about', '/privacy', '/terms'] as const
+const DARK_HERO_ROUTES = ['/', '/bips', '/what-is-a-bip', '/guides', '/about', '/contact', '/coming-soon', '/privacy', '/terms'] as const
 
 // Per-route scroll threshold (px) before the transparent nav flips to white.
 // Shorter heroes need earlier flips so the nav doesn't outlive the dark band.
@@ -49,6 +51,8 @@ const SCROLL_THRESHOLDS: ReadonlyArray<readonly [string, number]> = [
   ['/what-is-a-bip', 70],
   ['/guides', 70],
   ['/about', 70],
+  ['/contact', 70],
+  ['/coming-soon', 70],
   ['/privacy', 70],
   ['/terms', 70],
 ] as const

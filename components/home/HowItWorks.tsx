@@ -14,6 +14,7 @@
  */
 
 import { useRef } from 'react'
+import Link from 'next/link'
 import {
   LazyMotion,
   MotionConfig,
@@ -24,6 +25,8 @@ import {
   type Variants,
 } from 'motion/react'
 import { Eyebrow } from './Eyebrow'
+import { cn } from '@/lib/utils/cn'
+import { Search, Send, Plane } from 'lucide-react'
 
 const EASE_OUT: Transition['ease'] = [0.16, 1, 0.3, 1]
 
@@ -46,17 +49,17 @@ const stepItem: Variants = {
 
 const STEPS = [
   {
-    number: 1,
+    icon: Search,
     heading: 'Find',
     body: "Filter BIPs by country, field of study, language and dates. Save your favourites and compare options that match your degree.",
   },
   {
-    number: 2,
+    icon: Send,
     heading: 'Apply',
     body: "Apply through your home university's Erasmus+ office using the contact info on the BIP page. We make the matchmaking easy.",
   },
   {
-    number: 3,
+    icon: Plane,
     heading: 'Go',
     body: "Complete the virtual component online, then travel for the physical mobility — fully funded by Erasmus+ at €79/day plus travel.",
   },
@@ -71,7 +74,7 @@ export function HowItWorks() {
       <MotionConfig reducedMotion="user">
         <m.div
           ref={cardRef}
-          className="flex h-full flex-col rounded-lg bg-bg-soft p-10 lg:p-12"
+          className="flex h-full flex-col rounded-xl border border-eu-blue-100 bg-white p-10 shadow-[0_4px_16px_rgba(10,23,53,0.06)] lg:p-12"
           variants={containerVariants}
           initial="hidden"
           animate={inView ? 'visible' : 'hidden'}
@@ -98,14 +101,33 @@ export function HowItWorks() {
             Three steps from finding a BIP to landing in your destination country — fully funded.
           </m.p>
 
-          {/* Steps — stacked vertically inside the card */}
-          <div className="mt-8 flex flex-col gap-6">
+          {/* Journey timeline — icon nodes on a rail (flex-1 pushes the CTA to the shared baseline) */}
+          <div className="relative mt-8 flex flex-1 flex-col">
+            <span
+              aria-hidden="true"
+              className="absolute bottom-[38px] left-[21px] top-[38px] w-0.5 rounded-full bg-eu-blue-100"
+            />
             {STEPS.map((step) => (
-              <m.div key={step.number} variants={stepItem}>
+              <m.div key={step.heading} variants={stepItem} className="relative">
                 <Step step={step} />
               </m.div>
             ))}
           </div>
+
+          {/* CTA — pinned to the card bottom so both cards' buttons share a baseline */}
+          <m.div className="mt-auto pt-8" variants={fadeUpItem}>
+            <Link
+              href="/bips"
+              className={cn(
+                'inline-flex h-12 items-center justify-center gap-2 rounded-pill px-6 text-base font-semibold whitespace-nowrap',
+                'bg-eu-blue text-white transition-all duration-200 ease-out',
+                'hover:bg-eu-blue-dark hover:-translate-y-px hover:shadow-[0_8px_24px_rgba(0,51,153,0.25)]',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eu-blue focus-visible:ring-offset-2',
+              )}
+            >
+              Browse BIPs
+            </Link>
+          </m.div>
         </m.div>
       </MotionConfig>
     </LazyMotion>
@@ -113,40 +135,26 @@ export function HowItWorks() {
 }
 
 interface StepData {
-  number: number
+  icon: React.ComponentType<{ size?: number; strokeWidth?: number; className?: string }>
   heading: string
   body: string
 }
 
 function Step({ step }: { step: StepData }) {
+  const Icon = step.icon
   return (
     <div
       className={[
-        'group relative -mx-3 flex cursor-default items-start gap-4 rounded-md p-3',
-        'transition-[background-color,box-shadow,transform] duration-200 ease-out',
-        'hover:bg-white hover:shadow-[0_6px_20px_rgba(10,23,53,0.06)]',
+        'group relative flex cursor-default items-start gap-4 py-4',
+        'transition-[background-color] duration-200 ease-out',
       ].join(' ')}
     >
-      {/* Left accent strip — fades in on hover */}
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute left-0 top-3 bottom-3 w-1 origin-top scale-y-0 rounded-full bg-eu-gold opacity-0 transition-all duration-200 ease-out group-hover:scale-y-100 group-hover:opacity-100"
-      />
-
-      {/* Numbered circle — 40px, blue bg, 3px gold border ring (sized down so
-          the ring doesn't crowd the left accent strip on hover). */}
-      <div
-        className="ml-1 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-eu-blue text-white font-bold text-[16px] transition-transform duration-200 ease-out group-hover:scale-110"
-        style={{
-          outline: '3px solid #FFCC00',
-          outlineOffset: '2px',
-        }}
-        aria-label={`Step ${step.number}`}
-      >
-        {step.number}
+      {/* Icon node — white ring masks the timeline rail behind it */}
+      <div className="z-10 flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-eu-blue text-white ring-4 ring-white transition-transform duration-200 ease-out group-hover:scale-110">
+        <Icon size={20} strokeWidth={1.8} />
       </div>
 
-      <div className="pt-1">
+      <div className="pt-1.5">
         <h4
           className="mb-1.5 text-[18px] font-semibold text-ink transition-colors duration-200 group-hover:text-eu-blue"
           style={{ letterSpacing: '-0.3px' }}
