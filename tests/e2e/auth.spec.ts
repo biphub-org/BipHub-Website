@@ -29,8 +29,9 @@ test.describe('auth flow', () => {
     page,
     request,
   }) => {
-    // 1. Register through the UI.
-    await page.goto('/register')
+    // 1. Register through the UI (/register is a chooser — the form lives
+    // on /register/coordinator since the student-auth split).
+    await page.goto('/register/coordinator')
     await page.getByLabel(/^email$/i).fill(NEW_USER.email)
     await page.getByLabel(/^password$/i).fill(NEW_USER.password)
     await page.getByLabel(/confirm password/i).fill(NEW_USER.password)
