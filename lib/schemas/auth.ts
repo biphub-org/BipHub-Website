@@ -1,4 +1,5 @@
 import { z } from 'zod' // Zod v3 — see CLAUDE.md (locked stack)
+import { studentProfileFields } from './profile'
 
 /**
  * Auth Zod schemas — server-side enforcement of the same shape used by RHF on the client.
@@ -15,17 +16,33 @@ export const loginSchema = z.object({
 export type LoginValues = z.infer<typeof loginSchema>
 
 // AUTH-01: registration payload.
+const registerBaseFields = {
+  email: z.string().trim().email('Please enter a valid institutional email address.'),
+  password: z.string().min(8, 'At least 8 characters.').max(72, 'Maximum 72 characters.'),
+  confirmPassword: z.string(),
+}
+
+function passwordsMatch(data: { password: string; confirmPassword: string }) {
+  return data.password === data.confirmPassword
+}
+
 export const registerSchema = z
-  .object({
-    email: z.string().trim().email('Please enter a valid institutional email address.'),
-    password: z.string().min(8, 'At least 8 characters.').max(72, 'Maximum 72 characters.'),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
+  .object(registerBaseFields)
+  .refine(passwordsMatch, {
     message: 'Passwords do not match.',
     path: ['confirmPassword'],
   })
 export type RegisterValues = z.infer<typeof registerSchema>
+
+// Student registration payload — email/password plus personal details
+// (full_name + country required, home university optional).
+export const studentRegisterSchema = z
+  .object({ ...registerBaseFields, ...studentProfileFields })
+  .refine(passwordsMatch, {
+    message: 'Passwords do not match.',
+    path: ['confirmPassword'],
+  })
+export type StudentRegisterValues = z.infer<typeof studentRegisterSchema>
 
 // AUTH-05a: request a password-reset email.
 export const passwordResetSchema = z.object({

@@ -110,6 +110,9 @@ export default function PrivacyPage() {
                   <strong className="text-ink">Coordinator profile and submission content.</strong> When a university coordinator registers, we store their full name, contact email, university affiliation, and Erasmus institutional code. When they submit a BIP, we store the submission content (programme title, description, dates, contact details they wish to publish, and so on). Approved submissions are published as part of the public Erasmus+ directory.
                 </p>
                 <p>
+                  <strong className="text-ink">Student profile.</strong> When a student registers, we store their full name, country of residence, and (optionally) home university, plus the account email. This lets coordinators and admins recognise who saved a BIP or set an alert. Students who registered before these fields existed are asked to complete them on their next sign-in.
+                </p>
+                <p>
                   <strong className="text-ink">Alert preferences.</strong> When a signed-in student saves alert preferences, we store a single <code>bip_alert_preferences</code> row with your user ID, your chosen fields of study and/or countries (any number), frequency (<code>weekly</code> or <code>daily</code>), the explicit consent text you agreed to, and update time. This is used solely to send you the digest emails you requested.
                 </p>
                 <p>

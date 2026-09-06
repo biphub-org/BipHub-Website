@@ -4,8 +4,8 @@
  * AdminSidebar — admin chrome (D-16 / 03-UI-SPEC.md Sidebar Chrome Contract).
  *
  * Composition (desktop ≥ md):
- *   240px sticky left column. Logo + nav (Queue / All BIPs / Analytics) +
- *   admin avatar/name/email + Sign out form.
+ *   240px sticky left column. Logo + nav (Queue / All BIPs / My BIPs /
+ *   Coordinators / Students / Analytics) + admin avatar/name/email + Sign out form.
  *
  * Composition (mobile < md):
  *   56px top bar with burger menu → Sheet drawer mirroring desktop body.
@@ -27,6 +27,7 @@ import {
   ListChecks,
   BarChart3,
   Users,
+  GraduationCap,
   LogOut,
   Menu,
 } from 'lucide-react'
@@ -53,6 +54,7 @@ const NAV_ITEMS: ReadonlyArray<NavItem> = [
   { href: '/admin/bips', label: 'All BIPs', icon: ListChecks },
   { href: '/admin/my-bips', label: 'My BIPs', icon: ListChecks },
   { href: '/admin/coordinators', label: 'Coordinators', icon: Users },
+  { href: '/admin/students', label: 'Students', icon: GraduationCap },
   { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
 ]
 

@@ -432,14 +432,27 @@ values (
   now(), now(), '', '', '', ''
 );
 
--- Student profile: NO university_id / erasmus_code / full_name (D-08 / Pitfall 2).
+-- Student profile: complete (full_name + country) so the (student)/layout.tsx
+-- profile-complete gate passes and specs land on /student-dashboard instead of
+-- /student-dashboard/complete-profile. Home university left NULL (optional).
 -- profiles_sync_role trigger mirrors role into raw_app_meta_data; Custom Access
 -- Token Hook (00015) reads this profiles.role at JWT issuance.
 -- UPSERT: handle_new_user (00015) already created this row with role='student'
 -- (raw_user_meta_data.role='student' is whitelisted). do-update keeps it idempotent.
-insert into public.profiles (id, role)
-values ('44444444-4444-4444-4444-444444444444', 'student')
-on conflict (id) do update set role = excluded.role;
+insert into public.profiles (id, role, full_name, contact_email, country, university_id)
+values (
+  '44444444-4444-4444-4444-444444444444',
+  'student',
+  'E2E Student',
+  'e2e-student@biphub.test',
+  'BE',
+  null
+)
+on conflict (id) do update set
+  role = excluded.role,
+  full_name = excluded.full_name,
+  contact_email = excluded.contact_email,
+  country = excluded.country;
 
 -- ----------------------------------------------------------------------------
 -- Step 6: Phase 8 — bip-edits fixture (Plan 08-01 Wave 0).

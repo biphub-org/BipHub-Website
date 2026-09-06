@@ -589,6 +589,7 @@ export type Database = {
       profiles: {
         Row: {
           contact_email: string | null
+          country: string | null
           created_at: string
           erasmus_code: string | null
           full_name: string | null
@@ -599,6 +600,7 @@ export type Database = {
         }
         Insert: {
           contact_email?: string | null
+          country?: string | null
           created_at?: string
           erasmus_code?: string | null
           full_name?: string | null
@@ -609,6 +611,7 @@ export type Database = {
         }
         Update: {
           contact_email?: string | null
+          country?: string | null
           created_at?: string
           erasmus_code?: string | null
           full_name?: string | null

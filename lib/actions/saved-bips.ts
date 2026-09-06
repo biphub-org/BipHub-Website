@@ -28,13 +28,17 @@ import { getSavedBipIds } from '@/lib/queries/savedBips'
  * Server Action runs at request time on the client's behalf, not during the
  * page's static render, so it does not opt the page out of ISR.
  */
-export async function getSavedStateAction(): Promise<{ savedIds: string[]; isStudent: boolean }> {
+export async function getSavedStateAction(): Promise<{
+  savedIds: string[]
+  isStudent: boolean
+  isSignedIn: boolean
+}> {
   const supabase = await createClient()
   const { data, error } = await supabase.auth.getClaims()
-  if (error || !data?.claims?.sub) return { savedIds: [], isStudent: false }
+  if (error || !data?.claims?.sub) return { savedIds: [], isStudent: false, isSignedIn: false }
   const isStudent = data.claims.app_metadata?.role === 'student'
   const ids = await getSavedBipIds(data.claims.sub)
-  return { savedIds: [...ids], isStudent }
+  return { savedIds: [...ids], isStudent, isSignedIn: true }
 }
 
 /**

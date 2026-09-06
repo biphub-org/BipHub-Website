@@ -28,6 +28,32 @@ export const profileSchema = z.object({
 })
 export type ProfileValues = z.infer<typeof profileSchema>
 
+/**
+ * Student personal details — full_name + country required, home university
+ * optional. Shared by student registration (merged into studentRegisterSchema
+ * in lib/schemas/auth.ts) and the /student-dashboard/complete-profile form.
+ *
+ * `country` is an ISO alpha-2 code stored on profiles.country (migration
+ * 00050) — unlike the coordinator flow, it is WRITTEN to the profiles row
+ * because students have no university-derived country by default.
+ *
+ * university_id arrives as '' from FormData/RHF when untouched — normalised to
+ * undefined so the field stays truly optional.
+ */
+export const studentProfileFields = {
+  full_name: z.string().trim().min(2, 'Please enter your full name.').max(120),
+  country: z.enum(COUNTRY_CODES, {
+    errorMap: () => ({ message: 'Please select your country.' }),
+  }),
+  university_id: z.preprocess(
+    (v) => (v === '' || v == null ? undefined : v),
+    z.string().uuid('Please select a valid university.').optional(),
+  ),
+}
+
+export const studentProfileSchema = z.object(studentProfileFields)
+export type StudentProfileValues = z.infer<typeof studentProfileSchema>
+
 export const addUniversitySchema = z.object({
   name: z.string().trim().min(2, 'University name is too short.').max(200),
   country: z.enum(COUNTRY_CODES, {

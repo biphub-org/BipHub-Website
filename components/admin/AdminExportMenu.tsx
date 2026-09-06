@@ -1,7 +1,7 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation'
-import { ChevronDown, Download, Users, Filter, CheckSquare } from 'lucide-react'
+import { ChevronDown, Download, Users, GraduationCap, BarChart3, Filter, CheckSquare } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -48,6 +48,17 @@ function buildCoordinatorsHref(sp: URLSearchParams): string {
   return `/admin/export.csv?${qs}`
 }
 
+function buildStudentsHref(sp: URLSearchParams): string {
+  // Carry over student-relevant filters: q and alerts. Preserve only those to avoid mixing BIP-only filters.
+  const params = new URLSearchParams()
+  params.set('entity', 'students')
+  const q = sp.get('q')?.trim()
+  if (q) params.set('q', q)
+  const alerts = sp.get('alerts')?.trim().toLowerCase()
+  if (alerts === 'on' || alerts === 'off') params.set('alerts', alerts)
+  return `/admin/export.csv?${params.toString()}`
+}
+
 function buildSelectedCoordinatorsHref(selectedIds: string[]): string | null {
   if (selectedIds.length === 0) return null
   // For now selectedIds in BIP context are BIP ids, not coordinator ids, so we don't offer selected coordinators from BIP selection.
@@ -71,6 +82,8 @@ export function AdminExportMenu({
   const filteredHref = buildFilteredHref(searchParams)
   const selectedHref = buildSelectedHref(selectedIds)
   const coordinatorsHref = buildCoordinatorsHref(searchParams)
+  const studentsHref = buildStudentsHref(searchParams)
+  const analyticsHref = '/admin/export.csv?entity=analytics'
   const filteredLabel = hasFilters
     ? `Export filtered${filteredCount != null ? ` (${filteredCount})` : ''}`
     : `Export all${filteredCount != null ? ` (${filteredCount})` : ''}`
@@ -133,6 +146,26 @@ export function AdminExportMenu({
               ) : null}
           </>
         )}
+
+        <DropdownMenuSeparator />
+        <div className="px-1.5 py-1 text-[11px] uppercase tracking-wide text-muted font-medium">Students</div>
+          <DropdownMenuItem
+            render={<a href={studentsHref} download />}
+            className="flex items-center gap-2 cursor-pointer"
+          >
+            <GraduationCap size={14} className="text-eu-blue" aria-hidden />
+            <span className="flex-1 text-sm">Export students</span>
+          </DropdownMenuItem>
+
+        <DropdownMenuSeparator />
+        <div className="px-1.5 py-1 text-[11px] uppercase tracking-wide text-muted font-medium">Analytics</div>
+          <DropdownMenuItem
+            render={<a href={analyticsHref} download />}
+            className="flex items-center gap-2 cursor-pointer"
+          >
+            <BarChart3 size={14} className="text-eu-blue" aria-hidden />
+            <span className="flex-1 text-sm">Export analytics snapshot</span>
+          </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )

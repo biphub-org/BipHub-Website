@@ -55,6 +55,23 @@ async function signInStudent(page: Page): Promise<void> {
   const session = await tokenResp.json()
   expect(session.access_token).toBeTruthy()
 
+  // Profile-complete gate: the fixture needs full_name + country to land on
+  // /student-dashboard (additive upsert — fixture stays non-destructive).
+  const studentId: string = JSON.parse(
+    Buffer.from(session.access_token.split('.')[1], 'base64').toString(),
+  ).sub
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+  const profileResp = await page.request.post(`${supabaseUrl}/rest/v1/profiles`, {
+    headers: {
+      apikey: serviceRoleKey,
+      Authorization: `Bearer ${serviceRoleKey}`,
+      'Content-Type': 'application/json',
+      Prefer: 'resolution=merge-duplicates,return=minimal',
+    },
+    data: { id: studentId, full_name: 'E2E Student', contact_email: STUDENT_EMAIL, country: 'BE' },
+  })
+  expect(profileResp.ok()).toBeTruthy()
+
   // Step 2: encode the session in @supabase/ssr cookie format: `base64-{base64url(JSON)}`
   const sessionJson = JSON.stringify(session)
   const encoded = 'base64-' + Buffer.from(sessionJson).toString('base64url')
@@ -470,7 +487,9 @@ test.describe('saved bips', () => {
         'Content-Type': 'application/json',
         Prefer: 'resolution=merge-duplicates,return=minimal',
       },
-      data: { id: throwawayUserId, role: 'student' },
+      // Profile-complete gate: the throwaway needs full_name + country to
+      // reach /student-dashboard instead of /student-dashboard/complete-profile.
+      data: { id: throwawayUserId, role: 'student', full_name: 'E2E Throwaway', contact_email: throwawayEmail, country: 'BE' },
     })
 
     // ------------------------------------------------------------------

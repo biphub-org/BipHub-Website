@@ -1,17 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { getCountryName } from '@/lib/countries'
 
 /**
  * GET /admin/export.csv — admin-guarded CSV export
  *
- * Extended to support three user-requested export scopes:
+ * Extended to support five user-requested export scopes:
  *  1. Filtered BIPs — respects ALL admin/bips filters (status, q, country, field, lang, dates, availability, level)
  *  2. Selected BIPs — via `ids` param (comma-separated UUIDs). When present, restricts to those IDs (intersected with admin RLS).
  *  3. Coordinator profiles — via `entity=coordinators` (alias `dataset`). Exports profiles with role=coordinator.
+ *  4. Student data — via `entity=students`. Exports profiles with role=student
+ *     plus saved-BIP counts and alert-preference columns. Supports q, alerts
+ *     (on/off) and ids params mirroring the /admin/students filters.
+ *  5. Analytics snapshot — via `entity=analytics`. Exports category,metric,value
+ *     rows: overview totals, BIPs by status, BIPs by host country.
  *
  * Query params (BIPs):
  *  - status, q, country, field, lang, dateFrom, dateTo, availability, level, ids
- *  - entity: 'bips' (default) | 'coordinators'
+ *  - entity: 'bips' (default) | 'coordinators' | 'students' | 'analytics'
  *
  * Auth: getClaims() + role='admin' — defense in depth; RLS also scopes.
  */
@@ -48,6 +54,22 @@ function parseCsvParam(sp: URLSearchParams, key: string): string[] | undefined {
   return parts.length ? parts : undefined
 }
 
+function csvDownload(csv: string, filename: string): NextResponse {
+  return new NextResponse(csv, {
+    status: 200,
+    headers: {
+      'Content-Type': 'text/csv; charset=utf-8',
+      'Content-Disposition': `attachment; filename="${filename}"`,
+      'Cache-Control': 'no-store',
+    },
+  })
+}
+
+/** PostgREST "column does not exist" — the DB is behind local migrations. */
+function isMissingColumnError(error: { message: string }): boolean {
+  return /column .* does not exist/i.test(error.message)
+}
+
 function parseIds(sp: URLSearchParams): string[] | null {
   // Support ids=id1,id2 and repeated ?ids=id1&ids=id2
   const all = sp.getAll('ids').flatMap((v) => v.split(',').map((s) => s.trim())).filter(Boolean)
@@ -73,7 +95,14 @@ export async function GET(req: NextRequest) {
 
   const sp = req.nextUrl.searchParams
   const entityRaw = (sp.get('entity') ?? sp.get('dataset') ?? 'bips').toLowerCase()
-  const entity = entityRaw === 'coordinators' || entityRaw === 'coordinator' || entityRaw === 'profiles' ? 'coordinators' : 'bips'
+  const entity =
+    entityRaw === 'coordinators' || entityRaw === 'coordinator' || entityRaw === 'profiles'
+      ? 'coordinators'
+      : entityRaw === 'students' || entityRaw === 'student'
+        ? 'students'
+        : entityRaw === 'analytics'
+          ? 'analytics'
+          : 'bips'
 
   const today = new Date().toISOString().slice(0, 10)
 
@@ -175,6 +204,264 @@ export async function GET(req: NextRequest) {
         'Cache-Control': 'no-store',
       },
     })
+  }
+
+  // ── Students export ──────────────────────────────────────────────────
+  if (entity === 'students') {
+    const ids = parseIds(sp)
+    const q = sp.get('q')?.trim() ?? ''
+    const alertsRaw = (sp.get('alerts') ?? 'all').toLowerCase()
+    const alertsFilter = alertsRaw === 'on' || alertsRaw === 'off' ? alertsRaw : 'all'
+
+    const FULL_SELECT =
+      'id, full_name, contact_email, country, created_at, updated_at, university:university_id ( name, country )'
+    const LEGACY_SELECT = 'id, full_name, contact_email, created_at, updated_at'
+
+    const applyProfileFilters = <T>(qb: T): T => {
+      // Typed loosely: PostgREST query builder chaining preserves its own type.
+      const b = qb as unknown as {
+        in: (col: string, vals: string[]) => unknown
+        or: (expr: string) => unknown
+      }
+      if (ids) b.in('id', ids)
+      else if (q) {
+        const safe = q.replace(/[%_]/g, '\\$&')
+        b.or(`full_name.ilike.%${safe}%,contact_email.ilike.%${safe}%`)
+      }
+      return qb
+    }
+
+    const profileQuery = applyProfileFilters(
+      supabase
+        .from('profiles')
+        .select(FULL_SELECT)
+        .eq('role', 'student')
+        .order('created_at', { ascending: false })
+        .limit(5000),
+    )
+    let { data, error } = await profileQuery
+
+    if (error && isMissingColumnError(error)) {
+      console.warn(
+        '[GET /admin/export.csv] profiles.country missing — migration 00050 not applied; exporting students without country/university.',
+      )
+      const legacyQuery = applyProfileFilters(
+        supabase
+          .from('profiles')
+          .select(LEGACY_SELECT)
+          .eq('role', 'student')
+          .order('created_at', { ascending: false })
+          .limit(5000),
+      )
+      const retry = await legacyQuery
+      data = retry.data as typeof data
+      error = retry.error
+    }
+
+    if (error) {
+      console.error('[GET /admin/export.csv] students query error:', error.message)
+      return new NextResponse('Failed to fetch', { status: 500 })
+    }
+
+    type StudentRow = {
+      id: string
+      full_name: string | null
+      contact_email: string | null
+      country?: string | null
+      created_at: string
+      updated_at: string
+      university?: { name: string; country: string } | { name: string; country: string }[] | null
+    }
+    const rows = (data ?? []) as unknown as StudentRow[]
+    const studentIds = rows.map((r) => r.id)
+
+    // Alert preferences (batch) — missing table (00048 not applied) degrades
+    // to "no alerts" rather than failing the export.
+    type PrefsRow = {
+      user_id: string
+      fields: string[] | null
+      countries: string[] | null
+      isced_codes: string[] | null
+      frequency: string
+    }
+    const prefsMap = new Map<string, PrefsRow>()
+    const savedCountMap = new Map<string, number>()
+    if (studentIds.length > 0) {
+      const { data: prefs, error: prefsErr } = await supabase
+        .from('bip_alert_preferences')
+        .select('user_id, fields, countries, isced_codes, frequency')
+        .in('user_id', studentIds)
+        .limit(5000)
+      if (!prefsErr && prefs) {
+        for (const row of prefs as unknown as PrefsRow[]) prefsMap.set(row.user_id, row)
+      } else if (prefsErr) {
+        console.warn('[GET /admin/export.csv] alert prefs unavailable:', prefsErr.message)
+      }
+
+      // Saved-BIP counts (group JS-side, v1 scale)
+      const { data: saved, error: savedErr } = await supabase
+        .from('saved_bips')
+        .select('user_id')
+        .in('user_id', studentIds)
+        .limit(5000)
+      if (!savedErr && saved) {
+        for (const row of saved as Array<{ user_id: string }>) {
+          savedCountMap.set(row.user_id, (savedCountMap.get(row.user_id) ?? 0) + 1)
+        }
+      } else if (savedErr) {
+        console.error('[GET /admin/export.csv] saved count error:', savedErr.message)
+      }
+    }
+
+    let filtered = rows
+    if (alertsFilter === 'on') filtered = rows.filter((r) => prefsMap.has(r.id))
+    if (alertsFilter === 'off') filtered = rows.filter((r) => !prefsMap.has(r.id))
+
+    const header = [
+      'id',
+      'full_name',
+      'contact_email',
+      'country',
+      'home_university_name',
+      'home_university_country',
+      'role',
+      'created_at',
+      'updated_at',
+      'saved_count',
+      'alerts_on',
+      'alert_frequency',
+      'alert_fields',
+      'alert_countries',
+      'alert_isced_codes',
+    ]
+
+    const lines = [header.map(escapeCsv).join(',')]
+    for (const r of filtered) {
+      const uniRaw = r.university ?? null
+      const uni = Array.isArray(uniRaw) ? uniRaw[0] : uniRaw
+      const prefs = prefsMap.get(r.id) ?? null
+      lines.push(
+        [
+          r.id,
+          r.full_name ?? '',
+          r.contact_email ?? '',
+          r.country ?? '',
+          uni?.name ?? '',
+          uni?.country ?? '',
+          'student',
+          r.created_at ?? '',
+          r.updated_at ?? '',
+          String(savedCountMap.get(r.id) ?? 0),
+          prefs ? 'true' : 'false',
+          prefs?.frequency ?? '',
+          (prefs?.fields ?? []).join(';'),
+          (prefs?.countries ?? []).join(';'),
+          (prefs?.isced_codes ?? []).join(';'),
+        ]
+          .map(escapeCsv)
+          .join(','),
+      )
+    }
+
+    const suffix = ids
+      ? `selected-${ids.length}`
+      : q || alertsFilter !== 'all'
+        ? 'filtered'
+        : 'all'
+    return csvDownload(lines.join('\n'), `biphub-students-${suffix}-${today}.csv`)
+  }
+
+  // ── Analytics export ─────────────────────────────────────────────────
+  if (entity === 'analytics') {
+    const startOfMonth = new Date()
+    startOfMonth.setDate(1)
+    startOfMonth.setHours(0, 0, 0, 0)
+
+    const { count: totalBips } = await supabase
+      .from('bips')
+      .select('id', { count: 'exact', head: true })
+    const { count: totalStudents } = await supabase
+      .from('profiles')
+      .select('id', { count: 'exact', head: true })
+      .eq('role', 'student')
+    const { count: totalCoordinators } = await supabase
+      .from('profiles')
+      .select('id', { count: 'exact', head: true })
+      .eq('role', 'coordinator')
+    const { count: submissionsThisMonth } = await supabase
+      .from('bip_status_history')
+      .select('id', { count: 'exact', head: true })
+      .eq('action_kind', 'submit')
+      .gte('created_at', startOfMonth.toISOString())
+
+    // Students with alerts — missing table (00048 not applied) omits the row.
+    let studentsWithAlerts: number | null = null
+    {
+      const { count, error: prefsErr } = await supabase
+        .from('bip_alert_preferences')
+        .select('user_id', { count: 'exact', head: true })
+      if (!prefsErr) studentsWithAlerts = count ?? 0
+      else console.warn('[GET /admin/export.csv] alert prefs unavailable:', prefsErr.message)
+    }
+
+    // BIPs by status (group JS-side, v1 scale)
+    const statusTally = new Map<string, number>()
+    {
+      const { data: statusRows, error: statusErr } = await supabase
+        .from('bips')
+        .select('status')
+        .limit(10000)
+      if (!statusErr && statusRows) {
+        for (const row of statusRows as Array<{ status: string }>) {
+          statusTally.set(row.status, (statusTally.get(row.status) ?? 0) + 1)
+        }
+      } else if (statusErr) {
+        console.error('[GET /admin/export.csv] status tally error:', statusErr.message)
+      }
+    }
+
+    // Approved BIPs by host country (group JS-side)
+    const countryTally = new Map<string, number>()
+    {
+      const { data: countryRows, error: countryErr } = await supabase
+        .from('bips')
+        .select('host_university:host_university_id ( country )')
+        .eq('status', 'approved')
+        .limit(10000)
+      if (!countryErr && countryRows) {
+        for (const row of countryRows as unknown as Array<{
+          host_university: { country: string | null } | Array<{ country: string | null }> | null
+        }>) {
+          const hu = Array.isArray(row.host_university) ? row.host_university[0] : row.host_university
+          if (!hu?.country) continue
+          countryTally.set(hu.country, (countryTally.get(hu.country) ?? 0) + 1)
+        }
+      } else if (countryErr) {
+        console.error('[GET /admin/export.csv] country tally error:', countryErr.message)
+      }
+    }
+
+    const lines = [['category', 'metric', 'value'].map(escapeCsv).join(',')]
+    const push = (category: string, metric: string, value: string | number) => {
+      lines.push([category, metric, String(value)].map(escapeCsv).join(','))
+    }
+
+    push('overview', 'total_bips', totalBips ?? 0)
+    push('overview', 'submissions_this_month', submissionsThisMonth ?? 0)
+    push('overview', 'total_students', totalStudents ?? 0)
+    push('overview', 'total_coordinators', totalCoordinators ?? 0)
+    if (studentsWithAlerts !== null) push('overview', 'students_with_alerts', studentsWithAlerts)
+
+    for (const status of ['draft', 'pending', 'approved', 'rejected', 'changes_requested']) {
+      push('bips_by_status', status, statusTally.get(status) ?? 0)
+    }
+
+    const countries = Array.from(countryTally.entries()).sort((a, b) => b[1] - a[1])
+    for (const [code, count] of countries) {
+      push('bips_by_country', `${code} — ${getCountryName(code)}`, count)
+    }
+
+    return csvDownload(lines.join('\n'), `biphub-analytics-${today}.csv`)
   }
 
   // ── BIPs export ──────────────────────────────────────────────────────

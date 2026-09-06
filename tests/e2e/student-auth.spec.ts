@@ -61,6 +61,7 @@ const STUDENT_EMAIL = 'e2e-student@biphub.test'
 async function signInStudent(page: Page): Promise<void> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
   const projectRef = new URL(supabaseUrl).hostname.split('.')[0]
 
   // Step 1: obtain a session via password auth (anon key, not service-role)
@@ -71,6 +72,24 @@ async function signInStudent(page: Page): Promise<void> {
   expect(tokenResp.ok()).toBeTruthy()
   const session = await tokenResp.json()
   expect(session.access_token).toBeTruthy()
+
+  // Step 1b: ensure the fixture profile passes the (student) profile-complete
+  // gate (full_name + country) so specs land on /student-dashboard rather than
+  // /student-dashboard/complete-profile. Additive only — the fixture stays
+  // non-destructive for re-runs.
+  const studentId: string = JSON.parse(
+    Buffer.from(session.access_token.split('.')[1], 'base64').toString(),
+  ).sub
+  const profileResp = await page.request.post(`${supabaseUrl}/rest/v1/profiles`, {
+    headers: {
+      apikey: serviceRoleKey,
+      Authorization: `Bearer ${serviceRoleKey}`,
+      'Content-Type': 'application/json',
+      Prefer: 'resolution=merge-duplicates,return=minimal',
+    },
+    data: { id: studentId, full_name: 'E2E Student', contact_email: STUDENT_EMAIL, country: 'BE' },
+  })
+  expect(profileResp.ok()).toBeTruthy()
 
   // Step 2: encode the session in @supabase/ssr cookie format: `base64-{base64url(JSON)}`
   const sessionJson = JSON.stringify(session)

@@ -25,6 +25,23 @@ async function signInStudent(page: Page): Promise<void> {
   expect(tokenResp.ok()).toBeTruthy()
   const session = await tokenResp.json()
   expect(session.access_token).toBeTruthy()
+  // Profile-complete gate: the fixture needs full_name + country to land on
+  // /student-dashboard (additive upsert — fixture stays non-destructive).
+  const studentId: string = JSON.parse(
+    Buffer.from(session.access_token.split('.')[1], 'base64').toString(),
+  ).sub
+  const profileResp = await page.request.post(
+    `${supabaseUrl}/rest/v1/profiles`,
+    {
+      headers: {
+        ...serviceHeaders(),
+        'Content-Type': 'application/json',
+        Prefer: 'resolution=merge-duplicates,return=minimal',
+      },
+      data: { id: studentId, full_name: 'E2E Student', contact_email: STUDENT_EMAIL, country: 'BE' },
+    },
+  )
+  expect(profileResp.ok()).toBeTruthy()
   const encoded = 'base64-' + Buffer.from(JSON.stringify(session)).toString('base64url')
   await page.context().addCookies([
     { name: `sb-${projectRef}-auth-token`, value: encoded, domain: 'localhost', path: '/', sameSite: 'Lax', httpOnly: true, secure: false },
@@ -149,6 +166,13 @@ test.describe('alert subscriptions', () => {
     const created = await createResp.json()
     const throwawayId = created.id
     expect(throwawayId).toBeTruthy()
+    // Profile-complete gate: the throwaway needs full_name + country to reach
+    // /student-dashboard instead of /student-dashboard/complete-profile.
+    const throwawayProfileResp = await page.request.post(`${supabaseUrl}/rest/v1/profiles`, {
+      headers: { ...serviceHeaders(), 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates,return=minimal' },
+      data: { id: throwawayId, role: 'student', full_name: 'E2E Throwaway', contact_email: throwawayEmail, country: 'BE' },
+    })
+    expect(throwawayProfileResp.ok()).toBeTruthy()
     const throwawayPage = await context.newPage()
     const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     const tokenResp = await throwawayPage.request.post(`${supabaseUrl}/auth/v1/token?grant_type=password`, {

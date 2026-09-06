@@ -1,6 +1,6 @@
 'use client'
 
-import { Download, Users, Filter, Clock, ChevronDown } from 'lucide-react'
+import { Download, Users, GraduationCap, BarChart3, Filter, Clock, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -18,6 +18,8 @@ export function AdminQueueExportBar({ count }: Props) {
   const pendingHref = '/admin/export.csv?status=pending'
   const allHref = '/admin/export.csv'
   const coordinatorsHref = '/admin/export.csv?entity=coordinators'
+  const studentsHref = '/admin/export.csv?entity=students'
+  const analyticsHref = '/admin/export.csv?entity=analytics'
 
   return (
     <DropdownMenu>
@@ -46,6 +48,20 @@ export function AdminQueueExportBar({ count }: Props) {
         <DropdownMenuItem render={<a href={coordinatorsHref} download />} className="flex items-center gap-2 cursor-pointer">
           <Users size={14} className="text-eu-blue" aria-hidden />
           <span className="flex-1 text-sm">Export coordinators</span>
+        </DropdownMenuItem>
+
+        <DropdownMenuSeparator />
+        <div className="px-1.5 py-1 text-[11px] uppercase tracking-wide text-muted font-medium">Students</div>
+        <DropdownMenuItem render={<a href={studentsHref} download />} className="flex items-center gap-2 cursor-pointer">
+          <GraduationCap size={14} className="text-eu-blue" aria-hidden />
+          <span className="flex-1 text-sm">Export students</span>
+        </DropdownMenuItem>
+
+        <DropdownMenuSeparator />
+        <div className="px-1.5 py-1 text-[11px] uppercase tracking-wide text-muted font-medium">Analytics</div>
+        <DropdownMenuItem render={<a href={analyticsHref} download />} className="flex items-center gap-2 cursor-pointer">
+          <BarChart3 size={14} className="text-eu-blue" aria-hidden />
+          <span className="flex-1 text-sm">Export analytics snapshot</span>
         </DropdownMenuItem>
         <div className="px-2 py-1.5 text-[11px] leading-snug text-muted">
           Use the checkboxes on the queue to export only selected BIPs — the “Export selected” action appears in the bottom bar when items are selected.

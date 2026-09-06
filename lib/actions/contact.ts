@@ -11,14 +11,10 @@ import { Resend } from "resend"
  * still return ok so local dev never hard-fails.
  */
 
-export const CONTACT_TOPICS = ["general", "bip-listing", "support"] as const
-export type ContactTopic = (typeof CONTACT_TOPICS)[number]
+import { CONTACT_TOPICS, CONTACT_TOPIC_LABELS, type ContactTopic } from "@/lib/constants/contact"
 
-export const CONTACT_TOPIC_LABELS: Record<ContactTopic, string> = {
-  general: "General question",
-  "bip-listing": "BIP listing help",
-  support: "Bug report / support",
-}
+// Re-exported so existing server-side callers keep working.
+export { CONTACT_TOPICS, CONTACT_TOPIC_LABELS, type ContactTopic }
 
 const contactSchema = z.object({
   name: z.string().trim().min(2, "Please tell us your name.").max(100),
@@ -34,7 +30,27 @@ const contactSchema = z.object({
 })
 
 export type ContactInput = z.infer<typeof contactSchema>
-export type ContactResult = { ok: true } | { ok: false; error: string }
+export type ContactField = "name" | "email" | "topic" | "message"
+export type ContactResult =
+  | { ok: true }
+  | { ok: false; error: string; fieldErrors?: Partial<Record<ContactField, string>> }
+
+/** Simple per-IP throttle: 5 submissions / hour. In-memory is enough at our volume. */
+const RATE_LIMIT_MAX = 5
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000
+const rateLimitHits = new Map<string, number[]>()
+
+function isRateLimited(key: string): boolean {
+  const now = Date.now()
+  const hits = (rateLimitHits.get(key) ?? []).filter((t) => now - t < RATE_LIMIT_WINDOW_MS)
+  if (hits.length >= RATE_LIMIT_MAX) {
+    rateLimitHits.set(key, hits)
+    return true
+  }
+  hits.push(now)
+  rateLimitHits.set(key, hits)
+  return false
+}
 
 function escapeHtml(s: string): string {
   return s
@@ -47,8 +63,38 @@ function escapeHtml(s: string): string {
 export async function submitContactAction(input: ContactInput): Promise<ContactResult> {
   const parsed = contactSchema.safeParse(input)
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0]?.message ?? "Please check the form and try again." }
+    const fieldErrors: Partial<Record<ContactField, string>> = {}
+    for (const issue of parsed.error.issues) {
+      const field = issue.path[0] as ContactField | undefined
+      if (field && !fieldErrors[field]) fieldErrors[field] = issue.message
+    }
+    return {
+      ok: false,
+      error: parsed.error.issues[0]?.message ?? "Please check the form and try again.",
+      fieldErrors,
+    }
   }
+
+  // Throttle after validation so bots hammering invalid payloads don't poison the bucket.
+  // next/headers is async in Next 15 — dynamic import keeps this module importable in tests.
+  let clientKey = "unknown"
+  try {
+    const { headers } = await import("next/headers")
+    const h = await headers()
+    clientKey =
+      h.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      h.get("x-real-ip")?.trim() ||
+      "unknown"
+  } catch {
+    clientKey = "unknown"
+  }
+  if (isRateLimited(`contact:${clientKey}`)) {
+    return {
+      ok: false,
+      error: "You've sent a few messages recently — please wait a little while before trying again.",
+    }
+  }
+
   const { name, email, topic, message } = parsed.data
 
   const to =

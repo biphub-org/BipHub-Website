@@ -21,6 +21,7 @@ import { createClient } from '@/lib/supabase/server'
 import {
   loginSchema,
   registerSchema,
+  studentRegisterSchema,
   resolveLoginSchema,
   passwordResetSchema,
   passwordUpdateSchema,
@@ -122,15 +123,19 @@ export async function signUpAction(formData: FormData): Promise<{ error?: string
   redirect('/verify-email?email=' + encodeURIComponent(parsed.data.email))
 }
 
-// Student registration: email + password, no email confirmation, auto-approved.
-// Creates the user with role='student' so handle_new_user sets profiles.role.
-// With enable_confirmations=false the user is immediately confirmed, so we
-// sign in directly and redirect to /student-dashboard.
+// Student registration: email + password + personal details, no email
+// confirmation, auto-approved. Creates the user with role='student' so
+// handle_new_user sets profiles.role. With enable_confirmations=false the user
+// is immediately confirmed, so we sign in directly, save the profile details
+// and redirect to /student-dashboard.
 export async function signUpStudentAction(formData: FormData): Promise<{ error?: string }> {
-  const parsed = registerSchema.safeParse({
+  const parsed = studentRegisterSchema.safeParse({
     email: formData.get('email'),
     password: formData.get('password'),
     confirmPassword: formData.get('confirmPassword'),
+    full_name: formData.get('full_name'),
+    country: formData.get('country'),
+    university_id: formData.get('university_id'),
   })
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? 'Invalid input.' }
@@ -163,6 +168,43 @@ export async function signUpStudentAction(formData: FormData): Promise<{ error?:
       return { error: 'Account created. Please verify your email before signing in.' }
     }
     return { error: 'Account created. Please sign in.' }
+  }
+
+  // The same client holds the fresh session in memory, so this upsert runs as
+  // the new user (RLS insert_own/update_own on id = auth.uid()). handle_new_user
+  // already created the bare row; this fills in the personal details.
+  const { data: claimsData } = await supabase.auth.getClaims()
+  const userId = claimsData?.claims?.sub
+  if (!userId) {
+    return { error: 'Account created. Please sign in.' }
+  }
+
+  if (parsed.data.university_id) {
+    const { data: uni } = await supabase
+      .from('universities')
+      .select('id')
+      .eq('id', parsed.data.university_id)
+      .maybeSingle()
+    if (!uni) {
+      return { error: 'The selected university is no longer available. Please choose another.' }
+    }
+  }
+
+  const { error: profileError } = await supabase
+    .from('profiles')
+    .upsert(
+      {
+        id: userId,
+        full_name: parsed.data.full_name,
+        contact_email: parsed.data.email,
+        country: parsed.data.country,
+        university_id: parsed.data.university_id ?? null,
+      },
+      { onConflict: 'id' },
+    )
+  if (profileError) {
+    console.error('[signUpStudentAction] profile error:', profileError.message)
+    return { error: 'Account created, but we could not save your profile details. Please complete them after signing in.' }
   }
 
   revalidatePath('/', 'layout')

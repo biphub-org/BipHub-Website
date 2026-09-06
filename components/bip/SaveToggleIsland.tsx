@@ -9,7 +9,7 @@
  *
  * State (D-bip-02-03):
  *   - Displayed state is LOCAL component state seeded from `initialSaved` /
- *     `isStudent`. On dynamic pages (/bips, /student-dashboard/saved) the server
+ *     `isStudent` / `isSignedIn`. On dynamic pages (/bips, /student-dashboard/saved) the server
  *     knows the real values, so the props are correct and SSR paints right away.
  *   - On the ISR pages (/bip/[slug], /) the server cannot read cookies without
  *     losing static rendering, so the props default to false and the component
@@ -19,8 +19,9 @@
  *     cross-request bleed and no hydration mismatch.
  *
  * Behaviour:
- *   - Non-student click routes to /register/student.
+ *   - Signed-out click routes to /register/student.
  *   - Student click: local optimistic flip + useTransition; reverts + toasts on error.
+ *   - Signed-in non-student (coordinator/admin): renders nothing.
  *
  * Accessibility:
  *   - aria-label: "Save {bipTitle}" / "Unsave {bipTitle}"
@@ -69,6 +70,12 @@ export interface SaveToggleIslandProps {
   initialSaved?: boolean
   /** SSR-correct on dynamic pages; defaults to false on ISR pages (corrected client-side). */
   isStudent?: boolean
+  /**
+   * SSR-correct on dynamic pages; defaults to false on ISR pages (corrected
+   * client-side). Signed-out (false) + student (true) see the button;
+   * signed-in non-students (coordinator/admin) do not.
+   */
+  isSignedIn?: boolean
   displayStyle?: 'icon' | 'button'
   className?: string
 }
@@ -78,6 +85,7 @@ export function SaveToggleIsland({
   bipTitle,
   initialSaved = false,
   isStudent: initialIsStudent = false,
+  isSignedIn: initialIsSignedIn = false,
   displayStyle = 'icon',
   className,
 }: SaveToggleIslandProps) {
@@ -86,6 +94,7 @@ export function SaveToggleIsland({
 
   const [saved, setSaved] = useState(initialSaved)
   const [isStudent, setIsStudent] = useState(initialIsStudent)
+  const [isSignedIn, setIsSignedIn] = useState(initialIsSignedIn)
   // Once the user toggles, their action wins over a late store adoption.
   const userTouched = useRef(false)
 
@@ -98,6 +107,7 @@ export function SaveToggleIsland({
       if (state.hydrated && !userTouched.current) {
         setSaved(state.savedIds.has(bipId))
         setIsStudent(state.isStudent)
+        setIsSignedIn(state.isSignedIn)
       }
     }
     apply(useSavedBipsStore.getState())
@@ -128,6 +138,11 @@ export function SaveToggleIsland({
       }
     })
   }
+
+  // Coordinators and admins never see the save affordance. Signed-out visitors
+  // do (their click routes to /register/student). On ISR pages the defaults
+  // render the button until <SavedBipsHydrator /> adopts the real role.
+  if (isSignedIn && !isStudent) return null
 
   const ariaLabel = saved ? `Unsave ${bipTitle}` : `Save ${bipTitle}`
 

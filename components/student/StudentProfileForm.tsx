@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Loader2 } from 'lucide-react'
@@ -19,47 +18,47 @@ import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { CountrySelect } from '@/components/ui/country-select'
 import { UniversityCombobox } from '@/components/dashboard/UniversityCombobox'
-import { signUpStudentAction } from '@/lib/actions/auth'
-import { studentRegisterSchema, type StudentRegisterValues } from '@/lib/schemas/auth'
+import { saveStudentProfileAction } from '@/lib/actions/profile'
+import { studentProfileSchema, type StudentProfileValues } from '@/lib/schemas/profile'
 import type { UniversitySearchResult } from '@/lib/actions/universities'
 
 /**
- * Student registration form — email + password + personal details, no email
- * confirmation. Full name and country are required; home university is
- * optional (clearable). On success the Server Action signs the user in and
- * redirects to /student-dashboard.
+ * StudentProfileForm — personal details for new registrations that predate
+ * the fields, and for editing later. Full name + country required, home
+ * university optional (clearable). On submit the Server Action saves the
+ * profile and redirects to /student-dashboard.
  */
-export function StudentRegisterForm({
+export function StudentProfileForm({
+  initialFullName,
+  initialCountry,
+  initialUniversityId,
   initialUniversities,
 }: {
+  initialFullName: string
+  initialCountry: string
+  initialUniversityId: string
   initialUniversities: UniversitySearchResult[]
 }) {
-  const form = useForm<StudentRegisterValues>({
-    resolver: zodResolver(studentRegisterSchema),
+  const form = useForm<StudentProfileValues>({
+    resolver: zodResolver(studentProfileSchema),
     defaultValues: {
-      email: '',
-      password: '',
-      confirmPassword: '',
-      full_name: '',
-      country: '' as StudentRegisterValues['country'],
-      university_id: '',
+      full_name: initialFullName,
+      country: initialCountry as StudentProfileValues['country'],
+      university_id: initialUniversityId,
     },
     mode: 'onBlur',
   })
   const [serverError, setServerError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
-  function onSubmit(values: StudentRegisterValues) {
+  function onSubmit(values: StudentProfileValues) {
     setServerError(null)
     startTransition(async () => {
       const fd = new FormData()
-      fd.set('email', values.email)
-      fd.set('password', values.password)
-      fd.set('confirmPassword', values.confirmPassword)
       fd.set('full_name', values.full_name)
       fd.set('country', values.country)
       fd.set('university_id', values.university_id ?? '')
-      const result = await signUpStudentAction(fd)
+      const result = await saveStudentProfileAction(fd)
       if (result?.error) setServerError(result.error)
     })
   }
@@ -68,7 +67,7 @@ export function StudentRegisterForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
         {serverError && (
           <Alert variant="destructive">
             <AlertDescription>{serverError}</AlertDescription>
@@ -77,26 +76,12 @@ export function StudentRegisterForm({
 
         <FormField
           control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input type="email" autoComplete="email" autoFocus {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
           name="full_name"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Full name</FormLabel>
               <FormControl>
-                <Input type="text" autoComplete="name" placeholder="Jane Smith" {...field} />
+                <Input type="text" autoComplete="name" placeholder="Jane Smith" autoFocus {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -141,35 +126,9 @@ export function StudentRegisterForm({
                   Clear university
                 </button>
               ) : null}
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Password</FormLabel>
-              <FormControl>
-                <Input type="password" autoComplete="new-password" {...field} />
-              </FormControl>
-              <FormDescription>At least 8 characters.</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="confirmPassword"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Confirm password</FormLabel>
-              <FormControl>
-                <Input type="password" autoComplete="new-password" {...field} />
-              </FormControl>
+              <FormDescription>
+                Helps coordinators and admins recognise your institution.
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -177,15 +136,9 @@ export function StudentRegisterForm({
 
         <Button type="submit" variant="primary" className="w-full" disabled={isPending}>
           {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Create account →
+          Save and continue →
         </Button>
       </form>
-      <p className="mt-4 text-center text-sm text-muted">
-        Already have an account?{' '}
-        <Link href="/login" className="text-eu-blue font-semibold hover:underline">
-          Sign in
-        </Link>
-      </p>
     </Form>
   )
 }

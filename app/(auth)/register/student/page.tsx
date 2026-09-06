@@ -4,9 +4,11 @@ import { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { LogoMark } from '@/components/home/LogoMark'
 import { StudentRegisterForm } from '@/components/auth/StudentRegisterForm'
+import { searchUniversitiesAction } from '@/lib/actions/universities'
 
 /**
- * /register/student — student email+password registration (no email confirmation).
+ * /register/student — student registration (no email confirmation).
+ * Collects personal details (full name, country, optional home university).
  * On success the Server Action auto-signs in and redirects to /student-dashboard.
  */
 
@@ -38,7 +40,7 @@ export default async function StudentRegisterPage() {
           Discover BIPs, save favourites and get alerts.
         </p>
       </header>
-      <StudentRegisterForm />
+      <StudentRegisterForm initialUniversities={await searchUniversitiesAction('')} />
       <p className="mt-6 text-center text-sm text-muted">
         Are you a coordinator?{' '}
         <Link href="/register/coordinator" className="text-eu-blue font-semibold hover:underline">
