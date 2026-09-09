@@ -29,6 +29,7 @@ export const ALLOWED_TRANSITIONS: ReadonlyArray<{
   { from: 'pending',  to: 'rejected', actor: 'admin' },       // reject
   { from: 'rejected', to: 'draft',              actor: 'coordinator' }, // edit-after-reject
   { from: 'approved', to: 'rejected',           actor: 'admin' },       // un-approve
+  { from: 'rejected', to: 'approved',           actor: 'admin' },       // re-approve after un-approve
   { from: 'pending',  to: 'draft',              actor: 'coordinator' }, // withdraw (Phase 2 D-10)
   // Phase 8 (D-06a): changes_requested loop for new-submission review
   { from: 'pending',           to: 'changes_requested', actor: 'admin' },       // request changes on new submission

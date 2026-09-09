@@ -22,6 +22,9 @@ describe('validateTransition (D-06 state machine)', () => {
   it('allows rejected → draft by coordinator (resubmit edit)', () => {
     expect(() => validateTransition('rejected', 'draft', 'coordinator')).not.toThrow()
   })
+  it('allows rejected → approved by admin (re-approve after un-approve)', () => {
+    expect(() => validateTransition('rejected', 'approved', 'admin')).not.toThrow()
+  })
   it('allows approved → rejected by admin (un-approve, reason required)', () => {
     expect(() => validateTransition('approved', 'rejected', 'admin')).not.toThrow()
   })

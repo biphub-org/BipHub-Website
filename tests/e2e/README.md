@@ -41,3 +41,12 @@ npm run test:e2e
 CI (`.github/workflows/e2e.yml`) does exactly this with an ephemeral local stack.
 Local JWT signing keys rotate on every `supabase start`, so storage-state is
 regenerated per run and never committed (see `tests/e2e/setup.ts`).
+
+> ⚠ Playwright workers read `NEXT_PUBLIC_SUPABASE_URL` / keys from
+> `.env.local` — a same-named `.env` file is NOT picked up. To run the suite
+> against local Supabase, point `.env.local` itself at
+> `http://127.0.0.1:54321` (+ local anon/service keys) for the duration of
+> the run, then restore it. Otherwise the UI flows hit your local app while
+> the service-role REST assertions silently query whatever `.env.local`
+> points at (verified 2026-09-07: suite failed on audit reads against the
+> cloud project while all browser flows passed locally).

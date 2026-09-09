@@ -19,7 +19,10 @@ vi.mock('@react-email/components', async () => {
 })
 
 // Mock the Resend SDK so we never make network calls
-const mockSend = vi.fn(async () => ({ data: { id: 'mock' }, error: null }))
+type SendResult =
+  | { data: { id: string }; error: null }
+  | { data: null; error: { message: string; statusCode: number; name: string } }
+const mockSend = vi.fn(async (): Promise<SendResult> => ({ data: { id: 'mock' }, error: null }))
 vi.mock('resend', () => ({
   // Use a real function (not an arrow) so `new Resend(...)` works as a constructor
   Resend: function MockResend() {
@@ -142,6 +145,21 @@ describe('sendEmail (D-15 fallback)', () => {
         subject: 'Update needed on your BIP submission',
       }),
     )
+  })
+
+  it('throws when Resend resolves with an error object (API failures must not be silent)', async () => {
+    vi.stubEnv('RESEND_API_KEY', 're_fake_test_key')
+    mockSend.mockResolvedValueOnce({
+      data: null,
+      error: { message: 'Domain not verified', statusCode: 403, name: 'validation_error' },
+    })
+    const { sendEmail } = await import('@/lib/email/send')
+    await expect(
+      sendEmail('a@x.io', {
+        template: 'approval',
+        props: { bipTitle: 'Q', bipSlug: 'q', coordinatorName: 'A' },
+      }),
+    ).rejects.toThrow('Domain not verified')
   })
 
   it('does not swallow error when resend.emails.send rejects (fire-and-forget contract D-11 enforced at caller)', async () => {

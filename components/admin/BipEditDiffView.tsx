@@ -290,7 +290,7 @@ export function BipEditDiffView({ liveBip, proposedEdit }: Props) {
       </div>
 
       {/* ── Column header row — desktop only (md: = 960px) ──────────────────── */}
-      <div className="hidden md:grid grid-cols-[180px_1fr_1fr] gap-0 px-6 py-2 bg-bg-soft border-b border-border sticky top-[var(--admin-header-height,56px)]">
+      <div className="hidden md:grid grid-cols-[180px_1fr_1fr] gap-0 px-6 py-2 bg-bg-soft border-b border-border">
         <span className="text-xs font-semibold text-muted uppercase tracking-wide">Field</span>
         <span className="text-xs font-semibold text-muted uppercase tracking-wide flex items-center">
           <span
@@ -320,15 +320,15 @@ export function BipEditDiffView({ liveBip, proposedEdit }: Props) {
                 : 'hidden md:grid grid-cols-[180px_1fr_1fr] gap-0 px-6 py-3 border-b border-border hover:bg-bg-soft transition-colors'
             }
           >
-            <span className="text-sm font-semibold text-muted self-start pt-0.5">{label}</span>
-            <span className="text-sm text-ink whitespace-pre-wrap">
+            <span className="text-sm font-semibold text-muted self-start pt-0.5 min-w-0">{label}</span>
+            <span className="text-sm text-ink whitespace-pre-wrap min-w-0 break-words">
               {liveVal != null && liveVal !== '' ? (
                 liveVal
               ) : (
                 <span className="text-muted">—</span>
               )}
             </span>
-            <span className="text-sm text-ink whitespace-pre-wrap">
+            <span className="text-sm text-ink whitespace-pre-wrap min-w-0 break-words">
               {proposedVal != null && proposedVal !== '' ? (
                 proposedVal
               ) : (
@@ -347,13 +347,13 @@ export function BipEditDiffView({ liveBip, proposedEdit }: Props) {
           >
             <p className="text-sm font-semibold text-muted mb-1">{label}</p>
             <p className="text-xs font-semibold text-muted">Live:</p>
-            <p className="text-sm text-ink whitespace-pre-wrap mb-1">
+            <p className="text-sm text-ink whitespace-pre-wrap break-words mb-1">
               {liveVal != null && liveVal !== '' ? liveVal : '—'}
             </p>
             {changed && (
               <>
                 <p className="text-xs font-semibold text-muted">Proposed:</p>
-                <p className="text-sm text-ink whitespace-pre-wrap">
+                <p className="text-sm text-ink whitespace-pre-wrap break-words">
                   {proposedVal != null && proposedVal !== '' ? proposedVal : '—'}
                 </p>
               </>

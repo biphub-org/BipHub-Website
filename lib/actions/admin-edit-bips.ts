@@ -220,11 +220,11 @@ export async function approveEditAction(editId: string): Promise<AdminActionResu
   }
 
   // 5c. Partner reconciliation — parse partner_institutions JSONB → bip_partner_universities
-  //     Delete-then-insert mirrors submitBipAction (T-02-07-07 risk accepted; small N).
+  //     Atomic RPC (migration 00051). Runs as admin (admin_all policy), so the
+  //     merge works on the live approved BIP.
   const partnerRaw = Array.isArray(editRow.partner_institutions)
     ? (editRow.partner_institutions as RawPartnerInstitution[])
     : []
-  await supabase.from('bip_partner_universities').delete().eq('bip_id', editRow.bip_id)
   const partnerRows = partnerRaw.map((p) =>
     p.isVerified && p.university_id
       ? {
@@ -242,12 +242,13 @@ export async function approveEditAction(editId: string): Promise<AdminActionResu
           partner_erasmus_code_raw: null,
         },
   )
-  if (partnerRows.length > 0) {
-    const { error: partnerError } = await supabase
-      .from('bip_partner_universities')
-      .insert(partnerRows)
+  {
+    const { error: partnerError } = await supabase.rpc('reconcile_bip_partners', {
+      p_bip_id: editRow.bip_id,
+      p_partners: partnerRows,
+    })
     if (partnerError) {
-      console.error('[approveEditAction] partner insert error:', partnerError.message)
+      console.error('[approveEditAction] partner reconcile error:', partnerError.message)
       // Non-fatal — content merge already committed. Admin can re-edit if needed.
     }
   }

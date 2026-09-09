@@ -59,9 +59,9 @@ export function AdminEditFooter({
   const [isPending, startTransition] = useTransition()
 
   // Mirror AdminActionsPanel's gating (D-06):
-  //   - Approve is only legal from `pending`.
+  //   - Approve is legal from `pending` or `rejected` (re-approve after un-approve).
   //   - Reject is legal from `pending` (standard) or `approved` (un-approve).
-  const canApprove = currentStatus === 'pending'
+  const canApprove = currentStatus === 'pending' || currentStatus === 'rejected'
   const canReject =
     currentStatus === 'pending' || currentStatus === 'approved'
 

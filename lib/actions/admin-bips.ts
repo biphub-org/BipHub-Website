@@ -406,14 +406,13 @@ export async function adminUpdateBipAction(
     return { error: 'Failed to save changes. Please try again.' }
   }
 
-  // 5. Partner upsert — same delete-then-insert pattern as submitBipAction.
+  // 5. Partner upsert — atomic RPC (migration 00051).
   //    `partner_universities` lives on the wizard draft (not the
   //    fullBipSchema, which only validates flat bips columns); pull it
   //    off the raw `data` argument. An undefined partners array means
   //    "do not touch partner rows" — but the wizard always sends the
   //    full array on Step 5, so we always reconcile.
   const partners: Step3PartnerDraft[] = data.partner_universities ?? []
-  await supabase.from('bip_partner_universities').delete().eq('bip_id', bipId)
   const partnerRows = partners.map((p) =>
     p.isVerified && p.university_id
       ? {
@@ -431,13 +430,14 @@ export async function adminUpdateBipAction(
           partner_erasmus_code_raw: null,
         },
   )
-  if (partnerRows.length > 0) {
-    const { error: partnerError } = await supabase
-      .from('bip_partner_universities')
-      .insert(partnerRows)
+  {
+    const { error: partnerError } = await supabase.rpc('reconcile_bip_partners', {
+      p_bip_id: bipId,
+      p_partners: partnerRows,
+    })
     if (partnerError) {
       console.error(
-        '[adminUpdateBipAction] partner insert error:',
+        '[adminUpdateBipAction] partner reconcile error:',
         partnerError.message,
       )
       // Non-fatal: bips row already updated. Surface a warning so the

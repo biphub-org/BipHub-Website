@@ -62,7 +62,7 @@ export default function PrivacyPage() {
           <p className="mt-6 max-w-[62ch] text-[18px] leading-relaxed text-white/70">
             How BipHub processes personal data for EU users. No analytics, no third-party trackers, no marketing pixels — essential session cookies only, and everything else stays on your device or in your account.
           </p>
-          <p className="mt-6 text-[13px] font-medium text-white/50">Last updated: 15th June 2026</p>
+          <p className="mt-6 text-[13px] font-medium text-white/50">Last updated: 9th September 2026</p>
         </div>
       </section>
 
@@ -80,7 +80,7 @@ export default function PrivacyPage() {
               <h2 className="text-[clamp(28px,3.5vw,40px)] font-bold tracking-tight text-ink">Data Controller</h2>
               <div className="mt-4 space-y-4 leading-relaxed text-ink-2">
                 <p>
-                  Hexona Systems operates BipHub as an independent open-source project. The data controller for personal data processed through this site is Hexona Systems. For privacy questions or to exercise your rights under GDPR Articles 15–17, contact us at{' '}
+                  Hexona Systems operates BipHub as an independent open-source project. The data controller for personal data processed through this site is Hexona Systems. For privacy questions or to exercise your rights under GDPR Articles 15–18 and 21, contact us at{' '}
                   <a href="mailto:biphub.org@gmail.com" className="text-eu-blue underline">
                     biphub.org@gmail.com
                   </a>
@@ -121,6 +121,9 @@ export default function PrivacyPage() {
                 <p>
                   <strong className="text-ink">No analytics.</strong> We run no analytics scripts, no third-party trackers, no marketing pixels, no advertising cookies. We do not measure your behaviour. This is by design — the cheapest GDPR-compliant path is to collect nothing.
                 </p>
+                <p>
+                  <strong className="text-ink">Processors and hosting.</strong> Your data is processed on our behalf by: Supabase (database and authentication hosting, EU region); Resend (transactional email — recipient email addresses and email content — for coordinator notifications and student digest alerts); and Vercel (application hosting — request metadata including IP addresses). Each processes personal data only to provide its service to us.
+                </p>
               </div>
             </section>
 
@@ -130,7 +133,10 @@ export default function PrivacyPage() {
               <h2 className="text-[clamp(28px,3.5vw,40px)] font-bold tracking-tight text-ink">Legal basis</h2>
               <div className="mt-4 space-y-4 leading-relaxed text-ink-2">
                 <p>
-                  For coordinator accounts, the legal basis is contract performance (Art 6(1)(b) GDPR) — we cannot operate the directory without storing the account. For published BIP submissions, the legal basis is legitimate interest (Art 6(1)(f) GDPR) in maintaining a public Erasmus+ directory benefiting students across Europe. We do not rely on consent for any data processing in v1 because we collect no consent-requiring data.
+                  For coordinator accounts, the legal basis is contract performance (Art 6(1)(b) GDPR) — we cannot operate the directory without storing the account. For published BIP submissions, the legal basis is legitimate interest (Art 6(1)(f) GDPR) in maintaining a public Erasmus+ directory benefiting students across Europe.
+                </p>
+                <p>
+                  <strong className="text-ink">Alert emails are consent-based.</strong> Digest emails are sent only to students who opt in by saving alert preferences, on the basis of consent (Art 6(1)(a) GDPR). The exact consent text you agreed to is stored alongside your preferences as a record. You may withdraw your consent at any time — via the unsubscribe link in any digest email (no sign-in required), by clearing your alert preferences, or by deleting your account — and withdrawal does not affect the lawfulness of processing before it.
                 </p>
               </div>
             </section>
@@ -152,11 +158,28 @@ export default function PrivacyPage() {
               <h2 className="text-[clamp(28px,3.5vw,40px)] font-bold tracking-tight text-ink">Your rights</h2>
               <div className="mt-4 space-y-4 leading-relaxed text-ink-2">
                 <p>
-                  Under GDPR you have the right of access (Art 15) to a copy of your personal data, the right of rectification (Art 16) to correct inaccurate data, and the right of erasure (Art 17) to have your data deleted. The right of erasure is exercised in-product via the Delete account button at <code>/dashboard/settings</code>. For access or rectification requests, email{' '}
+                  Under GDPR you have the right of access (Art 15) to a copy of your personal data, the right of rectification (Art 16) to correct inaccurate data, and the right of erasure (Art 17) to have your data deleted. You also have the right to restriction of processing (Art 18) — to ask us to limit how we use your data while, for example, the accuracy of the data or the basis for processing is being checked. The right of erasure is exercised in-product via the Delete account button at <code>/dashboard/settings</code>. For access, rectification, or restriction requests, email{' '}
                   <a href="mailto:biphub.org@gmail.com" className="text-eu-blue underline">
                     biphub.org@gmail.com
                   </a>{' '}
                   — we respond within 30 days.
+                </p>
+                <p>
+                  <strong className="text-ink">Right to object (Art 21).</strong> Where we process your data on legitimate-interest grounds — in particular published BIP submission data — you may object to that processing at any time on grounds relating to your particular situation. If you do, we will stop processing your data unless we can demonstrate compelling legitimate grounds that override your interests, rights and freedoms, or unless the processing is needed for the establishment, exercise or defence of legal claims. To object, email{' '}
+                  <a href="mailto:biphub.org@gmail.com" className="text-eu-blue underline">
+                    biphub.org@gmail.com
+                  </a>
+                  .
+                </p>
+                <p>
+                  Where processing is based on your consent — such as alert digest emails — you have the right to withdraw that consent at any time (Art 7(3)), as described under Legal basis above.
+                </p>
+                <p>
+                  <strong className="text-ink">Right to complain.</strong> You have the right to lodge a complaint with a supervisory authority (Art 77) — normally your national data protection authority in the EU/EEA country where you live, work, or where the alleged infringement took place. You can find your authority on the European Data Protection Board&apos;s{' '}
+                  <a href="https://www.edpb.europa.eu/about-edpb/our-members_en" className="text-eu-blue underline">
+                    list of members (national data protection authorities)
+                  </a>
+                  .
                 </p>
               </div>
             </section>

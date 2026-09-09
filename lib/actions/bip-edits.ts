@@ -273,7 +273,7 @@ export async function resubmitEditAction(
  * (own + status='pending'). The combined content+status update satisfies WITH CHECK
  * because the post-image status is 'pending'.
  *
- * Partners are reconciled via the canonical delete-then-insert (bip_partner_universities).
+ * Partners are reconciled via the atomic reconcile_bip_partners RPC (migration 00051).
  * The 00018 trigger returns early for this transition so the Server Action is NOT
  * the canonical audit writer — the trigger handles 'resubmit' automatically.
  */
@@ -336,9 +336,10 @@ export async function resubmitPendingBipAction(
     return { error: 'Failed to resubmit. Please try again.' }
   }
 
-  // 5. Partner reconciliation — delete-then-insert (mirrors submitBipAction)
+  // 5. Partner reconciliation — atomic RPC (migration 00051) replacing
   //    bip_partner_universities for the bips row (not bip_edits JSONB).
-  await supabase.from('bip_partner_universities').delete().eq('bip_id', bipId)
+  //    Previously delete-then-insert with the delete error ignored; the RPC
+  //    makes the replacement transactional and surfaces failures.
 
   const partnerRows = partners.map((p) =>
     p.isVerified && p.university_id
@@ -358,12 +359,13 @@ export async function resubmitPendingBipAction(
         },
   )
 
-  if (partnerRows.length > 0) {
-    const { error: partnerError } = await supabase
-      .from('bip_partner_universities')
-      .insert(partnerRows)
+  {
+    const { error: partnerError } = await supabase.rpc('reconcile_bip_partners', {
+      p_bip_id: bipId,
+      p_partners: partnerRows,
+    })
     if (partnerError) {
-      console.error('[resubmitPendingBipAction] partner insert error:', partnerError.message)
+      console.error('[resubmitPendingBipAction] partner reconcile error:', partnerError.message)
       // BIP is already pending — partners can be fixed on next edit.
       return {
         error: 'BIP resubmitted but partners could not be saved. Edit the BIP to add partners.',

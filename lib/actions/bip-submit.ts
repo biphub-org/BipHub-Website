@@ -30,11 +30,10 @@
  *     BIP, we append the bip-id prefix to keep `bips.slug` UNIQUE
  *     (T-02-07-04 mitigation).
  *
- * Partner write (T-02-07-07 risk acceptance):
- *   - Delete-then-insert for `bip_partner_universities` rows scoped by
- *     `bip_id`. Phase 2 accepts the brief failure window between delete and
- *     insert as recoverable via edit (small N, no transaction primitive in
- *     Supabase JS client v1). Free-text partners get the `(unverified)`
+ * Partner write (atomic since migration 00051):
+ *   - `reconcile_bip_partners` RPC replaces `bip_partner_universities` rows
+ *     scoped by `bip_id` in a single transaction (retires the T-02-07-07
+ *     delete-then-insert failure window). Free-text partners get the `(unverified)`
  *     suffix in `partner_name_raw` per the public-page contract from
  *     Plan 01-07.
  *
@@ -210,14 +209,9 @@ export async function submitBipAction(
     return { error: 'Failed to submit BIP. Please try again.' }
   }
 
-  // 2. Replace partner rows scoped by bip_id. Small N (≤5-10 partners in
-  //    practice). T-02-07-07 documents the accepted brief failure window
-  //    between delete and insert.
-  await supabase
-    .from('bip_partner_universities')
-    .delete()
-    .eq('bip_id', bipId)
-
+  // 2. Replace partner rows scoped by bip_id (atomic RPC, migration 00051 —
+  //    delete+insert run in one transaction; an empty list clears partners,
+  //    preserving the previous unconditional-delete semantics).
   const partnerRows = (partners ?? []).map((p) =>
     p.isVerified && p.university_id
       ? {
@@ -236,13 +230,14 @@ export async function submitBipAction(
         },
   )
 
-  if (partnerRows.length > 0) {
-    const { error: partnerError } = await supabase
-      .from('bip_partner_universities')
-      .insert(partnerRows)
+  {
+    const { error: partnerError } = await supabase.rpc('reconcile_bip_partners', {
+      p_bip_id: bipId,
+      p_partners: partnerRows,
+    })
     if (partnerError) {
       console.error(
-        '[submitBipAction] partner insert error:',
+        '[submitBipAction] partner reconcile error:',
         partnerError.message,
       )
       // BIP is already pending; partners can be added on edit. Surface a

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import type { Json } from '@/lib/supabase/database.types'
 import { getCountryName } from '@/lib/countries'
 
 /**
@@ -20,6 +21,11 @@ import { getCountryName } from '@/lib/countries'
  *  - entity: 'bips' (default) | 'coordinators' | 'students' | 'analytics'
  *
  * Auth: getClaims() + role='admin' — defense in depth; RLS also scopes.
+ *
+ * Audit: every successful export appends one row to `admin_export_log`
+ * (migration 00053) capturing the admin id, timestamp (defaulted), dataset,
+ * exported columns, row count, and scoping filters. Best-effort — a logging
+ * failure is console-logged and never fails the export itself.
  */
 
 const VALID_STATUSES = new Set([
@@ -52,6 +58,29 @@ function parseCsvParam(sp: URLSearchParams, key: string): string[] | undefined {
     .filter(Boolean)
   // Also support repeated keys ?country=DE&country=FR → getAll already merged by URLSearchParams.get but we handle getAll separately via caller
   return parts.length ? parts : undefined
+}
+
+type DbClient = Awaited<ReturnType<typeof createClient>>
+
+type ExportAuditEntry = {
+  entity: 'bips' | 'coordinators' | 'students' | 'analytics'
+  columns: string[]
+  rowCount: number
+  filters: Record<string, Json | undefined>
+}
+
+/** Append-only audit row for a completed export. Never throws. */
+async function logAdminExport(supabase: DbClient, adminId: string, entry: ExportAuditEntry): Promise<void> {
+  const { error } = await supabase.from('admin_export_log').insert({
+    admin_id: adminId,
+    entity: entry.entity,
+    columns: entry.columns,
+    row_count: entry.rowCount,
+    filters: entry.filters,
+  })
+  if (error) {
+    console.error('[GET /admin/export.csv] audit log insert failed:', error.message)
+  }
 }
 
 function csvDownload(csv: string, filename: string): NextResponse {
@@ -195,6 +224,13 @@ export async function GET(req: NextRequest) {
     const csv = lines.join('\n')
     const suffix = ids ? `selected-${ids.length}` : q || doCountryFilter ? 'filtered' : 'all'
     const filename = `biphub-coordinators-${suffix}-${today}.csv`
+
+    await logAdminExport(supabase, claims.sub, {
+      entity: 'coordinators',
+      columns: header,
+      rowCount: rows.length,
+      filters: { ids: ids ?? null, q: q || null, country: countryParam ?? null },
+    })
 
     return new NextResponse(csv, {
       status: 200,
@@ -368,6 +404,12 @@ export async function GET(req: NextRequest) {
       : q || alertsFilter !== 'all'
         ? 'filtered'
         : 'all'
+    await logAdminExport(supabase, claims.sub, {
+      entity: 'students',
+      columns: header,
+      rowCount: filtered.length,
+      filters: { ids: ids ?? null, q: q || null, alerts: alertsFilter },
+    })
     return csvDownload(lines.join('\n'), `biphub-students-${suffix}-${today}.csv`)
   }
 
@@ -461,6 +503,12 @@ export async function GET(req: NextRequest) {
       push('bips_by_country', `${code} — ${getCountryName(code)}`, count)
     }
 
+    await logAdminExport(supabase, claims.sub, {
+      entity: 'analytics',
+      columns: ['category', 'metric', 'value'],
+      rowCount: lines.length - 1,
+      filters: {},
+    })
     return csvDownload(lines.join('\n'), `biphub-analytics-${today}.csv`)
   }
 
@@ -630,6 +678,23 @@ export async function GET(req: NextRequest) {
 
   const filename = `biphub-bips-${suffix}-${today}.csv`
 
+  await logAdminExport(supabase, claims.sub, {
+    entity: 'bips',
+    columns: header,
+    rowCount: rows.length,
+    filters: {
+      status,
+      q: q || null,
+      ids: ids ?? null,
+      country: countryFinal ?? null,
+      field: fieldFinal ?? null,
+      lang: langFinal ?? null,
+      level: levelFinal ?? null,
+      dateFrom: dateFrom ?? null,
+      dateTo: dateTo ?? null,
+      availability: availability ?? null,
+    },
+  })
   return new NextResponse(csv, {
     status: 200,
     headers: {

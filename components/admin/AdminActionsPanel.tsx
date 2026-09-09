@@ -55,7 +55,11 @@ export function AdminActionsPanel({
   const [isApproving, startApproveTransition] = useTransition()
 
   // ── Enabled gates (WARNING-1: gates MUST match action guards in 08-05) ──
-  const canApprove = currentStatus === 'pending'
+  // Edit mode approves the *edit* (pending only). New submissions approve the
+  // BIP itself — allowed from pending or rejected (re-approve after un-approve).
+  const canApprove = isEdit
+    ? currentStatus === 'pending'
+    : currentStatus === 'pending' || currentStatus === 'rejected'
   // canRequestChanges: pending ONLY — matches requestChangesEditAction guard (status==='pending').
   // Do NOT also enable on changes_requested; action would return an error → broken UX.
   const canRequestChanges = currentStatus === 'pending'

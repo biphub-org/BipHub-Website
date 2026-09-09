@@ -225,7 +225,25 @@ Copy this checklist into your PR description and tick every applicable box.
       open an issue first to discuss the consent posture.
 - [ ] No 12-star arrangement in any new artwork (see Section 3).
 
-## Section 8 — Code of Conduct
+## Section 8 — Secret rotation runbook
+
+If `SUPABASE_SERVICE_ROLE_KEY` or `RESEND_API_KEY` is ever suspected leaked
+(committed to git, pasted into a chat/log, exposed in a client bundle):
+
+1. **Revoke first, ask later.** Supabase Dashboard → Project Settings → API →
+   roll the service-role key. Resend Dashboard → API Keys → delete + recreate.
+   Speed matters more than forensics: the service-role key bypasses all RLS.
+2. **Update Vercel.** Project → Settings → Environment Variables → replace the
+   key in Production (and Preview/Development), then redeploy.
+3. **Update local dev.** Replace the key in your own `.env.local` (never commit it).
+4. **Verify.** Confirm the old key is dead (a request with it must fail) and the
+   app works with the new one. Purge the leak from git history only if it was
+   committed (`git filter-repo`, then force-push + rotate again, since
+   force-push doesn't erase cached copies).
+5. **Prevent recurrence.** Never put secrets in `NEXT_PUBLIC_` vars, never
+   `console.log` them, and keep the gitleaks gate green.
+
+## Section 9 — Code of Conduct
 
 This project follows the [Contributor Covenant v2.1](./CODE_OF_CONDUCT.md).
 Reports of unacceptable behaviour go to **biphub.org@gmail.com**.

@@ -70,23 +70,19 @@ async function reconcilePartners(
   bipId: string,
   partners: NonNullable<BipDraftData['partner_universities']>,
 ): Promise<string | undefined> {
-  const { error: deleteError } = await supabase
-    .from('bip_partner_universities')
-    .delete()
-    .eq('bip_id', bipId)
-  if (deleteError) {
-    console.error('[saveDraftAction] partner delete error:', deleteError.message)
-    return 'Your partner universities could not be saved. They are still on screen — try saving again.'
-  }
-
   const rows = toPartnerRows(bipId, partners)
   if (rows.length === 0) return undefined
 
-  const { error: insertError } = await supabase
-    .from('bip_partner_universities')
-    .insert(rows)
-  if (insertError) {
-    console.error('[saveDraftAction] partner insert error:', insertError.message)
+  // Atomic replacement via RPC (migration 00051): delete+insert run in a
+  // single transaction, so an insert failure rolls back the delete instead
+  // of losing all partners. RLS (ownership + 00052 status guard) applies
+  // inside the function (SECURITY INVOKER).
+  const { error: reconcileError } = await supabase.rpc('reconcile_bip_partners', {
+    p_bip_id: bipId,
+    p_partners: rows,
+  })
+  if (reconcileError) {
+    console.error('[saveDraftAction] partner reconcile error:', reconcileError.message)
     return 'Your partner universities could not be saved. They are still on screen — try saving again.'
   }
   return undefined

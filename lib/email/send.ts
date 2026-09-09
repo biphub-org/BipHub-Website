@@ -120,11 +120,20 @@ export async function sendEmail(to: string, payload: EmailPayload): Promise<void
 
   const replyTo = process.env.ADMIN_REPLY_TO_EMAIL || 'noreply@biphub.eu'
 
-  await resend.emails.send({
+  // NOTE: the Resend SDK resolves (does NOT throw) on API errors — failures
+  // arrive as `{ data: null, error }`. Ignoring the return value makes every
+  // Resend-side rejection (bad key, unverified domain, quota) completely
+  // silent, so surface it as a throw. Callers MUST catch (D-11) and log.
+  const result = await resend.emails.send({
     from: 'BipHub <noreply@biphub.eu>', // D-13 verified sender
     to,
     replyTo,
     subject,
     html,
   })
+  if (result.error) {
+    throw new Error(
+      `Resend send failed [${result.error.name}]: ${result.error.message}`,
+    )
+  }
 }
