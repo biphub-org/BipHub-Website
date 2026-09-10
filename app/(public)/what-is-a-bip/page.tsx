@@ -17,7 +17,7 @@
  *   4. Outbound EC link.
  *
  * Constraints kept:
- *   - Pure RSC (no 'use client'), `force-static` revalidation.
+ *   - Pure RSC (no 'use client'), rendered per request (never force-static).
  *   - Accordion uses `multiple` prop, not `type='multiple'`.
  *   - EC link rel="noopener noreferrer", no claim of EC affiliation.
  */
@@ -41,7 +41,9 @@ import {
   AccordionContent,
 } from '@/components/ui/accordion'
 
-export const dynamic = 'force-static'
+// Per-request rendering (never force-static): the auth-aware (public) layout
+// reads session cookies for the nav — force-static would bake the logged-out
+// nav into the production prerender (see tests/routing/public-static-guard).
 
 export const metadata: Metadata = {
   title: 'What is a BIP? · BipHub',

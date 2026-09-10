@@ -4,14 +4,17 @@
  * Shares the /about visual language:
  *  - Full-bleed dark hero (#0a1735, halos) — eyebrow + h1 + lead.
  *  - Two-column body: topic cards + direct channels | working form.
- *  - Pure static shell (force-static); ContactForm hydrates on the client.
+ *  - Static shell rendered per request (never force-static — see below);
+ *    ContactForm hydrates on the client.
  */
 
 import type { Metadata } from 'next'
 import { Eyebrow } from '@/components/home/Eyebrow'
 import { ContactSection } from './ContactSection'
 
-export const dynamic = 'force-static'
+// Per-request rendering (never force-static): the auth-aware (public) layout
+// reads session cookies for the nav — force-static would bake the logged-out
+// nav into the production prerender (see tests/routing/public-static-guard).
 
 export const metadata: Metadata = {
   title: 'Contact us · BipHub',

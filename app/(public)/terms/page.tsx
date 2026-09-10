@@ -4,7 +4,8 @@
  * Shares the /what-is-a-bip visual language:
  *  - Full-bleed dark hero (#0a1735, halos) — eyebrow + h1 + lead + last-updated.
  *  - Article body inside max-w-[1200px] container, 220px sticky TOC sidebar.
- *  - Pure RSC, force-static, 8 sections in locked order.
+ *  - Pure RSC, rendered per request (never force-static — see below),
+ *    8 sections in locked order.
  */
 
 import type { Metadata } from 'next'
@@ -12,7 +13,9 @@ import Link from 'next/link'
 import { Eyebrow } from '@/components/home/Eyebrow'
 import { PageSidebar } from '@/components/what-is-a-bip/PageSidebar'
 
-export const dynamic = 'force-static'
+// Per-request rendering (never force-static): the auth-aware (public) layout
+// reads session cookies for the nav — force-static would bake the logged-out
+// nav into the production prerender (see tests/routing/public-static-guard).
 
 export const metadata: Metadata = {
   title: 'Terms of service · BipHub',

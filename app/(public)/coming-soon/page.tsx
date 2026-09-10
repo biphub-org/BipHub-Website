@@ -8,7 +8,7 @@
  * Shares the /about visual language:
  *  - Full-bleed dark hero (#0a1735, halos) — eyebrow + h1 + lead.
  *  - Cards with rounded-xl border-eu-blue-100 + soft shadow.
- *  - Pure RSC, force-static.
+ *  - Pure RSC, rendered per request (never force-static — see below).
  */
 
 import type { Metadata } from 'next'
@@ -16,7 +16,9 @@ import Link from 'next/link'
 import { Eyebrow } from '@/components/home/Eyebrow'
 import { Sparkles, FlaskConical, MessagesSquare } from 'lucide-react'
 
-export const dynamic = 'force-static'
+// Per-request rendering (never force-static): the auth-aware (public) layout
+// reads session cookies for the nav — force-static would bake the logged-out
+// nav into the production prerender (see tests/routing/public-static-guard).
 
 export const metadata: Metadata = {
   title: 'Coming soon · BipHub',

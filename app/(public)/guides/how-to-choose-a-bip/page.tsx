@@ -3,7 +3,9 @@ import Link from 'next/link'
 import { GuideShell } from '@/components/guides/GuideShell'
 import { getGuide } from '@/lib/content/guides'
 
-export const dynamic = 'force-static'
+// Per-request rendering (never force-static): the auth-aware (public) layout
+// reads session cookies for the nav — force-static would bake the logged-out
+// nav into the production prerender (see tests/routing/public-static-guard).
 
 const guide = getGuide('how-to-choose-a-bip')!
 

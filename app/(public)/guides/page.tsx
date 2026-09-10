@@ -28,7 +28,9 @@ const TOPIC_ICONS = {
   Building2,
 } as const
 
-export const dynamic = 'force-static'
+// Per-request rendering (never force-static): the auth-aware (public) layout
+// reads session cookies for the nav — force-static would bake the logged-out
+// nav into the production prerender (see tests/routing/public-static-guard).
 
 export const metadata: Metadata = {
   title: 'Guides · BipHub',

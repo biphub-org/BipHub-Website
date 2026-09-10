@@ -5,7 +5,7 @@
  *  - Full-bleed dark hero (#0a1735, halos) — eyebrow + h1 + lead + CTA row.
  *  - Article body inside max-w-[1200px] container, 220px sticky TOC sidebar.
  *  - Sections with Eyebrow + h2 (clamp 28-40) + body + visual cards.
- *  - Pure RSC, force-static.
+ *  - Pure RSC, rendered per request (never force-static — see below).
  */
 
 import type { Metadata } from 'next'
@@ -15,7 +15,9 @@ import { Eyebrow } from '@/components/home/Eyebrow'
 import { PageSidebar } from '@/components/what-is-a-bip/PageSidebar'
 import { Button } from '@/components/ui/button'
 
-export const dynamic = 'force-static'
+// Per-request rendering (never force-static): the auth-aware (public) layout
+// reads session cookies for the nav — force-static would bake the logged-out
+// nav into the production prerender (see tests/routing/public-static-guard).
 
 export const metadata: Metadata = {
   title: 'About BipHub · The open Erasmus+ BIP directory',
