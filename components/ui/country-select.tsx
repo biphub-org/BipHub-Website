@@ -26,7 +26,6 @@ export function CountrySelect({
       onChange={(e) => onChange(e.target.value)}
       className="block w-full rounded-md border border-border bg-white px-3 py-2 text-sm"
     >
-      <option value="">Country…</option>
       {ERASMUS_COUNTRIES.map((c) => (
         <option key={c.code} value={c.code}>
           {c.name}

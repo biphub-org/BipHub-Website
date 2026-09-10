@@ -114,10 +114,10 @@ export default function ComingSoonPage() {
           {UPCOMING.map(({ id, icon: Icon, status, title, body }) => (
             <div
               key={id}
-              className="flex flex-col rounded-xl border border-eu-blue-100 bg-white p-6 shadow-[0_4px_16px_rgba(10,23,53,0.06)]"
+              className="group flex flex-col rounded-xl border border-eu-blue-100 bg-white p-6 shadow-[0_4px_16px_rgba(10,23,53,0.06)] transition-all duration-300 hover:-translate-y-1 hover:border-eu-blue-200 hover:shadow-[0_12px_28px_rgba(10,23,53,0.10)]"
             >
               <div className="flex items-center justify-between">
-                <span className="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-eu-blue-50 text-eu-blue">
+                <span className="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-eu-blue-50 text-eu-blue transition-colors duration-300 group-hover:bg-eu-blue group-hover:text-white">
                   <Icon size={20} strokeWidth={1.8} />
                 </span>
                 <span

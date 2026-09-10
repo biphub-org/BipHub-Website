@@ -5,8 +5,10 @@ import { Button } from '@/components/ui/button'
 import { getSavedBipsCount } from '@/lib/queries/savedBips'
 import { DeleteAccountDialog } from '@/components/dashboard/DeleteAccountDialog'
 import { StudentChangePasswordForm } from '@/components/student/StudentChangePasswordForm'
+import { StudentProfileForm } from '@/components/student/StudentProfileForm'
 import { LegacySweepIsland } from '@/components/student/LegacySweepIsland'
 import { AlertPreferencesForm } from '@/components/student/AlertPreferencesForm'
+import { searchUniversitiesAction } from '@/lib/actions/universities'
 
 /**
  * /student-dashboard — D-14 minimal-but-real shell (STUD-03 / 05-UI-SPEC Surface 2).
@@ -17,9 +19,11 @@ import { AlertPreferencesForm } from '@/components/student/AlertPreferencesForm'
  *
  * Structure:
  *   1. Welcome section — h1 greeting + "Signed in as {email}" sub-line
- *   2. Account card — email + secondary Sign out
- *   3. Explore card — "Browse Erasmus+ BIPs" + "Browse BIPs →" CTA
- *   4. Coming-soon plain paragraph (no Card wrapper, no placeholder cards)
+ *   2. Explore card — "Browse Erasmus+ BIPs" + "Browse BIPs →" CTA
+ *   3. Saved BIPs summary card
+ *   4. Alert preferences card
+ *   5. Profile card — edit name, country, home university in place
+ *   6. Account card — email + change password + delete
  *
  * NO Saved-BIPs or Alerts placeholder cards (deferred to Phase 6/7 per D-14).
  */
@@ -40,22 +44,36 @@ export default async function StudentDashboardPage() {
   // Count saved BIPs for the dashboard summary card (lightweight HEAD query).
   const savedCount = claims?.sub ? await getSavedBipsCount(claims.sub) : 0
 
-  // Fetch profiles.full_name for the greeting. Students have full_name = NULL
-  // in Phase 5 (no student profile completion flow), so the greeting falls
-  // back to "Welcome back" without a name component.
+  // Fetch the student profile: full_name for the greeting (falls back to
+  // "Welcome back" without a name component when NULL) plus country and
+  // university_id to prefill the editable Profile card below.
   let firstName: string | null = null
+  let profileFullName = ''
+  let profileCountry = ''
+  let profileUniversityId = ''
   if (claims?.sub) {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('full_name')
+      .select('full_name, country, university_id')
       .eq('id', claims.sub)
       .maybeSingle()
 
-    if (profile?.full_name) {
+    const row = (profile ?? {}) as {
+      full_name?: string | null
+      country?: string | null
+      university_id?: string | null
+    }
+    profileFullName = row.full_name ?? ''
+    profileCountry = row.country ?? ''
+    profileUniversityId = row.university_id ?? ''
+
+    if (row.full_name) {
       // Extract the first word of full_name (UI-SPEC welcome logic)
-      firstName = profile.full_name.trim().split(/\s+/)[0] ?? null
+      firstName = row.full_name.trim().split(/\s+/)[0] ?? null
     }
   }
+
+  const initialUniversities = await searchUniversitiesAction('')
 
   return (
     <div className="flex flex-col gap-8">
@@ -103,7 +121,22 @@ export default async function StudentDashboardPage() {
         <AlertPreferencesSection />
       </div>
 
-      {/* 5. Account — single combined section at the end, with change password + delete */}
+      {/* 5. Profile — edit name, country, home university in place */}
+      <div className="rounded-lg border border-border bg-white shadow-sm p-6 flex flex-col gap-4">
+        <h2 className="text-base font-semibold text-ink">Profile</h2>
+        <p className="text-sm text-muted">
+          Update your name, country of residence, or home university anytime.
+        </p>
+        <StudentProfileForm
+          mode="edit"
+          initialFullName={profileFullName}
+          initialCountry={profileCountry}
+          initialUniversityId={profileUniversityId}
+          initialUniversities={initialUniversities}
+        />
+      </div>
+
+      {/* 6. Account — single combined section at the end, with change password + delete */}
       <div className="rounded-lg border border-border bg-white shadow-sm p-6 flex flex-col gap-4">
         <h2 className="text-base font-semibold text-ink">Account</h2>
         <p className="text-sm text-ink-2">{email}</p>
