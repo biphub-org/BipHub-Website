@@ -1,13 +1,6 @@
 import Link from 'next/link'
 import { LogoMark } from './LogoMark'
-import { FacebookIcon, InstagramIcon, XIcon } from './SocialIcons'
-
-// TODO: replace '#' with the real profile URLs.
-const SOCIAL_LINKS = [
-  { label: 'BipHub on Facebook', href: '#', Icon: FacebookIcon },
-  { label: 'BipHub on Instagram', href: '#', Icon: InstagramIcon },
-  { label: 'BipHub on X', href: '#', Icon: XIcon },
-] as const
+import { SOCIAL_LINKS } from './social-links'
 
 /**
  * BipHub global footer — RSC.
