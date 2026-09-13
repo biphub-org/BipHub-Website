@@ -36,8 +36,7 @@ import {
   type Transition,
   type Variants,
 } from 'motion/react'
-import { cn } from '@/lib/utils/cn'
-import { HeroSearchBar } from './HeroSearchBar'
+import { Button } from '@/components/ui/button'
 
 const EASE_OUT: Transition['ease'] = [0.16, 1, 0.3, 1]
 
@@ -259,28 +258,22 @@ function HeroInner() {
           animate="visible"
           transition={{ duration: 0.6, ease: EASE_OUT, delay: 0.35 }}
         >
-          <Link
-            href="/bips"
-            className={cn(
-              'inline-flex h-12 items-center justify-center gap-2 rounded-pill px-7 text-base font-semibold whitespace-nowrap',
-              'bg-eu-gold text-ink border border-eu-gold transition-all duration-200 ease-out',
-              'hover:-translate-y-px hover:shadow-[0_8px_28px_rgba(255,204,0,0.35)]',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eu-gold focus-visible:ring-offset-2 focus-visible:ring-offset-ink',
-            )}
+          <Button
+            variant="gold"
+            size="lg"
+            asChild
+            className="focus-visible:ring-offset-ink"
           >
-            Browse all BIPs
-          </Link>
-          <Link
-            href="/register/coordinator"
-            className={cn(
-              'inline-flex h-12 items-center justify-center gap-2 rounded-pill px-7 text-base font-semibold whitespace-nowrap',
-              'bg-white/5 text-white border border-white/25 transition-all duration-200 ease-out',
-              'hover:bg-white/10 hover:border-white/40 hover:-translate-y-px',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eu-gold focus-visible:ring-offset-2 focus-visible:ring-offset-ink',
-            )}
+            <Link href="/bips">Browse all BIPs</Link>
+          </Button>
+          <Button
+            variant="ghost"
+            size="lg"
+            asChild
+            className="bg-white/5 text-white border-white/25 hover:bg-white/10 hover:border-white/40 hover:text-white hover:-translate-y-px focus-visible:ring-eu-gold focus-visible:ring-offset-ink"
           >
-            List your BIP
-          </Link>
+            <Link href="/register/coordinator">List your BIP</Link>
+          </Button>
         </m.div>
 
         {/* Trust row */}
@@ -296,15 +289,6 @@ function HeroInner() {
           <TrustItem label="Open source" />
         </m.div>
 
-        {/* Hero search bar */}
-        <m.div
-          variants={fadeUp}
-          initial="hidden"
-          animate="visible"
-          transition={{ duration: 0.7, ease: EASE_OUT, delay: 0.55 }}
-        >
-          <HeroSearchBar />
-        </m.div>
       </div>
     </section>
   )

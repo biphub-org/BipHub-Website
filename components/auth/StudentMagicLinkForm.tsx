@@ -23,6 +23,7 @@ import { Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { signInWithOtpAction } from '@/lib/actions/auth'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
 
 interface Props {
   expiredError?: string
@@ -178,10 +179,10 @@ export function StudentMagicLinkForm({ expiredError }: Props) {
           />
         </div>
 
-        <button
+        <Button
           type="submit"
           disabled={isPending}
-          className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-pill bg-eu-blue px-5 text-sm font-semibold text-white transition-all duration-200 hover:bg-eu-blue-dark hover:-translate-y-px hover:shadow-[0_6px_20px_rgba(0,51,153,0.25)] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eu-blue focus-visible:ring-offset-2"
+          className="w-full gap-2"
           style={{ minHeight: '44px' }}
         >
           {isPending ? (
@@ -192,7 +193,7 @@ export function StudentMagicLinkForm({ expiredError }: Props) {
           ) : (
             'Send sign-in link'
           )}
-        </button>
+        </Button>
       </form>
 
       {/* D-03 cross-link — coordinator entry point */}

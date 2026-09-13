@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { IconSearchOff } from '@tabler/icons-react'
 import { ClearFiltersButton } from '@/components/bip/BipFilterChips'
-import { cn } from '@/lib/utils/cn'
+import { Button } from '@/components/ui/button'
 
 export function BipsEmptyState() {
   return (
@@ -19,18 +19,9 @@ export function BipsEmptyState() {
       </p>
       <div className="flex flex-col sm:flex-row gap-3">
         <ClearFiltersButton />
-        <Link
-          href="/bips"
-          className={cn(
-            'inline-flex items-center justify-center font-semibold whitespace-nowrap rounded-pill',
-            'h-11 px-5 text-sm transition-all duration-200 ease-out',
-            'bg-transparent text-ink border border-border',
-            'hover:border-ink hover:bg-bg-soft',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eu-blue focus-visible:ring-offset-2',
-          )}
-        >
-          Browse all BIPs →
-        </Link>
+        <Button variant="ghost" size="md" asChild>
+          <Link href="/bips">Browse all BIPs →</Link>
+        </Button>
       </div>
     </div>
   )

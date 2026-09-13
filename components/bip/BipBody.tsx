@@ -25,6 +25,7 @@ import { getCountryName } from '@/lib/countries'
 import { virtualTimingLabel } from '@/lib/constants/virtual-timing'
 import type { BipDetail } from '@/lib/queries/bipDetail'
 import { CountryFlag } from '@/components/ui/country-flag'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils/cn'
 import { BipGallery } from '@/components/bip/BipGallery'
 import {
@@ -503,26 +504,26 @@ export function BipBody({ bip }: { bip: BipDetail }) {
                     </p>
                   )}
                 </div>
-                <Link
-                  href={bip.how_to_apply_value}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={cn(
-                    'group inline-flex shrink-0 items-center gap-1 rounded-pill px-5 py-3 text-base font-semibold',
-                    // The mockup's primary-button hover: 1px lift + shadow.
-                    'bg-eu-blue text-white transition-all duration-200',
-                    'hover:-translate-y-px hover:bg-eu-blue-dark hover:shadow-md',
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eu-blue focus-visible:ring-offset-2',
-                  )}
+                <Button
+                  variant="primary"
+                  size="lg"
+                  asChild
+                  className="group shrink-0 gap-1"
                 >
-                  Apply via host university
-                  <span
-                    aria-hidden="true"
-                    className="transition-transform duration-200 ease-out group-hover:translate-x-0.5"
+                  <Link
+                    href={bip.how_to_apply_value}
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
-                    →
-                  </span>
-                </Link>
+                    Apply via host university
+                    <span
+                      aria-hidden="true"
+                      className="transition-transform duration-200 ease-out group-hover:translate-x-0.5"
+                    >
+                      →
+                    </span>
+                  </Link>
+                </Button>
               </div>
             ) : bip.how_to_apply_type === 'contact' && bip.contact_email ? (
               <div>

@@ -14,6 +14,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Eyebrow } from '@/components/home/Eyebrow'
+import { Button } from '@/components/ui/button'
 import { Sparkles, FlaskConical, MessagesSquare } from 'lucide-react'
 
 // Per-request rendering (never force-static): the auth-aware (public) layout
@@ -141,12 +142,9 @@ export default function ComingSoonPage() {
               We shape the roadmap around real requests from students and coordinators.
             </p>
           </div>
-          <Link
-            href="/contact"
-            className="inline-flex shrink-0 items-center justify-center rounded-full bg-eu-blue px-8 py-3.5 text-[15px] font-semibold text-white transition-colors hover:bg-eu-blue-dark"
-          >
-            Suggest a feature
-          </Link>
+          <Button variant="primary" size="lg" asChild className="shrink-0">
+            <Link href="/contact">Suggest a feature</Link>
+          </Button>
         </div>
       </div>
     </>

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from 'react'
 import { CheckCircle2, LifeBuoy, Loader2, MessagesSquare } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { submitContactAction } from '@/lib/actions/contact'
 import { CONTACT_TOPIC_LABELS, type ContactTopic } from '@/lib/constants/contact'
 
@@ -97,13 +98,15 @@ export function ContactForm({
             >
               {status.message}
             </p>
-            <button
+            <Button
               type="button"
+              variant="outline"
+              size="sm"
               onClick={handleSendAnother}
-              className="mt-5 inline-flex items-center justify-center rounded-full border border-eu-blue-200 px-6 py-2.5 text-[14px] font-semibold text-eu-blue transition-colors hover:bg-eu-blue-50"
+              className="mt-5 border-eu-blue-200 text-eu-blue hover:border-eu-blue-200 hover:bg-eu-blue-50 hover:text-eu-blue"
             >
               Send another message
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -248,14 +251,15 @@ export function ContactForm({
           </p>
         )}
 
-        <button
+        <Button
           type="submit"
+          size="lg"
           disabled={pending}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-eu-blue px-8 py-3.5 text-[15px] font-semibold text-white transition-colors hover:bg-eu-blue-dark disabled:cursor-wait disabled:opacity-70 sm:w-auto"
+          className="w-full gap-2 disabled:cursor-wait disabled:opacity-70 sm:w-auto"
         >
           {pending && <Loader2 size={16} className="animate-spin" aria-hidden="true" />}
           {pending ? 'Sending…' : 'Send message'}
-        </button>
+        </Button>
 
         <div className="border-t border-eu-blue-100 pt-5">
           <p className="text-[13px] font-semibold text-ink">Prefer email?</p>

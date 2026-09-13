@@ -25,7 +25,7 @@ import {
   type Variants,
 } from 'motion/react'
 import { Eyebrow } from './Eyebrow'
-import { cn } from '@/lib/utils/cn'
+import { Button } from '@/components/ui/button'
 import { ClipboardList, BadgeCheck, Users } from 'lucide-react'
 
 const EASE_OUT: Transition['ease'] = [0.16, 1, 0.3, 1]
@@ -149,28 +149,22 @@ export function UniversityCTA({ sampleSlug }: UniversityCTAProps) {
               className="mt-auto flex flex-wrap items-center gap-3 pt-8"
               variants={fadeUpItem}
             >
-              <Link
-                href="/register"
-                className={cn(
-                  'inline-flex h-12 items-center justify-center gap-2 rounded-pill px-6 text-base font-semibold whitespace-nowrap',
-                  'bg-eu-gold text-ink border border-eu-gold transition-all duration-200 ease-out',
-                  'hover:bg-eu-gold-dark hover:-translate-y-px hover:shadow-[0_8px_24px_rgba(255,204,0,0.25)]',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eu-gold focus-visible:ring-offset-2 focus-visible:ring-offset-ink',
-                )}
+              <Button
+                variant="gold"
+                size="lg"
+                asChild
+                className="focus-visible:ring-offset-ink"
               >
-                Get started — it&apos;s free
-              </Link>
-              <Link
-                href={`/bip/${sampleSlug}`}
-                className={cn(
-                  'inline-flex h-12 items-center justify-center gap-2 rounded-pill px-6 text-base font-semibold whitespace-nowrap',
-                  'bg-transparent text-white border border-white/30 transition-all duration-200 ease-out',
-                  'hover:border-white/60 hover:bg-white/10 hover:-translate-y-px',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eu-gold focus-visible:ring-offset-2 focus-visible:ring-offset-ink',
-                )}
+                <Link href="/register">Get started — it&apos;s free</Link>
+              </Button>
+              <Button
+                variant="ghost"
+                size="lg"
+                asChild
+                className="bg-transparent text-white border-white/30 hover:border-white/60 hover:bg-white/10 hover:text-white hover:-translate-y-px focus-visible:ring-eu-gold focus-visible:ring-offset-ink"
               >
-                See sample listing
-              </Link>
+                <Link href={`/bip/${sampleSlug}`}>See sample listing</Link>
+              </Button>
             </m.div>
           </m.div>
         </div>

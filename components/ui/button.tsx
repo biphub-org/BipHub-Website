@@ -39,7 +39,7 @@ const variantStyles: Record<Variant, string> = {
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eu-blue focus-visible:ring-offset-2 focus-visible:ring-offset-white',
   gold:
     'bg-eu-gold text-ink border border-eu-gold ' +
-    'hover:bg-eu-gold-dark hover:-translate-y-px ' +
+    'hover:bg-eu-gold-dark hover:-translate-y-px hover:shadow-[0_8px_28px_rgba(255,204,0,0.35)] ' +
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eu-gold focus-visible:ring-offset-2 focus-visible:ring-offset-white',
   ghost:
     'bg-transparent text-ink border border-border ' +

@@ -178,18 +178,14 @@ export function LoginForm({ initialError }: { initialError?: string }) {
           <p className="mt-1 text-sm text-muted">How would you like to continue?</p>
         </div>
         <div className="grid gap-3">
-          <Link
-            href="/register/student"
-            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-pill bg-eu-blue px-5 text-sm font-semibold text-white transition-all hover:bg-eu-blue-dark"
-          >
-            Create student account →
-          </Link>
-          <Link
-            href="/register/coordinator"
-            className="inline-flex h-11 w-full items-center justify-center rounded-pill border border-border bg-white px-5 text-sm font-semibold text-ink hover:bg-bg-soft transition-colors"
-          >
-            Create coordinator account →
-          </Link>
+          <Button asChild className="w-full">
+            <Link href="/register/student">Create student account →</Link>
+          </Button>
+          <Button variant="outline" asChild className="w-full bg-white">
+            <Link href="/register/coordinator">
+              Create coordinator account →
+            </Link>
+          </Button>
         </div>
         <button
           type="button"

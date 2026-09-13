@@ -31,6 +31,7 @@ import {
   ArrowRight,
 } from 'lucide-react'
 import { Eyebrow } from '@/components/home/Eyebrow'
+import { Button } from '@/components/ui/button'
 import { GuideShell } from '@/components/guides/GuideShell'
 import { getGuide } from '@/lib/content/guides'
 import {
@@ -483,17 +484,21 @@ export default function WhatIsABipGuide() {
                     your home university and study plan.
                   </p>
                 </div>
-                <Link
-                  href="/bips"
-                  className="group inline-flex items-center justify-center gap-2 self-start rounded-full bg-eu-gold px-6 py-3 text-[15px] font-semibold text-ink shadow-[0_4px_16px_rgba(255,204,0,0.3)] transition-transform hover:-translate-y-0.5 hover:bg-eu-gold-dark md:self-auto"
+                <Button
+                  variant="gold"
+                  size="md"
+                  asChild
+                  className="group gap-2 self-start md:self-auto"
                 >
-                  Browse all BIPs
-                  <ArrowRight
-                    size={18}
-                    strokeWidth={2.2}
-                    className="transition-transform group-hover:translate-x-0.5"
-                  />
-                </Link>
+                  <Link href="/bips">
+                    Browse all BIPs
+                    <ArrowRight
+                      size={18}
+                      strokeWidth={2.2}
+                      className="transition-transform group-hover:translate-x-0.5"
+                    />
+                  </Link>
+                </Button>
               </div>
             </section>
 
