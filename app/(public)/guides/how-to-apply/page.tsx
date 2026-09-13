@@ -135,7 +135,7 @@ export default function HowToApplyGuide() {
         <h2>Ready to look?</h2>
         <p>
           Open the <Link href="/bips">full directory</Link> or jump back to{' '}
-          <Link href="/what-is-a-bip">the BIP explainer</Link> for the
+          <Link href="/guides/what-is-a-bip">the BIP explainer</Link> for the
           programme basics.
         </p>
       </section>

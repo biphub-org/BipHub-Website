@@ -5,7 +5,7 @@
  * section relevant to them. Cards link to /guides/<slug>.
  *
  * Layout (post-rebuild 2026-05-16): full-bleed dark hero matches the visual
- * DNA on /what-is-a-bip; guide cards live in the light section below.
+ * DNA shared with /guides/what-is-a-bip; guide cards live in the light section below.
  */
 
 import type { Metadata } from 'next'

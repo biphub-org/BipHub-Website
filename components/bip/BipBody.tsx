@@ -36,7 +36,7 @@ import {
 /**
  * BipBody — RSC. Stacked content sections for the BIP detail page.
  *
- * Visual language mirrors /what-is-a-bip (icon-led section headers, card blocks,
+ * Visual language mirrors /guides/what-is-a-bip (icon-led section headers, card blocks,
  * a blue/gold two-card split for the programme format) so the page reads as
  * varied rather than plain text between dividers.
  *

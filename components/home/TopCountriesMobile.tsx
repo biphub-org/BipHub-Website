@@ -48,12 +48,12 @@ export function TopCountriesMobile({ countsByCountry }: TopCountriesMobileProps)
                 <span className="flex min-w-0 items-center gap-2">
                   {isErasmusCountry(code) && (
                     <img
-                      src={`/flags/${code}.svg`}
+                      src={`/flags/${code.toUpperCase()}.svg`}
                       alt=""
                       aria-hidden="true"
                       width={24}
                       height={16}
-                      className="h-4 w-6 shrink-0 rounded-sm object-cover"
+                      className="h-4 w-6 shrink-0 rounded-sm object-contain"
                     />
                   )}
                   <span className="truncate text-[14px] font-medium text-ink">

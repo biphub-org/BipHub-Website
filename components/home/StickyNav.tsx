@@ -20,6 +20,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { LogoMark } from './LogoMark'
+import { SOCIAL_LINKS } from './social-links'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils/cn'
 import {
@@ -32,23 +33,21 @@ import {
 } from '@/components/ui/sheet'
 
 const NAV_LINKS = [
-  { href: '/bips', label: 'Browse BIPs' },
-  { href: '/what-is-a-bip', label: 'What is a BIP?' },
-  { href: '/guides', label: 'Guides' },
   { href: '/about', label: 'About' },
-  { href: '/contact', label: 'Contact' },
+  { href: '/bips', label: 'Browse BIPs' },
+  { href: '/guides', label: 'Guides' },
   { href: '/coming-soon', label: 'Coming Soon' },
+  { href: '/contact', label: 'Contact' },
 ] as const
 
 // Pages whose top-of-page hero is dark — nav starts transparent over them and
 // flips to solid white on scroll. All other public pages stay solid by default.
-const DARK_HERO_ROUTES = ['/', '/bips', '/what-is-a-bip', '/guides', '/about', '/contact', '/coming-soon', '/privacy', '/terms'] as const
+const DARK_HERO_ROUTES = ['/', '/bips', '/guides', '/about', '/contact', '/coming-soon', '/privacy', '/terms'] as const
 
 // Per-route scroll threshold (px) before the transparent nav flips to white.
 // Shorter heroes need earlier flips so the nav doesn't outlive the dark band.
 const SCROLL_THRESHOLDS: ReadonlyArray<readonly [string, number]> = [
   ['/bips', 40],
-  ['/what-is-a-bip', 70],
   ['/guides', 70],
   ['/about', 70],
   ['/contact', 70],
@@ -57,6 +56,9 @@ const SCROLL_THRESHOLDS: ReadonlyArray<readonly [string, number]> = [
   ['/terms', 70],
 ] as const
 const DEFAULT_SCROLL_THRESHOLD = 100
+
+// Single social profile shared with the footer (see social-links.ts).
+const INSTAGRAM_LINK = SOCIAL_LINKS[0]
 
 function pageHasDarkHero(pathname: string): boolean {
   return DARK_HERO_ROUTES.some(
@@ -86,7 +88,7 @@ export function StickyNav({ hasClaims = false, initials = null, dashboardHref = 
 
   useEffect(() => {
     if (!hasDarkHero) return
-    // Threshold tuned per route — shorter heroes (e.g. /guides, /what-is-a-bip)
+    // Threshold tuned per route — shorter heroes (e.g. /guides)
     // need an earlier flip so the white nav appears before the dark band ends.
     const threshold = getScrollThreshold(pathname)
     const onScroll = () => setScrolled(window.scrollY > threshold)
@@ -160,7 +162,22 @@ export function StickyNav({ hasClaims = false, initials = null, dashboardHref = 
           </nav>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
+          <a
+            href={INSTAGRAM_LINK.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={INSTAGRAM_LINK.label}
+            title={INSTAGRAM_LINK.label}
+            className={cn(
+              'inline-flex h-9 w-9 items-center justify-center rounded-full border transition-colors',
+              transparent
+                ? 'border-white/30 text-white/85 hover:border-eu-gold hover:text-eu-gold'
+                : 'border-border text-ink-2 hover:border-eu-blue hover:text-eu-blue',
+            )}
+          >
+            <INSTAGRAM_LINK.Icon size={17} />
+          </a>
           {hasClaims ? (
             <>
               <Link

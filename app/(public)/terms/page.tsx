@@ -1,7 +1,7 @@
 /**
  * /terms — static Terms of Service page (RSC).
  *
- * Shares the /what-is-a-bip visual language:
+ * Shares the /guides/what-is-a-bip visual language:
  *  - Full-bleed dark hero (#0a1735, halos) — eyebrow + h1 + lead + last-updated.
  *  - Article body inside max-w-[1200px] container, 220px sticky TOC sidebar.
  *  - Pure RSC, rendered per request (never force-static — see below),
@@ -38,7 +38,7 @@ const SECTIONS = [
 export default function TermsPage() {
   return (
     <>
-      {/* === Dark hero — matches /what-is-a-bip === */}
+      {/* === Dark hero — matches /guides/what-is-a-bip === */}
       <section
         className="relative overflow-hidden"
         style={{
@@ -168,8 +168,8 @@ export default function TermsPage() {
               <div className="mt-4 space-y-4 leading-relaxed text-ink-2">
                 <p>
                   We may update these terms as the project evolves. Material changes will be reflected on this page with an updated date stamp at the top. Continued use of the service after a change constitutes acceptance of the new terms. For questions about these terms or to report content that violates them, email{' '}
-                  <a href="mailto:biphub.org@gmail.com" className="text-eu-blue underline">
-                    biphub.org@gmail.com
+                  <a href="mailto:contact@biphub.org" className="text-eu-blue underline">
+                    contact@biphub.org
                   </a>
                   .
                 </p>

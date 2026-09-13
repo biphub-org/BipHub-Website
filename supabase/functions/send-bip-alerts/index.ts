@@ -29,6 +29,14 @@ function escapeHtml(s: string): string {
 }
 
 Deno.serve(async (req) => {
+  // TEMPORARY PAUSE until the biphub.org business email is set up (verified
+  // Resend sender). Re-enable by setting the EMAIL_SENDING_ENABLED secret to
+  // "true", then delete this block. NOTE: redeploy the function after editing.
+  if (Deno.env.get("EMAIL_SENDING_ENABLED") !== "true") {
+    console.log("[EMAIL PAUSED] skipping digest run")
+    return new Response(JSON.stringify({ processed: 0, sent: 0, paused: true }), { headers: { "Content-Type": "application/json" } })
+  }
+
   // Cron secret gate — pg_cron sends x-cron-secret, manual curl can also use it
   const cronSecret = req.headers.get("x-cron-secret")
   const expectedCronSecret = Deno.env.get("CRON_SECRET")
@@ -180,7 +188,7 @@ Deno.serve(async (req) => {
     // We batch inside this loop only when we have multiple subs for same user — for now send individually
     try {
       const { error: sendErr } = await resend.emails.send({
-        from: "BipHub <alerts@biphub.eu>",
+        from: "BipHub <no-reply@biphub.org>",
         to: [email],
         subject: `New BIPs: ${toSend.length} matching your alert preferences`,
         html,

@@ -1,7 +1,7 @@
 /**
  * /about — static About page (RSC).
  *
- * Shares the /what-is-a-bip visual language:
+ * Shares the /guides/what-is-a-bip visual language:
  *  - Full-bleed dark hero (#0a1735, halos) — eyebrow + h1 + lead + CTA row.
  *  - Article body inside max-w-[1200px] container, 220px sticky TOC sidebar.
  *  - Sections with Eyebrow + h2 (clamp 28-40) + body + visual cards.
@@ -31,13 +31,13 @@ const SECTIONS = [
   { id: 'mission', label: 'Our mission' },
   { id: 'principles', label: 'Principles' },
   { id: 'coordinators', label: 'For coordinators' },
-  { id: 'open-source', label: 'Built in the open' },
+  { id: 'feedback', label: 'Feedback' },
 ] as const
 
 export default function AboutPage() {
   return (
     <>
-      {/* === Dark hero — matches /what-is-a-bip === */}
+      {/* === Dark hero — matches /guides/what-is-a-bip === */}
       <section
         className="relative overflow-hidden"
         style={{
@@ -74,7 +74,7 @@ export default function AboutPage() {
               variant="ghost"
               className="border-white/20 bg-white/5 text-white backdrop-blur hover:bg-white/10 hover:text-white"
             >
-              <Link href="/what-is-a-bip">What is a BIP?</Link>
+              <Link href="/guides/what-is-a-bip">What is a BIP?</Link>
             </Button>
           </div>
         </div>
@@ -216,37 +216,37 @@ export default function AboutPage() {
               </div>
             </section>
 
-            {/* Section 4 — Built in the open */}
-            <section id="open-source" className="mb-16 scroll-mt-24">
-              <Eyebrow className="mb-3">Contribute</Eyebrow>
-              <h2 className="text-[clamp(28px,3.5vw,40px)] font-bold tracking-tight text-ink">Built in the open.</h2>
+            {/* Section 4 — Feedback */}
+            <section id="feedback" className="mb-16 scroll-mt-24">
+              <Eyebrow className="mb-3">Feedback</Eyebrow>
+              <h2 className="text-[clamp(28px,3.5vw,40px)] font-bold tracking-tight text-ink">Tell us what is broken.</h2>
               <div className="mt-4 space-y-4 leading-relaxed text-ink-2">
                 <p>
-                  BipHub is maintained by Hexona Systems and external contributors. The codebase is open source under the MIT licence — see <code>CONTRIBUTING.md</code> for setup instructions and the project conventions.
+                  Spotted a mistake in a listing, hit a bug, or have an idea that would make BipHub better? Write to us — a human reads everything.
                 </p>
                 <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <Link
-                    href="/coming-soon"
-                    className="group flex items-center gap-4 rounded-xl border border-eu-blue-100 bg-white p-5 shadow-[0_4px_16px_rgba(10,23,53,0.06)] transition-all duration-300 hover:-translate-y-1 hover:border-eu-blue-200 hover:shadow-[0_12px_28px_rgba(10,23,53,0.10)]"
-                  >
-                    <span className="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-ink text-white">
-                      <Compass size={20} />
-                    </span>
-                    <span>
-                      <span className="block text-[14px] font-semibold text-ink group-hover:text-eu-blue">See what&apos;s next</span>
-                      <span className="block text-[12px] text-muted">Features on the roadmap</span>
-                    </span>
-                  </Link>
                   <a
-                    href="mailto:biphub.org@gmail.com"
+                    href="mailto:contact@biphub.org"
                     className="group flex items-center gap-4 rounded-xl border border-eu-blue-100 bg-white p-5 shadow-[0_4px_16px_rgba(10,23,53,0.06)] transition-all duration-300 hover:-translate-y-1 hover:border-eu-blue-200 hover:shadow-[0_12px_28px_rgba(10,23,53,0.10)]"
                   >
                     <span className="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-eu-blue-50 text-eu-blue">
                       <Mail size={20} />
                     </span>
                     <span>
-                      <span className="block text-[14px] font-semibold text-ink group-hover:text-eu-blue">Contact us</span>
-                      <span className="block text-[12px] text-muted">biphub.org@gmail.com</span>
+                      <span className="block text-[14px] font-semibold text-ink group-hover:text-eu-blue">Share feedback</span>
+                      <span className="block text-[12px] text-muted">contact@biphub.org</span>
+                    </span>
+                  </a>
+                  <a
+                    href="mailto:support@biphub.org"
+                    className="group flex items-center gap-4 rounded-xl border border-eu-blue-100 bg-white p-5 shadow-[0_4px_16px_rgba(10,23,53,0.06)] transition-all duration-300 hover:-translate-y-1 hover:border-eu-blue-200 hover:shadow-[0_12px_28px_rgba(10,23,53,0.10)]"
+                  >
+                    <span className="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-eu-blue-50 text-eu-blue">
+                      <ShieldCheck size={20} />
+                    </span>
+                    <span>
+                      <span className="block text-[14px] font-semibold text-ink group-hover:text-eu-blue">Report a problem</span>
+                      <span className="block text-[12px] text-muted">support@biphub.org</span>
                     </span>
                   </a>
                 </div>

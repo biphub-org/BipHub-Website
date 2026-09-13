@@ -48,10 +48,10 @@ export default function RootError({
           Sorry about that. Try reloading — if the issue keeps happening, let us
           know at{' '}
           <a
-            href="mailto:biphub.org@gmail.com"
+            href="mailto:contact@biphub.org"
             className="text-eu-blue underline"
           >
-            biphub.org@gmail.com
+            contact@biphub.org
           </a>
           .
         </p>

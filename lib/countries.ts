@@ -16,18 +16,19 @@ const NAME_OVERRIDES: Record<string, string> = {
 /**
  * Countries selectable in BipHub — ISO 3166-1 alpha-2 codes (uppercase).
  *
- * 40 countries total:
+ * 42 countries total:
  *   Erasmus+ programme countries (34):
  *     EU-27: AT, BE, BG, HR, CY, CZ, DK, EE, FI, FR, DE, GR, HU, IE, IT, LV,
  *            LT, LU, MT, NL, PL, PT, RO, SK, SI, ES, SE
  *     EEA + associated: IS (Iceland), LI (Liechtenstein), NO (Norway)
  *     Candidate countries: MK (North Macedonia), RS (Serbia), TR (Türkiye),
  *                          ME (Montenegro)
- *   Additional partner / neighbourhood countries (6, added 2026-07):
- *     GB (United Kingdom), UA (Ukraine), MD (Moldova), AL (Albania),
- *     XK (Kosovo), BA (Bosnia and Herzegovina)
+ *   Additional partner / neighbourhood countries (8):
+ *     Added 2026-07: GB (United Kingdom), UA (Ukraine), MD (Moldova),
+ *       AL (Albania), XK (Kosovo), BA (Bosnia and Herzegovina)
+ *     Added 2026-09: CH (Switzerland), BY (Belarus)
  *
- * Note: the additional six are not all official Erasmus+ programme countries;
+ * Note: the additional eight are not all official Erasmus+ programme countries;
  * they are included so BIPs hosted or partnered there are discoverable.
  *
  * Used by:
@@ -51,6 +52,8 @@ export const ERASMUS_COUNTRIES: ReadonlyArray<{
     'MK','RS','TR','ME',
     // Additional partner / neighbourhood countries (2026-07)
     'GB','UA','MD','AL','XK','BA',
+    // Added 2026-09
+    'CH','BY',
   ] as const
 ).map((code) => ({
   code,

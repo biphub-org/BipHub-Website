@@ -59,7 +59,7 @@ export default function ContactPage() {
       </section>
 
       {/* === Body === */}
-      <div className="container mx-auto max-w-[1200px] px-4 lg:px-6 py-16 lg:py-24">
+      <div className="container mx-auto max-w-[1200px] px-4 lg:px-6 pt-12 lg:pt-16 pb-16 lg:pb-24">
         <ContactSection />
       </div>
     </>

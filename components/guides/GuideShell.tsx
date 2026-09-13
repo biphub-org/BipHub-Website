@@ -9,7 +9,7 @@ import { Eyebrow } from '@/components/home/Eyebrow'
  *     audience eyebrow, title, summary, and reading-time pill.
  *   - Article body keeps the 800px reading column under the hero.
  *
- * Matches the visual DNA on /what-is-a-bip and /guides.
+ * Matches the visual DNA on /guides/what-is-a-bip and /guides.
  */
 export function GuideShell({
   eyebrow,

@@ -62,7 +62,7 @@ command, and aliasing it adds noise.
 A short tour of the directories you will touch most often.
 
 - `app/(public)/` — student-facing routes (homepage, `/bips`, `/bip/[slug]`,
-  `/what-is-a-bip`, `/privacy`). All inherit the public Footer, including the
+  `/guides/what-is-a-bip`, `/privacy`). All inherit the public Footer, including the
   EC disclaimer.
 - `app/(auth)/` — sign-in, sign-up, email-verification callback, password
   reset.

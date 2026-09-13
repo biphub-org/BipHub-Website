@@ -1,7 +1,7 @@
 /**
  * /privacy — static privacy policy page (RSC).
  *
- * Shares the /what-is-a-bip visual language:
+ * Shares the /guides/what-is-a-bip visual language:
  *  - Full-bleed dark hero (#0a1735, halos) — eyebrow + h1 + lead + last-updated.
  *  - Article body inside max-w-[1200px] container, 220px sticky TOC sidebar.
  *  - Pure RSC, rendered per request (never force-static — see below),
@@ -37,7 +37,7 @@ const SECTIONS = [
 export default function PrivacyPage() {
   return (
     <>
-      {/* === Dark hero — matches /what-is-a-bip === */}
+      {/* === Dark hero — matches /guides/what-is-a-bip === */}
       <section
         className="relative overflow-hidden"
         style={{
@@ -84,8 +84,8 @@ export default function PrivacyPage() {
               <div className="mt-4 space-y-4 leading-relaxed text-ink-2">
                 <p>
                   Hexona Systems operates BipHub as an independent open-source project. The data controller for personal data processed through this site is Hexona Systems. For privacy questions or to exercise your rights under GDPR Articles 15–18 and 21, contact us at{' '}
-                  <a href="mailto:biphub.org@gmail.com" className="text-eu-blue underline">
-                    biphub.org@gmail.com
+                  <a href="mailto:contact@biphub.org" className="text-eu-blue underline">
+                    contact@biphub.org
                   </a>
                   .
                 </p>
@@ -162,15 +162,15 @@ export default function PrivacyPage() {
               <div className="mt-4 space-y-4 leading-relaxed text-ink-2">
                 <p>
                   Under GDPR you have the right of access (Art 15) to a copy of your personal data, the right of rectification (Art 16) to correct inaccurate data, and the right of erasure (Art 17) to have your data deleted. You also have the right to restriction of processing (Art 18) — to ask us to limit how we use your data while, for example, the accuracy of the data or the basis for processing is being checked. The right of erasure is exercised in-product via the Delete account button at <code>/dashboard/settings</code>. For access, rectification, or restriction requests, email{' '}
-                  <a href="mailto:biphub.org@gmail.com" className="text-eu-blue underline">
-                    biphub.org@gmail.com
+                  <a href="mailto:contact@biphub.org" className="text-eu-blue underline">
+                    contact@biphub.org
                   </a>{' '}
                   — we respond within 30 days.
                 </p>
                 <p>
                   <strong className="text-ink">Right to object (Art 21).</strong> Where we process your data on legitimate-interest grounds — in particular published BIP submission data — you may object to that processing at any time on grounds relating to your particular situation. If you do, we will stop processing your data unless we can demonstrate compelling legitimate grounds that override your interests, rights and freedoms, or unless the processing is needed for the establishment, exercise or defence of legal claims. To object, email{' '}
-                  <a href="mailto:biphub.org@gmail.com" className="text-eu-blue underline">
-                    biphub.org@gmail.com
+                  <a href="mailto:contact@biphub.org" className="text-eu-blue underline">
+                    contact@biphub.org
                   </a>
                   .
                 </p>
@@ -194,8 +194,8 @@ export default function PrivacyPage() {
               <div className="mt-4 space-y-4 leading-relaxed text-ink-2">
                 <p>
                   In-product: open <code>/dashboard/settings</code> while signed in and use the Danger zone — Delete account. By email: write to{' '}
-                  <a href="mailto:biphub.org@gmail.com" className="text-eu-blue underline">
-                    biphub.org@gmail.com
+                  <a href="mailto:contact@biphub.org" className="text-eu-blue underline">
+                    contact@biphub.org
                   </a>{' '}
                   from the email address on your account. We may ask for additional information to verify your identity before acting on a request affecting personal data.
                 </p>
@@ -220,8 +220,8 @@ export default function PrivacyPage() {
               <div className="mt-4 space-y-4 leading-relaxed text-ink-2">
                 <p>
                   We may update this policy as the product evolves. Material changes will be reflected on this page with an updated date stamp at the top. We do not currently maintain a public change log; if you need to see past versions, write to{' '}
-                  <a href="mailto:biphub.org@gmail.com" className="text-eu-blue underline">
-                    biphub.org@gmail.com
+                  <a href="mailto:contact@biphub.org" className="text-eu-blue underline">
+                    contact@biphub.org
                   </a>
                   .
                 </p>

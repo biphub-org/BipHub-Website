@@ -21,6 +21,8 @@ import {
   ComposableMap,
   Geographies,
   Geography,
+  Marker,
+  type Coordinates,
   type ProjectionConfig,
 } from '@vnedyalk0v/react19-simple-maps'
 import { feature } from 'topojson-client'
@@ -71,6 +73,18 @@ const MAP_PROJECTION_CONFIG: ProjectionConfig = {
   rotate: [-20, -52, 0] as unknown as ProjectionConfig['rotate'],
   scale: 820,
 }
+
+// Microstate dots — MT renders at ~4×4px and LI at ~2×3px at this scale,
+// near-invisible and unclickable specks. They get circle markers at their
+// capitals with the same tier fill, tooltip, and click-to-filter behavior
+// as real geographies.
+const MICROSTATE_MARKERS: ReadonlyArray<{
+  code: string
+  coordinates: [number, number]
+}> = [
+  { code: 'MT', coordinates: [14.51, 35.9] }, // Valletta
+  { code: 'LI', coordinates: [9.52, 47.14] }, // Vaduz
+]
 
 export function EuropeMap({ countsByCountry }: EuropeMapProps) {
   const router = useRouter()
@@ -286,6 +300,38 @@ export function EuropeMap({ countsByCountry }: EuropeMapProps) {
                   })
                 }
               </Geographies>
+              {MICROSTATE_MARKERS.map(({ code, coordinates }) => {
+                const count = countsByCountry[code] ?? 0
+                const tier = getTierForCount(count)
+                return (
+                  <Marker key={code} coordinates={coordinates as Coordinates}>
+                    <circle
+                      r={5}
+                      tabIndex={0}
+                      role="button"
+                      aria-label={`${getCountryName(code)}: ${count} BIPs`}
+                      className={cn(
+                        tier.fillClass,
+                        'cursor-pointer stroke-white stroke-[1.2] outline-none',
+                        'transition-[fill] duration-200 ease',
+                        'hover:fill-eu-gold',
+                        'focus-visible:outline-2 focus-visible:outline-eu-gold',
+                      )}
+                      onClick={() => handleCountryClick(code)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          handleCountryClick(code)
+                        }
+                      }}
+                      onMouseMove={(e) =>
+                        handleMouseMove(e as unknown as React.MouseEvent, code)
+                      }
+                      onMouseLeave={handleMouseLeave}
+                    />
+                  </Marker>
+                )
+              })}
             </ComposableMap>
           </m.div>
         ) : (

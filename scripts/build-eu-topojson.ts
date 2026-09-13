@@ -11,8 +11,9 @@
  *      lacks. NE separates Kosovo from Serbia cleanly.
  *      https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson
  *
- * Country set: the 39 countries in lib/countries.ts (ERASMUS_COUNTRIES) — the
- *   original 33 Erasmus+ programme countries plus GB, UA, MD, AL, XK, BA.
+ * Country set: the 42 countries in lib/countries.ts (ERASMUS_COUNTRIES) — the
+ *   original 33 Erasmus+ programme countries plus GB, UA, MD, AL, XK, BA,
+ *   ME, CH, BY.
  *
  * Code normalization: GISCO uses 'EL' for Greece and 'UK' for the United Kingdom.
  *   We rewrite EL → GR and UK → GB so the choropleth keys match ISO 3166-1
@@ -43,9 +44,11 @@ const VISIBLE_GISCO_CODES = new Set([
   'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'EL', 'HU', 'IE',
   'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE',
   'IS', 'LI', 'NO',
-  'MK', 'RS', 'TR',
+  'MK', 'RS', 'TR', 'ME',
   // Added 2026-07: non-EU programme/partner countries
   'UK', 'UA', 'MD', 'AL', 'BA',
+  // Added 2026-09: partner / neighbourhood countries
+  'CH', 'BY',
 ])
 
 /**
@@ -87,7 +90,7 @@ async function fetchJson(url: string, label: string): Promise<GeoFeatureCollecti
 }
 
 async function main() {
-  // --- Source 1: GISCO (38 of 39 countries) ---
+  // --- Source 1: GISCO (41 of 42 countries) ---
   const gisco = await fetchJson(GISCO_URL, 'Eurostat GISCO Countries 2024 (20M)')
 
   const features: GeoFeature[] = gisco.features
@@ -99,7 +102,7 @@ async function main() {
       return normalize(iso, name, f.geometry)
     })
 
-  console.log(`GISCO matched ${features.length} countries (expected 38)`)
+  console.log(`GISCO matched ${features.length} countries (expected 41)`)
 
   // --- Source 2: Natural Earth (Kosovo only) ---
   const ne = await fetchJson(NATURAL_EARTH_URL, 'Natural Earth 50m Admin-0 (Kosovo)')
@@ -112,10 +115,10 @@ async function main() {
   features.push(normalize('XK', 'Kosovo', kosovo.geometry))
   console.log('Appended Kosovo (XK) from Natural Earth')
 
-  if (features.length < 38) {
+  if (features.length < 41) {
     throw new Error(
       `Unexpectedly few countries (${features.length}) — check source data formats.\n` +
-      `Expected 39 (38 GISCO + Kosovo). Aborting to avoid writing bad TopoJSON.`,
+      `Expected 42 (41 GISCO + Kosovo). Aborting to avoid writing bad TopoJSON.`,
     )
   }
 

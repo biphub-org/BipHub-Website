@@ -15,7 +15,13 @@ interface CountryFlagProps {
  *
  * Replaces getCountryFlagEmoji for visible flag pills. The Unicode regional-
  * indicator characters fall back to letter pairs on platforms without flag
- * fonts (Windows), so we ship 33 proper SVGs instead.
+ * fonts (Windows), so we ship one SVG per selectable country instead
+ * (see tests/utils/countries.test.ts — every ERASMUS_COUNTRIES code must
+ * have a matching public/flags/<CODE>.svg).
+ *
+ * object-contain (not cover): shipped SVGs have mixed intrinsic ratios
+ * (3:2, 2:1, 1:1) — cover crops 2:1 flags sideways (BY lost its ornament
+ * band) and square flags top/bottom (CH cross bled to the edges).
  */
 export function CountryFlag({
   code,
@@ -33,7 +39,7 @@ export function CountryFlag({
       aria-hidden={title ? undefined : true}
       width={width}
       height={height}
-      className={cn('shrink-0 rounded-[2px] object-cover', className)}
+      className={cn('shrink-0 rounded-[2px] object-contain', className)}
     />
   )
 }

@@ -75,7 +75,7 @@ export function Footer() {
             </h2>
             <ul className="mt-4 space-y-2 text-sm">
               <li><Link href="/bips" className="text-white/80 transition-colors hover:text-eu-gold">Browse BIPs</Link></li>
-              <li><Link href="/what-is-a-bip" className="text-white/80 transition-colors hover:text-eu-gold">What is a BIP?</Link></li>
+              <li><Link href="/guides/what-is-a-bip" className="text-white/80 transition-colors hover:text-eu-gold">What is a BIP?</Link></li>
               <li><Link href="/guides" className="text-white/80 transition-colors hover:text-eu-gold">Guides</Link></li>
             </ul>
           </div>

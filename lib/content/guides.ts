@@ -66,6 +66,15 @@ export const TOPICS: ReadonlyArray<TopicMeta> = [
 
 export const GUIDES: ReadonlyArray<Guide> = [
   {
+    slug: 'what-is-a-bip',
+    title: 'What is a BIP?',
+    summary:
+      'The 5–10 day format, the virtual component, ECTS, eligibility, and eight FAQs — start here before you apply.',
+    audience: 'students',
+    readingTime: '10 min read',
+    topics: ['find-apply'],
+  },
+  {
     slug: 'how-to-choose-a-bip',
     title: 'How to choose the right BIP',
     summary:

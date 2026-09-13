@@ -228,15 +228,19 @@ otp_length = 6
 # Number of seconds before the email OTP expires (defaults to 1 hour).
 otp_expiry = 3600
 
-# Use a production-ready SMTP server
+# Outbound mail goes through Resend (same verified biphub.org domain as the
+# app's transactional mail). Local dev stays on Inbucket (block commented out)
+# so `supabase start` never sends real mail — uncomment to test real delivery
+# locally. Production is configured in the Supabase dashboard (project
+# BipHub_Website → Settings → Authentication → SMTP Settings), not here.
 # [auth.email.smtp]
 # enabled = true
-# host = "smtp.sendgrid.net"
-# port = 587
-# user = "apikey"
-# pass = "env(SENDGRID_API_KEY)"
-# admin_email = "admin@email.com"
-# sender_name = "Admin"
+# host = "smtp.resend.com"
+# port = 465
+# user = "resend"
+# pass = "env(RESEND_API_KEY)"
+# admin_email = "no-reply@biphub.org"
+# sender_name = "BipHub"
 
 # Uncomment to customize email template
 # [auth.email.template.invite]

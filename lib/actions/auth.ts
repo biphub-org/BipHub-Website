@@ -231,6 +231,15 @@ export async function resendVerificationAction(
     return { error: 'Enter a valid email address.' }
   }
 
+  // TEMPORARY PAUSE until the biphub.org business email is set up
+  // (Supabase SMTP). Still returns success to preserve the T-02-02-05
+  // no-enumeration contract. Re-enable by setting EMAIL_SENDING_ENABLED=true,
+  // then delete this block.
+  if (process.env.EMAIL_SENDING_ENABLED !== 'true') {
+    console.log('[EMAIL PAUSED] skipping verification resend for', email)
+    return { success: true }
+  }
+
   const supabase = await createClient()
   const { error } = await supabase.auth.resend({
     type: 'signup',
@@ -263,6 +272,15 @@ export async function requestPasswordResetAction(
   const parsed = passwordResetSchema.safeParse({ email: formData.get('email') })
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? 'Invalid email.' }
+  }
+
+  // TEMPORARY PAUSE until the biphub.org business email is set up
+  // (Supabase SMTP). Still returns success to preserve the T-02-02-05
+  // no-enumeration contract. Re-enable by setting EMAIL_SENDING_ENABLED=true,
+  // then delete this block.
+  if (process.env.EMAIL_SENDING_ENABLED !== 'true') {
+    console.log('[EMAIL PAUSED] skipping password reset for', parsed.data.email)
+    return { success: true }
   }
 
   const supabase = await createClient()

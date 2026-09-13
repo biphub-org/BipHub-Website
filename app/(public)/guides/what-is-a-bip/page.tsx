@@ -1,20 +1,18 @@
 /**
- * /what-is-a-bip — static explainer page (RSC).
+ * /guides/what-is-a-bip — student explainer guide (RSC), moved here from the
+ * standalone /what-is-a-bip route so all explainer content lives in the hub.
  *
  * Implements INFO-01 (BIP explainer covering KA131, virtual component, ECTS,
  * eligibility), INFO-02 (FAQ section with 8 items per Phase 4 D-06), and
  * INFO-04 (outbound link to the official EC Erasmus+ programme guide).
  *
- * Layout (post-rebuild 2026-05-16):
- *   1. Full-bleed dark hero (#0a1735, halos) — eyebrow + h1 + lead + 4-stat strip.
- *   2. Article body inside the container, sidebar TOC anchored to section ids:
- *        - Section 1 (text) — definition
- *        - Section 2 — virtual + physical split (two cards + timeline strip)
- *        - Section 3 — eligibility as 3 icon cards
- *        - Section 4 (text) — how to find one
- *        - Section 5 — FAQ accordion (unchanged)
- *   3. CTA card → /bips.
- *   4. Outbound EC link.
+ * Chrome comes from GuideShell (dark hero + 800px article column). Body:
+ *   - Section 1 (text) — definition
+ *   - Section 2 — virtual + physical split (two cards + timeline strip)
+ *   - Section 3 — eligibility as 3 icon cards
+ *   - Section 4 (text) — how to find one
+ *   - Section 5 — FAQ accordion
+ *   - CTA card → /bips, then the outbound EC link.
  *
  * Constraints kept:
  *   - Pure RSC (no 'use client'), rendered per request (never force-static).
@@ -33,7 +31,8 @@ import {
   ArrowRight,
 } from 'lucide-react'
 import { Eyebrow } from '@/components/home/Eyebrow'
-import { PageSidebar } from '@/components/what-is-a-bip/PageSidebar'
+import { GuideShell } from '@/components/guides/GuideShell'
+import { getGuide } from '@/lib/content/guides'
 import {
   Accordion,
   AccordionItem,
@@ -45,28 +44,13 @@ import {
 // reads session cookies for the nav — force-static would bake the logged-out
 // nav into the production prerender (see tests/routing/public-static-guard).
 
+const guide = getGuide('what-is-a-bip')!
+
 export const metadata: Metadata = {
-  title: 'What is a BIP? · BipHub',
-  description:
-    'An Erasmus+ Blended Intensive Programme (BIP) is a short, intensive course combining a 5–10 day in-person mobility with a virtual component, worth 3–6 ECTS credits. Here is what to know before applying.',
-  alternates: { canonical: 'https://biphub.eu/what-is-a-bip' },
+  title: `${guide.title} · BipHub`,
+  description: guide.summary,
+  alternates: { canonical: `https://biphub.eu/guides/${guide.slug}` },
 }
-
-const SECTIONS = [
-  { id: 'what', label: 'What is a BIP?' },
-  { id: 'virtual-physical', label: 'Virtual + physical components' },
-  { id: 'ects', label: 'ECTS, eligibility, language' },
-  { id: 'find', label: 'How to find one on BipHub' },
-  { id: 'faq', label: 'Frequently asked questions' },
-] as const
-
-// Hero stat strip — static facts about BIPs (not live DB counts).
-const HERO_STATS = [
-  { value: '5–10', unit: 'days', label: 'In-person mobility' },
-  { value: '3–6', unit: 'ECTS', label: 'Credits awarded' },
-  { value: '€79', unit: '/ day', label: 'Living allowance' },
-  { value: '33', unit: 'countries', label: 'Erasmus+ programme area' },
-] as const
 
 // FAQ card chrome — pulled out so each AccordionItem trigger/content stays readable.
 const FAQ_ITEM_CLS =
@@ -84,88 +68,14 @@ function FaqQ({ question }: { question: string }) {
   )
 }
 
-export default function WhatIsABipPage() {
+export default function WhatIsABipGuide() {
   return (
-    <>
-      {/* === Dark hero band — eyebrow + h1 + lead + stat strip === */}
-      <section
-        className="relative overflow-hidden"
-        style={{
-          backgroundColor: '#0a1735',
-          backgroundImage: [
-            'radial-gradient(ellipse 65% 50% at 50% 0%, rgba(0, 51, 153, 0.55) 0%, transparent 60%)',
-            'radial-gradient(ellipse 50% 50% at 92% 100%, rgba(255, 204, 0, 0.18) 0%, transparent 65%)',
-          ].join(', '),
-        }}
-      >
-        <div className="relative mx-auto max-w-[1200px] px-4 md:px-6 pt-[96px] pb-[120px] lg:pt-[128px] lg:pb-[152px]">
-          <Eyebrow className="mb-5 text-white">
-            <span className="text-white">Student guide</span>
-          </Eyebrow>
-          <h1
-            className="max-w-[18ch] font-bold text-white"
-            style={{
-              fontSize: 'clamp(34px, 5.2vw, 56px)',
-              lineHeight: '1.05',
-              letterSpacing: '-1.5px',
-            }}
-          >
-            What is a{' '}
-            <span className="text-eu-gold">Blended Intensive Programme</span>?
-          </h1>
-          <p className="mt-6 max-w-[62ch] text-[18px] leading-relaxed text-white/70">
-            A short, fully-funded Erasmus+ format combining a 5&ndash;10 day
-            in-person mobility with an online learning component. Here is what
-            to know before you apply.
-          </p>
-
-          {/* Stat strip */}
-          <div className="mt-14 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
-            {HERO_STATS.map((s) => (
-              <div
-                key={s.label}
-                className="group relative overflow-hidden rounded-lg border border-white/15 bg-white/5 p-5 backdrop-blur-sm transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-eu-gold/40 hover:bg-white/[0.08] hover:shadow-[0_8px_24px_rgba(0,0,0,0.25)]"
-              >
-                {/* Soft gold halo on hover */}
-                <span
-                  aria-hidden="true"
-                  className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-eu-gold/0 opacity-0 blur-2xl transition-all duration-500 group-hover:bg-eu-gold/20 group-hover:opacity-100"
-                />
-
-                <div className="relative flex items-baseline gap-1.5">
-                  <span
-                    className="font-bold text-white"
-                    style={{
-                      fontSize: 'clamp(26px, 3.4vw, 36px)',
-                      letterSpacing: '-1px',
-                      lineHeight: 1,
-                    }}
-                  >
-                    {s.value}
-                  </span>
-                  <span className="text-[13px] font-semibold text-eu-gold">
-                    {s.unit}
-                  </span>
-                </div>
-                <div className="relative mt-2 text-[13px] font-medium text-white/70 transition-colors duration-300 group-hover:text-white/90">
-                  {s.label}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* === Article body === */}
-      <div className="container mx-auto max-w-[1200px] px-4 lg:px-6 py-16 lg:py-24">
-        <div className="grid grid-cols-1 gap-12 lg:grid-cols-[220px_1fr]">
-          {/* Desktop-only jump-link sidebar with active-section tracking */}
-          <aside className="hidden lg:block">
-            <PageSidebar sections={SECTIONS} />
-          </aside>
-
-          {/* Main content column */}
-          <article className="min-w-0">
+    <GuideShell
+      eyebrow="Student guide"
+      title={guide.title}
+      summary={guide.summary}
+      readingTime={guide.readingTime}
+    >
             {/* Section 1 — What is a BIP? */}
             <section id="what" className="mb-20 scroll-mt-24">
               <Eyebrow className="mb-3">Definition</Eyebrow>
@@ -600,9 +510,6 @@ export default function WhatIsABipPage() {
                 </a>
               </p>
             </section>
-          </article>
-        </div>
-      </div>
-    </>
+    </GuideShell>
   )
 }

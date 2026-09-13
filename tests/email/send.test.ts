@@ -36,6 +36,7 @@ describe('sendEmail (D-15 fallback)', () => {
     mockSend.mockClear()
     mockSend.mockImplementation(async () => ({ data: { id: 'mock' }, error: null }))
     vi.unstubAllEnvs()
+    vi.stubEnv('EMAIL_SENDING_ENABLED', 'true')
   })
 
   it('logs rendered HTML + recipient + subject to console when RESEND_API_KEY unset', async () => {
@@ -57,7 +58,24 @@ describe('sendEmail (D-15 fallback)', () => {
     spy.mockRestore()
   })
 
-  it('calls resend.emails.send with from=BipHub <noreply@biphub.eu> when key set', async () => {
+  it('skips Resend and logs [EMAIL PAUSED] when EMAIL_SENDING_ENABLED is not true', async () => {
+    vi.stubEnv('RESEND_API_KEY', 're_fake_test_key')
+    vi.stubEnv('EMAIL_SENDING_ENABLED', '')
+    const spy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const { sendEmail } = await import('@/lib/email/send')
+    await sendEmail('alice@example.com', {
+      template: 'approval',
+      props: { bipTitle: 'Quantum BIP', bipSlug: 'quantum-bip', coordinatorName: 'Alice' },
+    })
+    expect(mockSend).not.toHaveBeenCalled()
+    expect(spy).toHaveBeenCalledWith(
+      '[EMAIL PAUSED]',
+      expect.objectContaining({ to: 'alice@example.com', template: 'approval' }),
+    )
+    spy.mockRestore()
+  })
+
+  it('calls resend.emails.send with from=BipHub <no-reply@biphub.org> when key set', async () => {
     vi.stubEnv('RESEND_API_KEY', 're_fake_test_key')
     const { sendEmail } = await import('@/lib/email/send')
     await sendEmail('alice@example.com', {
@@ -66,37 +84,23 @@ describe('sendEmail (D-15 fallback)', () => {
     })
     expect(mockSend).toHaveBeenCalledWith(
       expect.objectContaining({
-        from: 'BipHub <noreply@biphub.eu>',
+        from: 'BipHub <no-reply@biphub.org>',
         to: 'alice@example.com',
         subject: 'Your BIP is live on BipHub',
       }),
     )
   })
 
-  it('uses ADMIN_REPLY_TO_EMAIL env var as replyTo when set', async () => {
+  it('sets no replyTo so replies fall back to the no-reply From address (hard bounce)', async () => {
     vi.stubEnv('RESEND_API_KEY', 're_fake_test_key')
-    vi.stubEnv('ADMIN_REPLY_TO_EMAIL', 'reply@biphub.eu')
-    const { sendEmail } = await import('@/lib/email/send')
-    await sendEmail('alice@example.com', {
-      template: 'approval',
-      props: { bipTitle: 'Q', bipSlug: 'q', coordinatorName: 'Alice' },
-    })
-    expect(mockSend).toHaveBeenCalledWith(
-      expect.objectContaining({ replyTo: 'reply@biphub.eu' }),
-    )
-  })
-
-  it('defaults replyTo to noreply@biphub.eu when ADMIN_REPLY_TO_EMAIL unset', async () => {
-    vi.stubEnv('RESEND_API_KEY', 're_fake_test_key')
-    vi.stubEnv('ADMIN_REPLY_TO_EMAIL', '')
     const { sendEmail } = await import('@/lib/email/send')
     await sendEmail('a@x.io', {
       template: 'approval',
       props: { bipTitle: 'Q', bipSlug: 'q', coordinatorName: 'A' },
     })
-    expect(mockSend).toHaveBeenCalledWith(
-      expect.objectContaining({ replyTo: 'noreply@biphub.eu' }),
-    )
+    expect(mockSend).toHaveBeenCalled()
+    const calls = mockSend.mock.calls as unknown as Array<[Record<string, unknown>]>
+    expect(calls[0][0]).not.toHaveProperty('replyTo')
   })
 
   it('uses dynamic subject "New BIP pending review: {title}" for admin-notification template', async () => {

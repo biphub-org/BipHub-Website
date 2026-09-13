@@ -10,6 +10,17 @@ const withBundleAnalyzer = bundleAnalyzer({
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  async redirects() {
+    // /what-is-a-bip moved into the guides hub — keep old links and
+    // indexed URLs working with a permanent redirect.
+    return [
+      {
+        source: '/what-is-a-bip',
+        destination: '/guides/what-is-a-bip',
+        permanent: true,
+      },
+    ]
+  },
   // Serialize the page-data collection worker pool. With the default
   // multi-worker pool, `next build` intermittently throws
   // `PageNotFoundError: Cannot find module for page: /_document` as an

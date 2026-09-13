@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * PageSidebar — "On this page" rail for /what-is-a-bip.
+ * PageSidebar — shared "On this page" rail (used by /about, /privacy, /terms).
  *
  * Visual concept (after rebuild 2026-05-16):
  *   - Numbered badges (01–0N) for each section, connected vertically by a

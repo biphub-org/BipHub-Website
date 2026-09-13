@@ -165,8 +165,8 @@ export default function ForCoordinatorsGuide() {
           If something looks wrong in your listing after approval, edit it
           from the dashboard — small corrections do not need re-review. For
           larger issues, account problems, or partnership questions, write to{' '}
-          <a href="mailto:biphub.org@gmail.com" className="text-eu-blue underline">
-            biphub.org@gmail.com
+          <a href="mailto:contact@biphub.org" className="text-eu-blue underline">
+            contact@biphub.org
           </a>
           .
         </p>

@@ -1,7 +1,7 @@
 /**
- * Brand icons for social links — lucide-react no longer ships brand icons,
- * so these are hand-drawn SVGs in the lucide stroke style (Facebook,
- * Instagram) plus the X mark (fill), all currentColor-driven.
+ * Brand icon for social links — lucide-react no longer ships brand icons,
+ * so this is a hand-drawn SVG in the lucide stroke style (Instagram),
+ * currentColor-driven.
  */
 
 interface BrandIconProps {
@@ -24,14 +24,6 @@ function baseProps(size: number, className?: string) {
   }
 }
 
-export function FacebookIcon({ size = 18, className }: BrandIconProps) {
-  return (
-    <svg {...baseProps(size, className)}>
-      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
-    </svg>
-  )
-}
-
 export function InstagramIcon({ size = 18, className }: BrandIconProps) {
   return (
     <svg {...baseProps(size, className)}>
@@ -42,17 +34,4 @@ export function InstagramIcon({ size = 18, className }: BrandIconProps) {
   )
 }
 
-export function XIcon({ size = 18, className }: BrandIconProps) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      className={className}
-      aria-hidden="true"
-    >
-      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-    </svg>
-  )
-}
+

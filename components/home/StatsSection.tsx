@@ -227,7 +227,7 @@ function StatCard({ value, label, delta, isInView, prefersReducedMotion }: StatC
       animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
       transition={{ duration: 0.5, ease: 'easeOut' }}
     >
-      {/* Soft gold halo on hover — same as the /what-is-a-bip hero stat cards */}
+      {/* Soft gold halo on hover — same as the guide hero stat cards */}
       <span
         aria-hidden="true"
         className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-eu-gold/0 opacity-0 blur-2xl transition-all duration-500 group-hover:bg-eu-gold/20 group-hover:opacity-100"

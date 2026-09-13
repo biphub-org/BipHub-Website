@@ -78,6 +78,14 @@ function resolveSubject(payload: EmailPayload): string {
  * HTML + recipient + subject to console instead of calling Resend.
  */
 export async function sendEmail(to: string, payload: EmailPayload): Promise<void> {
+  // TEMPORARY PAUSE until the biphub.org business email is set up (verified
+  // Resend sender + Supabase SMTP). Re-enable by setting
+  // EMAIL_SENDING_ENABLED=true, then delete this block.
+  if (process.env.EMAIL_SENDING_ENABLED !== 'true') {
+    console.log('[EMAIL PAUSED]', { to, template: payload.template })
+    return
+  }
+
   let element: React.ReactElement
   switch (payload.template) {
     case 'approval':
@@ -118,16 +126,17 @@ export async function sendEmail(to: string, payload: EmailPayload): Promise<void
     return
   }
 
-  const replyTo = process.env.ADMIN_REPLY_TO_EMAIL || 'noreply@biphub.eu'
+  // No replyTo header on purpose: replies fall back to the From address
+  // (no-reply@biphub.org), which has no mailbox and hard-bounces. Never
+  // add a replyTo here — it would route replies to a live inbox.
 
   // NOTE: the Resend SDK resolves (does NOT throw) on API errors — failures
   // arrive as `{ data: null, error }`. Ignoring the return value makes every
   // Resend-side rejection (bad key, unverified domain, quota) completely
   // silent, so surface it as a throw. Callers MUST catch (D-11) and log.
   const result = await resend.emails.send({
-    from: 'BipHub <noreply@biphub.eu>', // D-13 verified sender
+    from: 'BipHub <no-reply@biphub.org>', // D-13 verified sender
     to,
-    replyTo,
     subject,
     html,
   })

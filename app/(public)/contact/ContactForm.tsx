@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useTransition } from 'react'
-import { CheckCircle2, Loader2 } from 'lucide-react'
+import { CheckCircle2, LifeBuoy, Loader2, MessagesSquare } from 'lucide-react'
 import { submitContactAction } from '@/lib/actions/contact'
 import { CONTACT_TOPIC_LABELS, type ContactTopic } from '@/lib/constants/contact'
 
@@ -257,13 +257,39 @@ export function ContactForm({
           {pending ? 'Sending…' : 'Send message'}
         </button>
 
-        <p className="text-[12px] leading-relaxed text-muted">
-          Prefer email? Write to us directly at{' '}
-          <a href="mailto:biphub.org@gmail.com" className="text-eu-blue underline">
-            biphub.org@gmail.com
-          </a>
-          .
-        </p>
+        <div className="border-t border-eu-blue-100 pt-5">
+          <p className="text-[13px] font-semibold text-ink">Prefer email?</p>
+          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <a
+              href="mailto:contact@biphub.org"
+              className="group flex items-center gap-3 rounded-xl border border-eu-blue-100 bg-white p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-eu-blue-200"
+            >
+              <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-eu-blue-50 text-eu-blue">
+                <MessagesSquare size={18} />
+              </span>
+              <span>
+                <span className="block text-[13px] font-semibold text-ink group-hover:text-eu-blue">
+                  contact@biphub.org
+                </span>
+                <span className="block text-[12px] text-muted">General inquiries</span>
+              </span>
+            </a>
+            <a
+              href="mailto:support@biphub.org"
+              className="group flex items-center gap-3 rounded-xl border border-eu-blue-100 bg-white p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-eu-blue-200"
+            >
+              <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-eu-blue-50 text-eu-blue">
+                <LifeBuoy size={18} />
+              </span>
+              <span>
+                <span className="block text-[13px] font-semibold text-ink group-hover:text-eu-blue">
+                  support@biphub.org
+                </span>
+                <span className="block text-[12px] text-muted">Bug reports & technical help</span>
+              </span>
+            </a>
+          </div>
+        </div>
       </form>
     </div>
   )

@@ -11,7 +11,7 @@ import { Resend } from "resend"
  * still return ok so local dev never hard-fails.
  */
 
-import { CONTACT_TOPICS, CONTACT_TOPIC_LABELS, type ContactTopic } from "@/lib/constants/contact"
+import { CONTACT_TOPICS, CONTACT_TOPIC_LABELS, resolveContactRecipient, type ContactTopic } from "@/lib/constants/contact"
 
 // Re-exported so existing server-side callers keep working.
 export { CONTACT_TOPICS, CONTACT_TOPIC_LABELS, type ContactTopic }
@@ -97,10 +97,20 @@ export async function submitContactAction(input: ContactInput): Promise<ContactR
 
   const { name, email, topic, message } = parsed.data
 
-  const to =
-    process.env.CONTACT_TO_EMAIL ||
-    process.env.ADMIN_NOTIFICATION_EMAIL ||
-    "biphub.org@gmail.com"
+  // TEMPORARY PAUSE until the biphub.org business email is set up (verified
+  // Resend sender). Returns an error — never a silent ok — so no message is
+  // lost; the error text points at the monitored inbox. Re-enable by setting
+  // EMAIL_SENDING_ENABLED=true, then delete this block.
+  if (process.env.EMAIL_SENDING_ENABLED !== 'true') {
+    console.log('[EMAIL PAUSED] contact form submission from', email)
+    return {
+      ok: false,
+      error:
+        'Our contact form is temporarily paused while we set up our email. Please write to us directly at contact@biphub.org.',
+    }
+  }
+
+  const to = resolveContactRecipient(topic)
   const subject = `[BipHub contact · ${CONTACT_TOPIC_LABELS[topic]}] ${name}`
   const html = [
     `<p><strong>From:</strong> ${escapeHtml(name)} &lt;${escapeHtml(email)}&gt;</p>`,
@@ -116,7 +126,7 @@ export async function submitContactAction(input: ContactInput): Promise<ContactR
     }
     const resend = new Resend(process.env.RESEND_API_KEY)
     const { error } = await resend.emails.send({
-      from: "BipHub <noreply@biphub.eu>",
+      from: "BipHub <no-reply@biphub.org>",
       to,
       replyTo: email,
       subject,
@@ -124,11 +134,11 @@ export async function submitContactAction(input: ContactInput): Promise<ContactR
     })
     if (error) {
       console.error("[contact] Resend failed:", error.message)
-      return { ok: false, error: "We couldn't send your message right now. Please email us directly at biphub.org@gmail.com." }
+      return { ok: false, error: "We couldn't send your message right now. Please email us directly at contact@biphub.org." }
     }
     return { ok: true }
   } catch (e) {
     console.error("[contact] send failed:", e instanceof Error ? e.message : e)
-    return { ok: false, error: "We couldn't send your message right now. Please email us directly at biphub.org@gmail.com." }
+    return { ok: false, error: "We couldn't send your message right now. Please email us directly at contact@biphub.org." }
   }
 }
