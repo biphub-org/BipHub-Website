@@ -12,8 +12,8 @@ BipHub exists to maintain a free, public directory of Erasmus+ Blended
 Intensive Programmes so students across Europe can discover them. That purpose
 cannot be served without publishing the submission content coordinators provide
 (programme title, description, dates, host institution, and the contact details
-the coordinator chooses to publish). The interest pursued is BipHub's
-in operating the directory, and — concretely — the interests
+the coordinator chooses to publish). The interest pursued is BipHub's (via
+Hexona Systems) in operating the directory, and — concretely — the interests
 of students and participating institutions in finding and filling BIPs.
 
 ## 2. Necessity — is the processing actually needed for the purpose?

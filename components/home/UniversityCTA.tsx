@@ -127,8 +127,8 @@ export function UniversityCTA({ sampleSlug }: UniversityCTAProps) {
               className="mt-3 text-[16px] leading-[1.6] text-white/70"
               variants={fadeUpItem}
             >
-              Publish your BIP for free in minutes and put your programme
-              in front of students across Europe.
+              The free platform for Erasmus+ coordinators. Publish in minutes
+              and put your programme in front of students across Europe.
             </m.p>
 
             {/* Journey timeline — same structure as HowItWorks, gold on navy */}

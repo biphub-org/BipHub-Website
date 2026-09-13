@@ -20,7 +20,7 @@ import { PageSidebar } from '@/components/what-is-a-bip/PageSidebar'
 export const metadata: Metadata = {
   title: 'Terms of service · BipHub',
   description:
-    'Terms governing your use of BipHub — the Erasmus+ Blended Intensive Programme directory. Independent project, not affiliated with the European Commission.',
+    'Terms governing your use of BipHub — the free, open-source directory of Erasmus+ Blended Intensive Programmes. Independent project, not affiliated with the European Commission.',
   alternates: { canonical: 'https://biphub.eu/terms' },
 }
 
@@ -30,9 +30,8 @@ const SECTIONS = [
   { id: 'content-accuracy', label: 'Content accuracy' },
   { id: 'acceptable-use', label: 'Acceptable use' },
   { id: 'your-content', label: 'Your content' },
-  { id: 'intellectual-property', label: 'Intellectual property' },
+  { id: 'open-source', label: 'Open source & IP' },
   { id: 'no-warranty', label: 'No warranty' },
-  { id: 'paid-plans', label: 'Paid coordinator plans' },
   { id: 'changes-contact', label: 'Changes and contact' },
 ] as const
 
@@ -65,7 +64,7 @@ export default function TermsPage() {
             Terms of <span className="text-eu-gold">service</span>
           </h1>
           <p className="mt-6 max-w-[62ch] text-[18px] leading-relaxed text-white/70">
-            The rules for using BipHub — an independent directory of Erasmus+ Blended Intensive Programmes. Not affiliated with the European Commission, and provided without warranty.
+            The rules for using BipHub — an independent, open-source directory of Erasmus+ Blended Intensive Programmes. Not affiliated with the European Commission, and provided without warranty under the MIT licence.
           </p>
           <p className="mt-6 text-[13px] font-medium text-white/50">Last updated: 15th May 2026</p>
         </div>
@@ -84,7 +83,7 @@ export default function TermsPage() {
               <h2 className="text-[clamp(28px,3.5vw,40px)] font-bold tracking-tight text-ink">About this service</h2>
               <div className="mt-4 space-y-4 leading-relaxed text-ink-2">
                 <p>
-                  BipHub is an independent directory of Erasmus+ Blended Intensive Programmes (BIPs), operated by the BipHub Team. It is not affiliated with, endorsed by, or officially connected to the European Commission, the Erasmus+ National Agencies, or any participating university. References to Erasmus+ are descriptive only.
+                  BipHub is a free, open-source directory of Erasmus+ Blended Intensive Programmes (BIPs) operated by Hexona Systems. It is an independent project and is not affiliated with, endorsed by, or officially connected to the European Commission, the Erasmus+ National Agencies, or any participating university. References to Erasmus+ are descriptive only.
                 </p>
                 <p>By accessing or using BipHub, you agree to these terms. If you do not agree, please do not use the service.</p>
               </div>
@@ -143,15 +142,12 @@ export default function TermsPage() {
               </div>
             </section>
 
-            <section id="intellectual-property" className="mb-20 scroll-mt-24">
-              <Eyebrow className="mb-3">Section 6 · Intellectual property</Eyebrow>
-              <h2 className="text-[clamp(28px,3.5vw,40px)] font-bold tracking-tight text-ink">Intellectual property</h2>
+            <section id="open-source" className="mb-20 scroll-mt-24">
+              <Eyebrow className="mb-3">Section 6 · Open source and intellectual property</Eyebrow>
+              <h2 className="text-[clamp(28px,3.5vw,40px)] font-bold tracking-tight text-ink">Open source and intellectual property</h2>
               <div className="mt-4 space-y-4 leading-relaxed text-ink-2">
                 <p>
-                  BipHub is proprietary software. The BipHub name, logo, visual identity, and platform code are owned by BipHub and may not be copied, reused, or redistributed without permission. Coordinators retain ownership of the programme content they submit; by submitting, they grant BipHub the licence described under “Your content” above to display and distribute it as part of the directory.
-                </p>
-                <p>
-                  The visual identity uses the standard Erasmus+ colour palette; the logo deliberately uses a star count different from the 12-star European emblem to avoid implying EU endorsement.
+                  The BipHub software is published as open source under the MIT licence. The MIT licence covers the code only — it does not transfer rights to the BipHub name, logo, or content submitted by coordinators. The visual identity uses the standard Erasmus+ colour palette; the logo deliberately uses a star count different from the 12-star European emblem to avoid implying EU endorsement.
                 </p>
               </div>
             </section>
@@ -160,29 +156,14 @@ export default function TermsPage() {
               <Eyebrow className="mb-3">Section 7 · No warranty, limitation of liability</Eyebrow>
               <h2 className="text-[clamp(28px,3.5vw,40px)] font-bold tracking-tight text-ink">No warranty, limitation of liability</h2>
               <div className="mt-4 space-y-4 leading-relaxed text-ink-2">
-                {/* TODO: confirm legal entity name for the liability clause — flagged for AJ/Yaz to resolve with a lawyer/accountant, ideally as part of deciding whether/how to incorporate. */}
                 <p>
-                  The service is provided &ldquo;as is&rdquo; and &ldquo;as available,&rdquo; without warranty of any kind, express or implied, including but not limited to fitness for a particular purpose and non-infringement. To the maximum extent permitted by law, BipHub is not liable for indirect, incidental, or consequential damages arising from your use of the service — including missed deadlines, rejected applications, travel arrangements, or financial losses. Nothing in these terms excludes liability that cannot lawfully be excluded under your local consumer protection law.
-                </p>
-              </div>
-            </section>
-
-            <section id="paid-plans" className="mb-20 scroll-mt-24">
-              <Eyebrow className="mb-3">Section 8 · Paid coordinator plans</Eyebrow>
-              <h2 className="text-[clamp(28px,3.5vw,40px)] font-bold tracking-tight text-ink">Paid coordinator plans</h2>
-              <div className="mt-4 space-y-4 leading-relaxed text-ink-2">
-                {/* TODO: flesh out before launch — flagged for AJ/Yaz. Listing is currently free for coordinators. Before any paid subscription or service goes live, this section must state what each plan includes, the price and billing period, how to cancel, and what happens to listings when a plan ends. These terms will be updated with those details ahead of launch. */}
-                <p>
-                  Listing a BIP is currently free for coordinators. We plan to introduce optional paid coordinator subscriptions and services in the future — for example, enhanced listing visibility or additional promotion. Paid plans will always be optional: the core directory remains free to browse for students.
-                </p>
-                <p>
-                  When paid plans launch, pricing, billing terms, cancellation rights, and what is included in each plan will be published here before they take effect. Nothing in this section obliges you to purchase anything today.
+                  The service is provided &ldquo;as is&rdquo; and &ldquo;as available,&rdquo; without warranty of any kind, express or implied, including but not limited to fitness for a particular purpose and non-infringement. To the maximum extent permitted by law, Hexona Systems and the BipHub contributors are not liable for indirect, incidental, or consequential damages arising from your use of the service — including missed deadlines, rejected applications, travel arrangements, or financial losses. Nothing in these terms excludes liability that cannot lawfully be excluded under your local consumer protection law.
                 </p>
               </div>
             </section>
 
             <section id="changes-contact" className="mb-16 scroll-mt-24">
-              <Eyebrow className="mb-3">Section 9 · Changes and contact</Eyebrow>
+              <Eyebrow className="mb-3">Section 8 · Changes and contact</Eyebrow>
               <h2 className="text-[clamp(28px,3.5vw,40px)] font-bold tracking-tight text-ink">Changes and contact</h2>
               <div className="mt-4 space-y-4 leading-relaxed text-ink-2">
                 <p>

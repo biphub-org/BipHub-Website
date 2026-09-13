@@ -215,7 +215,7 @@ function HeroInner() {
               New
             </m.span>
             <span className="text-[13px] font-medium text-white/80">
-              The database for Erasmus+ BIPs
+              Free, open-source database for Erasmus+ BIPs
             </span>
           </div>
         </m.div>
@@ -285,7 +285,8 @@ function HeroInner() {
           transition={{ duration: 0.6, ease: EASE_OUT, delay: 0.45 }}
         >
           <TrustItem label="33 programme countries" />
-          <TrustItem label="Erasmus+-funded programmes" />
+          <TrustItem label="Fully funded by Erasmus+" />
+          <TrustItem label="Open source" />
         </m.div>
 
       </div>

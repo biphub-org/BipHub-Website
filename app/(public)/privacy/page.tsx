@@ -19,7 +19,7 @@ import { PageSidebar } from '@/components/what-is-a-bip/PageSidebar'
 export const metadata: Metadata = {
   title: 'Privacy policy · BipHub',
   description:
-    'How BipHub collects, uses, and protects personal data for EU users — what we store, why we store it, and your GDPR rights.',
+    'How BipHub processes personal data for EU users. We use no analytics, no third-party trackers, and no marketing pixels. Essential session cookies only.',
   alternates: { canonical: 'https://biphub.eu/privacy' },
 }
 
@@ -63,7 +63,7 @@ export default function PrivacyPage() {
             Privacy <span className="text-eu-gold">policy</span>
           </h1>
           <p className="mt-6 max-w-[62ch] text-[18px] leading-relaxed text-white/70">
-            How BipHub processes personal data for EU users. Essential session cookies only — everything else stays on your device or in your account. If we introduce analytics or advertising in the future, we will update this policy first.
+            How BipHub processes personal data for EU users. No analytics, no third-party trackers, no marketing pixels — essential session cookies only, and everything else stays on your device or in your account.
           </p>
           <p className="mt-6 text-[13px] font-medium text-white/50">Last updated: 9th September 2026</p>
         </div>
@@ -82,9 +82,8 @@ export default function PrivacyPage() {
               <Eyebrow className="mb-3">Section 1 · Data Controller</Eyebrow>
               <h2 className="text-[clamp(28px,3.5vw,40px)] font-bold tracking-tight text-ink">Data Controller</h2>
               <div className="mt-4 space-y-4 leading-relaxed text-ink-2">
-                {/* TODO: confirm registered entity name or founder names for GDPR Data Controller field — flagged for AJ/Yaz to resolve with a lawyer/accountant, ideally as part of deciding whether/how to incorporate. GDPR requires an identifiable legal person here; a brand name alone is not sufficient since it gives data subjects no one to legally hold accountable. */}
                 <p>
-                  BipHub is an independent project. For privacy questions or to exercise your rights under GDPR Articles 15–18 and 21, contact us at{' '}
+                  Hexona Systems operates BipHub as an independent open-source project. The data controller for personal data processed through this site is Hexona Systems. For privacy questions or to exercise your rights under GDPR Articles 15–18 and 21, contact us at{' '}
                   <a href="mailto:contact@biphub.org" className="text-eu-blue underline">
                     contact@biphub.org
                   </a>
@@ -123,7 +122,7 @@ export default function PrivacyPage() {
                   <strong className="text-ink">Alert deliveries.</strong> Each time we send you a digest, we store a <code>bip_alert_deliveries</code> row (BIP ID + your user ID + delivery time) so the same BIP is never emailed twice. Both surfaces are retained until you clear your preferences or delete your account. All <code>bip_alert_preferences</code> and <code>bip_alert_deliveries</code> rows are permanently deleted when you delete your account (cascading deletion via foreign key). You can unsubscribe at any time via the link in the email (no sign-in required) or from your dashboard.
                 </p>
                 <p>
-                  <strong className="text-ink">Analytics and advertising.</strong> We do not currently run analytics scripts, third-party trackers, or advertising pixels. We plan to introduce privacy-respecting analytics and limited advertising in the future to keep BipHub sustainable — this policy will be updated, and any consent mechanism required by law will be added, before that happens.
+                  <strong className="text-ink">No analytics.</strong> We run no analytics scripts, no third-party trackers, no marketing pixels, no advertising cookies. We do not measure your behaviour. This is by design — the cheapest GDPR-compliant path is to collect nothing.
                 </p>
                 <p>
                   <strong className="text-ink">Processors and hosting.</strong> Your data is processed on our behalf by: Supabase (database and authentication hosting, EU region); Resend (transactional email — recipient email addresses and email content — for coordinator notifications and student digest alerts); and Vercel (application hosting — request metadata including IP addresses). Each processes personal data only to provide its service to us.
@@ -132,7 +131,6 @@ export default function PrivacyPage() {
             </section>
 
             {/* Section 3 */}
-            {/* TODO (needs legal review, not just copy — flagged for AJ/Yaz and their advisor): once analytics/ads are added, the basis below ("we do not rely on consent ... because we collect no consent-requiring data" posture) becomes false and will need a consent-based legal basis (Art 6(1)(a)) plus a cookie consent mechanism. Do not ship analytics/ads on this wording. */}
             <section id="legal-basis" className="mb-20 scroll-mt-24">
               <Eyebrow className="mb-3">Section 3 · Legal basis</Eyebrow>
               <h2 className="text-[clamp(28px,3.5vw,40px)] font-bold tracking-tight text-ink">Legal basis</h2>
