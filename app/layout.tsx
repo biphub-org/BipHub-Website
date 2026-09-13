@@ -14,7 +14,7 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'BipHub — The free, open-source database for Erasmus+ BIPs',
+  title: 'BipHub — The database for Erasmus+ BIPs',
   description:
     'Discover Blended Intensive Programs across Europe — short, focused, fully Erasmus+ funded experiences combining online learning with study abroad.',
 }

@@ -1,8 +1,7 @@
 /**
- * /coming-soon — static placeholder page for upcoming features (RSC).
+ * /coming-soon — public roadmap page for upcoming features (RSC).
  *
- * SKELETON: copy below is intentional placeholder. When a feature is ready
- * to announce, replace a PLACEHOLDER card's title/body/status (or add a new
+ * To announce a feature, replace a card's title/body/status (or add a new
  * entry to UPCOMING). Statuses: 'in-progress' | 'planned'.
  *
  * Shares the /about visual language:
@@ -15,7 +14,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Eyebrow } from '@/components/home/Eyebrow'
 import { Button } from '@/components/ui/button'
-import { Sparkles, FlaskConical, MessagesSquare } from 'lucide-react'
+import { CreditCard, FlaskConical, Landmark } from 'lucide-react'
 
 // Per-request rendering (never force-static): the auth-aware (public) layout
 // reads session cookies for the nav — force-static would bake the logged-out
@@ -24,7 +23,7 @@ import { Sparkles, FlaskConical, MessagesSquare } from 'lucide-react'
 export const metadata: Metadata = {
   title: 'Coming soon · BipHub',
   description:
-    'What’s next for BipHub — upcoming features and updates to the free, open-source Erasmus+ BIP directory.',
+    'What’s next for BipHub — upcoming features and updates to the Erasmus+ BIP directory.',
   alternates: { canonical: 'https://biphub.eu/coming-soon' },
 }
 
@@ -40,28 +39,28 @@ const STATUS_LABELS: Record<UpcomingStatus, string> = {
   planned: 'Planned',
 }
 
-// ── PLACEHOLDERS — replace with real announcements as they firm up ──
+// ── Announced roadmap — keep in sync with /terms (paid plans) and /privacy (analytics/ads) ──
 const UPCOMING = [
   {
-    id: 'upcoming-1',
-    icon: Sparkles,
-    status: 'in-progress' as UpcomingStatus,
-    title: 'Upcoming feature — title goes here',
-    body: 'A sentence or two about what this update will do and who it helps. Replace this text when the feature is ready to announce.',
+    id: 'coordinator-plans',
+    icon: CreditCard,
+    status: 'planned' as UpcomingStatus,
+    title: 'Optional paid plans for coordinators',
+    body: 'Listing is free today. We are working on optional paid coordinator subscriptions — such as enhanced listing visibility — so BipHub can sustain itself without charging students. Details will appear in the terms before anything launches.',
   },
   {
-    id: 'upcoming-2',
+    id: 'analytics-ads',
     icon: FlaskConical,
     status: 'planned' as UpcomingStatus,
-    title: 'Upcoming feature — title goes here',
-    body: 'A sentence or two about what this update will do and who it helps. Replace this text when the feature is ready to announce.',
+    title: 'Privacy-respecting analytics and advertising',
+    body: 'To keep the directory free for students, we plan to introduce privacy-respecting analytics and limited advertising. The privacy policy will be updated — including any consent controls required by law — before anything goes live.',
   },
   {
-    id: 'upcoming-3',
-    icon: MessagesSquare,
+    id: 'eu-cofunding',
+    icon: Landmark,
     status: 'planned' as UpcomingStatus,
-    title: 'Upcoming feature — title goes here',
-    body: 'A sentence or two about what this update will do and who it helps. Replace this text when the feature is ready to announce.',
+    title: 'Pursuing Erasmus+ co-funding',
+    body: 'BipHub is an independent project and is not currently EU-funded. We intend to pursue Erasmus+ co-funding so the directory can stay free for students long-term — and we will say so clearly here if that happens.',
   },
 ] as const
 
@@ -94,8 +93,8 @@ export default function ComingSoonPage() {
             Coming soon <span className="text-eu-gold">to BipHub.</span>
           </h1>
           <p className="mt-6 max-w-[65ch] text-[18px] leading-relaxed text-white/70">
-            We’re building BipHub in the open, one update at a time. Here’s a peek
-            at what’s on the way — check back soon as placeholders turn into launches.
+            We’re building BipHub one update at a time. Here’s a peek
+            at what’s on the way — including how we plan to sustain the project.
           </p>
         </div>
       </section>

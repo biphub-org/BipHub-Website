@@ -1,6 +1,6 @@
 # BipHub
 
-The free, open-source directory of Erasmus+ Blended Intensive Programs (BIPs)
+The directory of Erasmus+ Blended Intensive Programs (BIPs)
 across Europe.
 
 → Live site: **<https://biphub-website.vercel.app>**
@@ -85,11 +85,3 @@ By contributing you agree to the [Code of Conduct](./CODE_OF_CONDUCT.md)
 
 For security issues, contact <biphub.org@gmail.com> directly rather than
 filing a public issue.
-
-## License
-
-[MIT](./LICENSE). The MIT licence covers the source code only — it does not
-transfer rights to the BipHub name, the BipHub logo, or content submitted by
-university coordinators. The visual identity uses the Erasmus+ palette but
-deliberately uses a star count different from the 12-star European emblem to
-avoid implying EU endorsement.

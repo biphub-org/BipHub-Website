@@ -1,7 +1,7 @@
 # Contributing to BipHub
 
-Thanks for considering a contribution. BipHub is the free, open-source database
-for Erasmus+ Blended Intensive Programs (BIPs). This guide tells you how to set
+Thanks for considering a contribution. BipHub is the directory
+of Erasmus+ Blended Intensive Programs (BIPs). This guide tells you how to set
 up a working local environment, what conventions the codebase enforces, and what
 your PR has to look like before review.
 
@@ -136,10 +136,11 @@ nothing.
 - [ ] Every public-route page must inherit the public Footer with the
       disclaimer "Independent project — not affiliated with the European
       Commission".
-- [ ] **No analytics scripts.** No Plausible, no GA, no Vercel Analytics.
-      If you need them, also add a consent banner — talk to the maintainers
-      first by opening an issue. The v1 posture (FOUN-05) is "ship zero
-      trackers"; revisit only with product-market-fit evidence.
+- [ ] **No new analytics/tracking scripts without sign-off.** Analytics and
+      advertising are planned but not live yet. If you add Plausible, GA,
+      Vercel Analytics, or any tracker/pixel, also update the privacy policy
+      and add the consent mechanism required by law — talk to the maintainers
+      first by opening an issue.
 - [ ] No `<img>` tags for content images. Use `next/image` with explicit
       `width` and `height`, plus `priority` for the LCP hero.
 

@@ -33,7 +33,7 @@ export function Footer() {
               className="mt-5 font-bold text-white"
               style={{ fontSize: 'clamp(24px, 3vw, 36px)', lineHeight: '1.15', letterSpacing: '-1px' }}
             >
-              The free, open-source database for Erasmus+ Blended Intensive Programmes.
+              The database for Erasmus+ Blended Intensive Programmes.
             </p>
           </div>
           <div className="flex shrink-0 flex-col gap-4">
@@ -116,7 +116,7 @@ export function Footer() {
         {/* Bottom row — INFO-03 mandatory disclaimer */}
         <div className="mt-10 flex flex-col gap-4 border-t border-white/10 pt-8 md:flex-row md:items-center md:justify-between">
           <p className="text-xs text-white/60">
-            © 2026 BipHub · MIT License · Free and open source
+            © 2026 BipHub
           </p>
           <p className="text-xs text-white/60">
             Independent project — not affiliated with the European Commission
