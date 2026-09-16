@@ -19,7 +19,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { signInAction, signInWithOtpAction, resolveLoginMethodAction } from '@/lib/actions/auth'
 import { loginSchema, resolveLoginSchema, type LoginValues } from '@/lib/schemas/auth'
 
-type Step = 'email' | 'password' | 'magiclink-sent' | 'unknown'
+type Step = 'email' | 'password' | 'magiclink-sent' | 'unknown' | 'pending' | 'rejected' | 'approved'
 
 export function LoginForm({ initialError }: { initialError?: string }) {
   const [step, setStep] = useState<Step>('email')
@@ -71,6 +71,16 @@ export function LoginForm({ initialError }: { initialError?: string }) {
         passwordForm.setValue('email', trimmed)
         passwordForm.setValue('password', '')
         setStep('password')
+        return
+      }
+      // Coordinator access-request states (no account yet): explain the
+      // review outcome instead of offering a password field.
+      if (
+        resolved.method === 'pending' ||
+        resolved.method === 'rejected' ||
+        resolved.method === 'approved'
+      ) {
+        setStep(resolved.method)
         return
       }
       // unknown
@@ -164,6 +174,57 @@ export function LoginForm({ initialError }: { initialError?: string }) {
     )
   }
 
+  // Coordinator access-request states — the email has no account yet, so
+  // there is no password to ask for. Explain where the request stands.
+  if (step === 'pending' || step === 'rejected' || step === 'approved') {
+    return (
+      <div className="flex flex-col gap-4">
+        <div className="rounded-lg border border-border bg-bg-soft p-4 text-center">
+          {step === 'pending' && (
+            <>
+              <p className="text-sm font-medium text-ink">Your submission is under review</p>
+              <p className="mt-1 text-sm text-muted">
+                Your coordinator request for {email} is waiting for an admin decision.
+                We&apos;ll email you once it&apos;s approved — then you&apos;ll set your
+                password and sign in.
+              </p>
+            </>
+          )}
+          {step === 'rejected' && (
+            <>
+              <p className="text-sm font-medium text-ink">Request not approved</p>
+              <p className="mt-1 text-sm text-muted">
+                Your coordinator request for {email} wasn&apos;t approved.
+              </p>
+              <Link href="/contact" className="mt-2 inline-block text-sm text-eu-blue font-semibold hover:underline">
+                Questions? Contact us →
+              </Link>
+            </>
+          )}
+          {step === 'approved' && (
+            <>
+              <p className="text-sm font-medium text-ink">Check your inbox</p>
+              <p className="mt-1 text-sm text-muted">
+                Your coordinator request was approved. Use the invite link we emailed
+                to {email} to set your password and sign in.
+              </p>
+              <Link href="/reset-password" className="mt-2 inline-block text-sm text-eu-blue font-semibold hover:underline">
+                Link expired? Get a fresh one →
+              </Link>
+            </>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={backToEmail}
+          className="text-sm text-eu-blue font-semibold hover:underline text-center"
+        >
+          ← Use a different email
+        </button>
+      </div>
+    )
+  }
+
   // Unknown email — offer both registration paths (no magic-link)
   if (step === 'unknown') {
     return (
@@ -183,7 +244,7 @@ export function LoginForm({ initialError }: { initialError?: string }) {
           </Button>
           <Button variant="outline" asChild className="w-full bg-white">
             <Link href="/register/coordinator">
-              Create coordinator account →
+              Request coordinator access →
             </Link>
           </Button>
         </div>

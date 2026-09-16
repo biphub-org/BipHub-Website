@@ -24,10 +24,11 @@ import { studentRegisterSchema, type StudentRegisterValues } from '@/lib/schemas
 import type { UniversitySearchResult } from '@/lib/actions/universities'
 
 /**
- * Student registration form — email + password + personal details, no email
- * confirmation. Full name and country are required; home university is
- * optional (clearable). On success the Server Action signs the user in and
- * redirects to /student-dashboard.
+ * Student registration form — email + password + personal details, with
+ * email verification. Full name and country are required; home university is
+ * optional (clearable). On success the Server Action sends a verification
+ * link and redirects to /verify-email — the student signs in only after
+ * confirming their email.
  */
 export function StudentRegisterForm({
   initialUniversities,
@@ -174,6 +175,11 @@ export function StudentRegisterForm({
             </FormItem>
           )}
         />
+
+        <p className="text-xs text-muted leading-relaxed">
+          We&apos;ll send a verification link to your email — you&apos;ll sign in
+          after confirming it.
+        </p>
 
         <Button type="submit" variant="primary" className="w-full" disabled={isPending}>
           {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

@@ -1,16 +1,20 @@
 import Link from 'next/link'
 import { LogoMark } from '@/components/home/LogoMark'
 import { LoginForm } from '@/components/auth/LoginForm'
+import { redirectIfSignedIn } from '@/lib/auth/redirect'
 
 export default async function LoginPage({
   searchParams,
 }: {
   searchParams: Promise<{ error?: string }>
 }) {
+  // Signed-in users have no business on the sign-in page (typed URL included).
+  await redirectIfSignedIn()
+
   const sp = await searchParams
   const initialError =
     sp.error === 'verification_failed'
-      ? 'Email verification failed. Please try registering again.'
+      ? 'This verification link is invalid or has already been used. If you already verified your email, please sign in.'
       : undefined
 
   return (

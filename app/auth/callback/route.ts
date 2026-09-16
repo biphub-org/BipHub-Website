@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import type { EmailOtpType } from '@supabase/supabase-js'
+import { backfillStudentProfileFromMetadata } from '@/lib/auth/student-profile'
 
 /**
  * Email verification + recovery callback.
@@ -21,8 +22,13 @@ import type { EmailOtpType } from '@supabase/supabase-js'
  *      (password recovery + student magic link, until their templates migrate).
  *
  * Routing contract (by `type`):
- *   - signup verification (type=signup / none) → /onboarding (D-07)
+ *   - signup verification (type=signup / none) → role-aware: students (with
+ *     profile materialised from user_metadata; signInAction backfills as a
+ *     safety net for link formats that never reach this callback) →
+ *     /student-dashboard, coordinators → /onboarding (D-07)
  *   - password recovery   (type=recovery)      → /reset-password/update
+ *   - coordinator invite  (type=invite)        → /reset-password/update
+ *     (set the initial password for the approved account)
  *   - student magic link  (type=magiclink)     → /student-dashboard (D-04)
  *   - failure / missing token                  → /login?error=verification_failed
  *                                              → /register/student?error=expired (magiclink)
@@ -56,6 +62,7 @@ export async function GET(request: Request) {
   const supabase = await createClient()
 
   let error
+  const method = tokenHash ? 'verifyOtp' : 'exchangeCodeForSession'
   if (tokenHash) {
     // Token-hash (OTP) verification — no code_verifier cookie needed.
     // `type` selects the OTP kind (signup / recovery / magiclink / email_change);
@@ -73,7 +80,8 @@ export async function GET(request: Request) {
     // Common token-hash failure: expired/already-used link. Common PKCE failure:
     // missing code_verifier cookie (email clicked in a different browser/device).
     console.error('[auth/callback] verification failed:', {
-      method: tokenHash ? 'verifyOtp' : 'exchangeCodeForSession',
+      method,
+      type: type ?? null,
       status: error.status,
       name: error.name,
       message: error.message,
@@ -81,9 +89,42 @@ export async function GET(request: Request) {
     return NextResponse.redirect(failDest(error.message ?? 'verification_failed'))
   }
 
-  const destination =
-    type === 'recovery'    ? `${SITE_URL}/reset-password/update`
-    : type === 'magiclink' ? `${SITE_URL}/student-dashboard`
-                           : `${SITE_URL}/onboarding`
-  return NextResponse.redirect(destination)
+  console.log('[auth/callback] verified:', { method, type: type ?? null })
+
+  if (type === 'recovery' || type === 'invite') {
+    return NextResponse.redirect(`${SITE_URL}/reset-password/update`)
+  }
+  if (type === 'magiclink') {
+    return NextResponse.redirect(`${SITE_URL}/student-dashboard`)
+  }
+
+  // Signup verification (type=signup / email / none): students land on their
+  // dashboard with the registration details materialised; coordinators
+  // continue to onboarding to complete their profile (D-07).
+  const { data: claimsData } = await supabase.auth.getClaims()
+  const claims = claimsData?.claims as
+    | { sub?: string; app_metadata?: { role?: string } }
+    | undefined
+  if (claims?.sub && claims?.app_metadata?.role === 'student') {
+    const { data: userData } = await supabase.auth.getUser()
+    const user = userData.user
+    if (user) {
+      const status = await backfillStudentProfileFromMetadata(
+        supabase,
+        user.id,
+        user.email ?? null,
+        (user.user_metadata ?? {}) as Record<string, unknown>,
+      )
+      console.log('[auth/callback] student backfill:', status)
+    } else {
+      console.log('[auth/callback] student backfill skipped: no user after verify')
+    }
+    return NextResponse.redirect(`${SITE_URL}/student-dashboard`)
+  }
+
+  console.log(
+    '[auth/callback] non-student signup, role:',
+    claims?.app_metadata?.role ?? null,
+  )
+  return NextResponse.redirect(`${SITE_URL}/onboarding`)
 }

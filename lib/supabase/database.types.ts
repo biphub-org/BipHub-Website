@@ -611,6 +611,59 @@ export type Database = {
           },
         ]
       }
+      coordinator_requests: {
+        Row: {
+          contact_email: string
+          country: string | null
+          created_at: string
+          email: string
+          erasmus_code: string | null
+          full_name: string
+          id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          university_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          contact_email: string
+          country?: string | null
+          created_at?: string
+          email: string
+          erasmus_code?: string | null
+          full_name: string
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          university_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          contact_email?: string
+          country?: string | null
+          created_at?: string
+          email?: string
+          erasmus_code?: string | null
+          full_name?: string
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          university_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coordinator_requests_university_id_fkey"
+            columns: ["university_id"]
+            isOneToOne: false
+            referencedRelation: "universities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           contact_email: string | null

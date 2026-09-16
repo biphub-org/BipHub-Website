@@ -1,5 +1,7 @@
+import Link from 'next/link'
 import { SearchX } from 'lucide-react'
 import { getAdminCoordinators } from '@/lib/queries/adminCoordinators'
+import { getPendingCoordinatorRequestCount } from '@/lib/queries/adminCoordinatorRequests'
 import { CoordinatorCard } from '@/components/admin/CoordinatorCard'
 import { CoordinatorFilters } from '@/components/admin/CoordinatorFilters'
 
@@ -18,7 +20,10 @@ export default async function AdminCoordinatorsPage(props: {
   const sp = await props.searchParams
   const q = typeof sp.q === 'string' ? sp.q : undefined
   const country = parseCountry(sp.country)
-  const coordinators = await getAdminCoordinators({ q, country })
+  const [coordinators, pendingCount] = await Promise.all([
+    getAdminCoordinators({ q, country }),
+    getPendingCoordinatorRequestCount(),
+  ])
   const count = coordinators.length
 
   const hasFilters = !!(q || country?.length)
@@ -26,12 +31,27 @@ export default async function AdminCoordinatorsPage(props: {
   return (
     <div>
       <div className="border-b border-border bg-white px-6 py-5">
-        <h1 className="text-[22px] font-semibold text-ink">Coordinators</h1>
-        <p className="text-sm text-muted">
-          {count} coordinator{count === 1 ? '' : 's'}
-          {hasFilters ? ' · filtered' : ''}
-          {q ? ` matching "${q}"` : ''}
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="text-[22px] font-semibold text-ink">Coordinators</h1>
+            <p className="text-sm text-muted">
+              {count} coordinator{count === 1 ? '' : 's'}
+              {hasFilters ? ' · filtered' : ''}
+              {q ? ` matching "${q}"` : ''}
+            </p>
+          </div>
+          <Link
+            href="/admin/coordinators/requests"
+            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-white px-4 py-2 text-sm font-semibold text-eu-blue hover:border-eu-blue"
+          >
+            Access requests
+            {pendingCount > 0 && (
+              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-900">
+                {pendingCount} pending
+              </span>
+            )}
+          </Link>
+        </div>
       </div>
 
       <CoordinatorFilters initialQ={q ?? ''} initialCountry={country ?? []} />

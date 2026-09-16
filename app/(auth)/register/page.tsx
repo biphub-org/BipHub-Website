@@ -1,7 +1,11 @@
 import Link from 'next/link'
 import { LogoMark } from '@/components/home/LogoMark'
+import { redirectIfSignedIn } from '@/lib/auth/redirect'
 
-export default function RegisterChooserPage() {
+export default async function RegisterChooserPage() {
+  // Signed-in users have no business on the register pages (typed URL included).
+  await redirectIfSignedIn()
+
   return (
     <section className="bg-white rounded-md shadow-md p-10">
       <header className="flex flex-col items-center gap-3 mb-6">
@@ -26,7 +30,7 @@ export default function RegisterChooserPage() {
             List and manage your university&apos;s Blended Intensive Programs.
           </p>
           <span className="mt-3 inline-flex text-sm font-semibold text-eu-blue group-hover:underline">
-            Create coordinator account →
+            Request coordinator access →
           </span>
         </Link>
 

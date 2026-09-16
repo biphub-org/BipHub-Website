@@ -2,12 +2,16 @@
  * Auth golden-path spec — Plan 04-07 Task 4 (D-14 auth scope + FOUN-07 verify).
  *
  * Covers:
- *   1. Register through the UI → auto-confirm via Supabase admin API → login → /onboarding
+ *   1. Coordinator access request through the UI → under-review confirmation
+ *      → re-entering the email on /login shows "under review"
  *   2. Invalid credentials show an inline error
  *   3. Logout from /dashboard via the sign-out form
  *   4. Password reset request shows the "check your email" confirmation
  *   5. Account deletion via /dashboard/settings (self-provisions its own
  *      throwaway coordinator via the admin API, so it is fully re-runnable)
+ *
+ * Coordinators no longer self-register: /register/coordinator is an access
+ * request reviewed by admins (approve → invite email → set password).
  *
  * Selectors use the semantic Playwright API (getByLabel / getByRole /
  * getByText) — no className targeting — so the suite is resilient to
@@ -25,69 +29,39 @@ test.describe('auth flow', () => {
     password: 'Throwaway!Test1',
   }
 
-  test('register → auto-confirm via admin API → login → /onboarding', async ({
+  test('coordinator request → under review → login shows review status', async ({
     page,
-    request,
   }) => {
-    // 1. Register through the UI (/register is a chooser — the form lives
-    // on /register/coordinator since the student-auth split).
+    // 1. File an access request through the UI (/register is a chooser —
+    // the request form lives on /register/coordinator).
     await page.goto('/register/coordinator')
-    await page.getByLabel(/^email$/i).fill(NEW_USER.email)
-    await page.getByLabel(/^password$/i).fill(NEW_USER.password)
-    await page.getByLabel(/confirm password/i).fill(NEW_USER.password)
-    await page.getByRole('button', { name: /create account/i }).click()
-    await expect(page).toHaveURL(/verify-email/, { timeout: 10_000 })
+    await page.getByLabel(/account email/i).fill(NEW_USER.email)
+    await page.getByLabel(/full name/i).fill('E2E Throwaway Coordinator')
+    await page.getByLabel(/contact email/i).fill(NEW_USER.email)
+    // University combobox: search then pick the first registry result
+    // (seed data has registered universities).
+    await page.getByRole('combobox').click()
+    await page
+      .getByPlaceholder(/search by name or erasmus code/i)
+      .fill('Uni')
+    await page.getByRole('option').first().click({ timeout: 10_000 })
+    // Country + erasmus code auto-fill from the chosen university; fill the
+    // code explicitly in case the seed row has none.
+    await page.getByLabel(/erasmus code/i).fill('E2E TST01')
+    await page.getByRole('button', { name: /submit request/i }).click()
+    await expect(
+      page.getByRole('heading', { name: /request received/i }),
+    ).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByText(/under review/i).first()).toBeVisible()
 
-    // 2. Auto-confirm via Supabase admin API.
-    // Service-role key is exposed to the dev/CI process via env; tests read
-    // the same values the Next.js dev server reads.
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-    if (!supabaseUrl || !serviceRoleKey) {
-      throw new Error(
-        'NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY missing — ' +
-          'ensure .env.local is populated (`supabase status` after `supabase start`).',
-      )
-    }
-
-    const userListResp = await request.get(
-      // GoTrue's admin `filter` param is a plain substring search — NOT
-      // PostgREST `eq.` syntax. Pass the email as the search term, then match
-      // the exact row in the results (the throwaway email is unique per run).
-      `${supabaseUrl}/auth/v1/admin/users?filter=${encodeURIComponent(NEW_USER.email)}`,
-      {
-        headers: {
-          apikey: serviceRoleKey,
-          Authorization: `Bearer ${serviceRoleKey}`,
-        },
-      },
-    )
-    expect(userListResp.ok()).toBeTruthy()
-    const userList = (await userListResp.json()) as {
-      users?: Array<{ id: string; email: string }>
-    }
-    const userId = userList.users?.find((u) => u.email === NEW_USER.email)?.id
-    expect(userId).toBeTruthy()
-    const confirmResp = await request.put(
-      `${supabaseUrl}/auth/v1/admin/users/${userId}`,
-      {
-        headers: {
-          apikey: serviceRoleKey,
-          Authorization: `Bearer ${serviceRoleKey}`,
-          'Content-Type': 'application/json',
-        },
-        data: { email_confirm: true },
-      },
-    )
-    expect(confirmResp.ok()).toBeTruthy()
-
-    // 3. Login. Freshly confirmed user has no profile → /onboarding.
+    // 2. No account exists yet: entering the same email on /login must
+    // explain the review state instead of offering a password field.
     await page.goto('/login')
     await page.getByLabel(/email/i).fill(NEW_USER.email)
     await page.getByRole('button', { name: /continue/i }).click()
-    await page.getByLabel(/password/i).fill(NEW_USER.password)
-    await page.getByRole('button', { name: /sign in/i }).click()
-    await expect(page).toHaveURL(/onboarding/, { timeout: 10_000 })
+    await expect(page.getByText(/under review/i).first()).toBeVisible({
+      timeout: 10_000,
+    })
   })
 
   test('invalid credentials show error', async ({ page }) => {

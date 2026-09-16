@@ -18,9 +18,10 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
+import { mapLoginMethod, type LoginMethod } from '@/lib/auth/login-method'
+import { backfillStudentProfileFromMetadata } from '@/lib/auth/student-profile'
 import {
   loginSchema,
-  registerSchema,
   studentRegisterSchema,
   resolveLoginSchema,
   passwordResetSchema,
@@ -68,7 +69,47 @@ export async function signInAction(formData: FormData): Promise<{ error?: string
   const claims = claimsData?.claims as { sub?: string; app_metadata?: { role?: string } } | undefined
   const role = claims?.app_metadata?.role
 
+  // Students must verify their email before signing in. When Supabase email
+  // confirmations are enabled, signInWithPassword above already fails with
+  // 'Email not confirmed' (mapped below). This explicit check additionally
+  // covers environments where the confirm-email toggle is off: an
+  // unconfirmed student session is dropped here instead of being honoured.
   if (role === 'student') {
+    const { data: userData } = await supabase.auth.getUser()
+    if (userData.user && !userData.user.email_confirmed_at) {
+      await supabase.auth.signOut()
+      return {
+        error:
+          'Please verify your email before signing in. Check your inbox or resend the verification email.',
+      }
+    }
+    // First-sign-in backfill: the registration details travel in
+    // user_metadata and are normally materialised by /auth/callback — but
+    // with the default Supabase email template GoTrue consumes the token
+    // itself, so the callback never runs. Completing the row here (when it
+    // is still bare and the metadata holds the details) means a verified
+    // student lands on a complete dashboard instead of /complete-profile
+    // asking for data we already hold.
+    if (userData.user && claims?.sub) {
+      const { data: studentProfile } = await supabase
+        .from('profiles')
+        .select('full_name, country')
+        .eq('id', claims.sub)
+        .maybeSingle()
+      const row = (studentProfile ?? {}) as {
+        full_name?: string | null
+        country?: string | null
+      }
+      if (!row.full_name || !row.country) {
+        const status = await backfillStudentProfileFromMetadata(
+          supabase,
+          userData.user.id,
+          userData.user.email ?? null,
+          (userData.user.user_metadata ?? {}) as Record<string, unknown>,
+        )
+        console.log('[signInAction] student backfill:', status)
+      }
+    }
     redirect('/student-dashboard')
   }
   if (role === 'admin') {
@@ -94,40 +135,18 @@ export async function signInAction(formData: FormData): Promise<{ error?: string
   redirect('/dashboard')
 }
 
-// AUTH-01 + AUTH-02: register + dispatch verification email via Supabase mailer.
-// emailRedirectTo points at /auth/callback so the PKCE code returns to our route handler.
-// Coordinator path — requires email verification via /verify-email.
-export async function signUpAction(formData: FormData): Promise<{ error?: string }> {
-  const parsed = registerSchema.safeParse({
-    email: formData.get('email'),
-    password: formData.get('password'),
-    confirmPassword: formData.get('confirmPassword'),
-  })
-  if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? 'Invalid input.' }
-  }
-
-  const supabase = await createClient()
-  const { error } = await supabase.auth.signUp({
-    email: parsed.data.email,
-    password: parsed.data.password,
-    options: { emailRedirectTo: `${SITE_URL}/auth/callback` },
-  })
-  if (error) {
-    const msg = error.message.toLowerCase()
-    if (msg.includes('already registered') || msg.includes('user already')) {
-      return { error: 'An account with this email already exists. Sign in instead?' }
-    }
-    return { error: 'Something went wrong. Please try again.' }
-  }
-  redirect('/verify-email?email=' + encodeURIComponent(parsed.data.email))
-}
-
-// Student registration: email + password + personal details, no email
-// confirmation, auto-approved. Creates the user with role='student' so
-// handle_new_user sets profiles.role. With enable_confirmations=false the user
-// is immediately confirmed, so we sign in directly, save the profile details
-// and redirect to /student-dashboard.
+// Student registration: email + password + personal details WITH email
+// verification. The student must confirm their email (verification link)
+// before they can sign in — no session is established here.
+//
+// Because the verification click may happen in a different browser (or days
+// later), the personal details cannot be written with the new user's session
+// at signup time. They travel in `options.data` (user_metadata) instead and
+// are materialised into profiles by /auth/callback after verification — with
+// a first-sign-in backfill in signInAction as safety net for link formats
+// that never reach the callback (see lib/auth/student-profile.ts).
+// handle_new_user still creates the bare profiles row with role='student'
+// from data.role at signup.
 export async function signUpStudentAction(formData: FormData): Promise<{ error?: string }> {
   const parsed = studentRegisterSchema.safeParse({
     email: formData.get('email'),
@@ -141,45 +160,8 @@ export async function signUpStudentAction(formData: FormData): Promise<{ error?:
     return { error: parsed.error.issues[0]?.message ?? 'Invalid input.' }
   }
 
-  const supabase = await createClient()
-  const { error: signUpError } = await supabase.auth.signUp({
-    email: parsed.data.email,
-    password: parsed.data.password,
-    options: { data: { role: 'student' } },
-  })
-  if (signUpError) {
-    const msg = signUpError.message.toLowerCase()
-    if (msg.includes('already registered') || msg.includes('user already')) {
-      return { error: 'An account with this email already exists. Sign in instead?' }
-    }
-    return { error: 'Something went wrong. Please try again.' }
-  }
-
-  // Establishes the SSR session cookie. With confirmations disabled this
-  // succeeds immediately; if confirmations were enabled it would surface
-  // 'email not confirmed' which we surface as a generic error.
-  const { error: signInError } = await supabase.auth.signInWithPassword({
-    email: parsed.data.email,
-    password: parsed.data.password,
-  })
-  if (signInError) {
-    const msg = signInError.message.toLowerCase()
-    if (msg.includes('email not confirmed')) {
-      return { error: 'Account created. Please verify your email before signing in.' }
-    }
-    return { error: 'Account created. Please sign in.' }
-  }
-
-  // The same client holds the fresh session in memory, so this upsert runs as
-  // the new user (RLS insert_own/update_own on id = auth.uid()). handle_new_user
-  // already created the bare row; this fills in the personal details.
-  const { data: claimsData } = await supabase.auth.getClaims()
-  const userId = claimsData?.claims?.sub
-  if (!userId) {
-    return { error: 'Account created. Please sign in.' }
-  }
-
   if (parsed.data.university_id) {
+    const supabase = await createClient()
     const { data: uni } = await supabase
       .from('universities')
       .select('id')
@@ -190,31 +172,38 @@ export async function signUpStudentAction(formData: FormData): Promise<{ error?:
     }
   }
 
-  const { error: profileError } = await supabase
-    .from('profiles')
-    .upsert(
-      {
-        id: userId,
+  const supabase = await createClient()
+  const { error: signUpError } = await supabase.auth.signUp({
+    email: parsed.data.email,
+    password: parsed.data.password,
+    options: {
+      data: {
+        role: 'student',
         full_name: parsed.data.full_name,
-        contact_email: parsed.data.email,
         country: parsed.data.country,
         university_id: parsed.data.university_id ?? null,
       },
-      { onConflict: 'id' },
-    )
-  if (profileError) {
-    console.error('[signUpStudentAction] profile error:', profileError.message)
-    return { error: 'Account created, but we could not save your profile details. Please complete them after signing in.' }
+      emailRedirectTo: `${SITE_URL}/auth/callback`,
+    },
+  })
+  if (signUpError) {
+    const msg = signUpError.message.toLowerCase()
+    if (msg.includes('already registered') || msg.includes('user already')) {
+      return { error: 'An account with this email already exists. Sign in instead?' }
+    }
+    return { error: 'Something went wrong. Please try again.' }
   }
 
-  revalidatePath('/', 'layout')
-  redirect('/student-dashboard')
+  // No sign-in here by design: the account stays unconfirmed until the
+  // verification link is clicked, and signInAction refuses unconfirmed
+  // students. /verify-email explains the next step + offers a resend.
+  redirect('/verify-email?email=' + encodeURIComponent(parsed.data.email))
 }
 
 // Resend the signup verification email for users who didn't receive (or lost) the
 // first one. Validates the email server-side so the button on /verify-email can't
-// be repurposed to spam arbitrary addresses. Mirrors signUpAction's emailRedirectTo
-// so the PKCE callback lands the same way.
+// be repurposed to spam arbitrary addresses. Mirrors the signup emailRedirectTo
+// (/auth/callback) so the PKCE callback lands the same way.
 //
 // T-02-02-05 (user-enumeration): always return { success: true } even when Supabase
 // reports an error, so a bad-actor probing this endpoint can't tell whether an
@@ -378,13 +367,15 @@ export async function signInWithOtpAction(
 }
 
 // Unified login — step 1: resolve which auth method an email should use.
-// Uses the SECURITY DEFINER function public.resolve_login_method (00047) so anon
-// can check role without service-role key. All known roles now use password
-// (students migrated from magiclink to email+password); 'unknown' for no account.
+// Uses the SECURITY DEFINER function public.resolve_login_method (00047,
+// extended in 00054 with coordinator-request states) so anon can check
+// without a service-role key. Account roles use password; a coordinator
+// request with no account yet resolves to pending/rejected/approved so the
+// login form can explain the review state; 'unknown' for no account.
 // 'magiclink' is retained as a deprecated return value for backward compat.
 export async function resolveLoginMethodAction(
   formData: FormData,
-): Promise<{ method?: 'magiclink' | 'password' | 'unknown'; error?: string }> {
+): Promise<{ method?: LoginMethod | 'magiclink'; error?: string }> {
   const parsed = resolveLoginSchema.safeParse({ email: formData.get('email') })
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? 'Invalid email.' }
@@ -397,8 +388,8 @@ export async function resolveLoginMethodAction(
     console.error('[resolveLoginMethodAction] rpc error:', error.message)
     return { error: 'Something went wrong. Please try again.' }
   }
-  if (data === 'student' || data === 'coordinator' || data === 'admin') return { method: 'password' }
-  return { method: 'unknown' }
+  if (data === 'magiclink') return { method: 'magiclink' }
+  return { method: mapLoginMethod(data as string | null) }
 }
 
 // D-15: student sign-out lands on / (public home), NOT /login. Separate export

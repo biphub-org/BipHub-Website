@@ -1,15 +1,15 @@
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
 import { Metadata } from 'next'
-import { createClient } from '@/lib/supabase/server'
 import { LogoMark } from '@/components/home/LogoMark'
 import { StudentRegisterForm } from '@/components/auth/StudentRegisterForm'
 import { searchUniversitiesAction } from '@/lib/actions/universities'
+import { redirectIfSignedIn } from '@/lib/auth/redirect'
 
 /**
- * /register/student — student registration (no email confirmation).
+ * /register/student — student registration with email verification.
  * Collects personal details (full name, country, optional home university).
- * On success the Server Action auto-signs in and redirects to /student-dashboard.
+ * On success the Server Action sends a verification link; the student signs
+ * in only after confirming their email.
  */
 
 export const metadata: Metadata = {
@@ -19,15 +19,7 @@ export const metadata: Metadata = {
 export default async function StudentRegisterPage() {
   // (D-13) Already-authenticated bounce — handled here, NOT in middleware
   // (matcher excludes /register/* from middleware execution, per 05-02 design).
-  const supabase = await createClient()
-  const { data } = await supabase.auth.getClaims()
-  if (data?.claims) {
-    const role = (data.claims as { app_metadata?: { role?: string } }).app_metadata?.role
-    if (role === 'student') redirect('/student-dashboard')
-    if (role === 'coordinator') redirect('/dashboard')
-    if (role === 'admin') redirect('/admin')
-    // Unknown role: fall through to form (safe default)
-  }
+  await redirectIfSignedIn()
 
   return (
     <section className="bg-white rounded-md shadow-md p-10">
