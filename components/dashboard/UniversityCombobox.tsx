@@ -103,6 +103,12 @@ export function UniversityCombobox({
     })
   }
 
+  // Clipped in a truncating span below so long registry names (ECHE
+  // catalog rows can exceed 150 chars) cannot overflow the trigger frame.
+  const triggerLabel = selected
+    ? `${selected.name} (${selected.country})${selected.erasmus_code ? ` · ${selected.erasmus_code}` : ''}`
+    : 'Search by name or Erasmus code…'
+
   return (
     <div className="space-y-3">
       <Popover open={open} onOpenChange={setOpen}>
@@ -117,10 +123,10 @@ export function UniversityCombobox({
             />
           }
         >
-          {selected
-            ? `${selected.name} (${selected.country})${selected.erasmus_code ? ` · ${selected.erasmus_code}` : ''}`
-            : 'Search by name or Erasmus code…'}
-          <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
+          <span className="min-w-0 flex-1 truncate text-left" title={triggerLabel}>
+            {triggerLabel}
+          </span>
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </PopoverTrigger>
         <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
           <Command shouldFilter={false}>

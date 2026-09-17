@@ -39,19 +39,29 @@ test.describe('auth flow', () => {
     await page.getByLabel(/full name/i).fill('E2E Throwaway Coordinator')
     await page.getByLabel(/contact email/i).fill(NEW_USER.email)
     // University combobox: search then pick the first registry result
-    // (seed data has registered universities). Matched by visible text: role="combobox" takes its accessible name from the author, not contents, so the trigger has an empty accessible name and a name filter never matches; the Country <select> on the same form rules out the bare role locator.
-    await page
-      .getByText(/search by name or erasmus/i)
-      .click()
+    // (seed data has registered universities). The query targets a 150+ char
+    // ECHE name so the overflow assertion below exercises genuine clipping,
+    // not a vacuously short label.
+    // button[role]: the trigger is the only button with the combobox role
+    // (the Country <select> shares the role but is not a button), and its
+    // accessible name is empty (the role takes its name from the author,
+    // not contents) — so neither the bare role nor a name filter works.
+    await page.locator('button[role="combobox"]').click()
     await page
       .getByPlaceholder(/search by name or erasmus code/i)
-      .fill('Uni')
+      .fill('Katholische Stiftungshochschule')
     // Scoped to the results listbox: the Country <select>'s native <option> elements also expose role="option".
     await page
       .getByRole('listbox')
       .getByRole('option')
       .first()
       .click({ timeout: 10_000 })
+    // Long registry names must clip inside the trigger instead of overflowing
+    // its frame (the ECHE catalog holds 150+ char names).
+    const triggerOverflow = await page
+      .locator('button[role="combobox"]')
+      .evaluate((el) => el.scrollWidth - el.clientWidth)
+    expect(triggerOverflow).toBeLessThanOrEqual(1)
     // Country + erasmus code auto-fill from the chosen university; fill the
     // code explicitly in case the seed row has none.
     await page.getByLabel(/erasmus code/i).fill('E2E TST01')
