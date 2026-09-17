@@ -13,9 +13,9 @@
  */
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen grid place-items-center bg-bg-soft px-4 py-8">
+    <div className="min-h-screen grid place-items-center bg-bg-soft px-4 pt-8 pb-20">
       <div className="w-full max-w-[440px]">{children}</div>
-      <p className="fixed bottom-4 left-0 right-0 text-center text-[11px] text-muted">
+      <p className="fixed bottom-0 left-0 right-0 border-t border-border bg-bg-soft py-3 text-center text-[11px] text-muted">
         Independent project — not affiliated with the European Commission
       </p>
     </div>

@@ -32,13 +32,15 @@ import type { UniversitySearchResult } from '@/lib/actions/universities'
  */
 export function StudentRegisterForm({
   initialUniversities,
+  initialEmail = '',
 }: {
   initialUniversities: UniversitySearchResult[]
+  initialEmail?: string
 }) {
   const form = useForm<StudentRegisterValues>({
     resolver: zodResolver(studentRegisterSchema),
     defaultValues: {
-      email: '',
+      email: initialEmail,
       password: '',
       confirmPassword: '',
       full_name: '',

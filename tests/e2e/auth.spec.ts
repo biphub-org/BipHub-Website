@@ -82,6 +82,17 @@ test.describe('auth flow', () => {
     })
   })
 
+  test('login no-account screen passes the email to registration', async ({ page }) => {
+    const email = `e2e-prefill-${Date.now()}@biphub.test`
+    await page.goto('/login')
+    await page.getByLabel(/email/i).fill(email)
+    await page.getByRole('button', { name: /continue/i }).click()
+    // Unknown email → no-account screen; the student path carries ?email=.
+    await page.getByRole('link', { name: /create student account/i }).click()
+    await page.waitForURL(/\/register\/student\?email=/, { timeout: 10_000 })
+    await expect(page.getByLabel(/email/i)).toHaveValue(email)
+  })
+
   test('logout from /dashboard', async ({ page }) => {
     // Login as the fixture coordinator.
     await page.goto('/login')

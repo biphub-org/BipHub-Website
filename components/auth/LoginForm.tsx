@@ -240,10 +240,10 @@ export function LoginForm({ initialError }: { initialError?: string }) {
         </div>
         <div className="grid gap-3">
           <Button asChild className="w-full">
-            <Link href="/register/student">Create student account →</Link>
+            <Link href={`/register/student?email=${encodeURIComponent(email)}`}>Create student account →</Link>
           </Button>
           <Button variant="outline" asChild className="w-full bg-white">
-            <Link href="/register/coordinator">
+            <Link href={`/register/coordinator?email=${encodeURIComponent(email)}`}>
               Request coordinator access →
             </Link>
           </Button>

@@ -38,13 +38,15 @@ import type { UniversitySearchResult } from '@/lib/actions/universities'
  */
 export function CoordinatorRequestForm({
   initialUniversities,
+  initialEmail = '',
 }: {
   initialUniversities: UniversitySearchResult[]
+  initialEmail?: string
 }) {
   const form = useForm<CoordinatorRequestValues>({
     resolver: zodResolver(coordinatorRequestSchema),
     defaultValues: {
-      email: '',
+      email: initialEmail,
       full_name: '',
       contact_email: '',
       university_id: '',

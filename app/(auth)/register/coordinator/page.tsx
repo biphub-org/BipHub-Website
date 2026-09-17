@@ -12,9 +12,17 @@ import { redirectIfSignedIn } from '@/lib/auth/redirect'
  * (/admin/coordinators/requests), and approved coordinators set their
  * password via the Supabase invite link before signing in.
  */
-export default async function CoordinatorRequestPage() {
+export default async function CoordinatorRequestPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ email?: string | string[] }>
+}) {
   // Signed-in users have no business on the register pages (typed URL included).
   await redirectIfSignedIn()
+
+  // Prefill from the login no-account screen (?email=...).
+  const sp = await searchParams
+  const initialEmail = typeof sp.email === 'string' ? sp.email : ''
 
   return (
     <section className="bg-white rounded-md shadow-md p-10">
@@ -28,7 +36,7 @@ export default async function CoordinatorRequestPage() {
           review your request — approval usually takes a few days.
         </p>
       </header>
-      <CoordinatorRequestForm initialUniversities={await searchUniversitiesAction('')} />
+      <CoordinatorRequestForm initialUniversities={await searchUniversitiesAction('')} initialEmail={initialEmail} />
       <p className="mt-6 text-center text-sm text-muted">
         Are you a student?{' '}
         <Link href="/register/student" className="text-eu-blue font-semibold hover:underline">

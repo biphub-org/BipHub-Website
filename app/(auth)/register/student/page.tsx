@@ -16,10 +16,18 @@ export const metadata: Metadata = {
   title: 'Create your student account · BipHub',
 }
 
-export default async function StudentRegisterPage() {
+export default async function StudentRegisterPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ email?: string | string[] }>
+}) {
   // (D-13) Already-authenticated bounce — handled here, NOT in middleware
   // (matcher excludes /register/* from middleware execution, per 05-02 design).
   await redirectIfSignedIn()
+
+  // Prefill from the login no-account screen (?email=...).
+  const sp = await searchParams
+  const initialEmail = typeof sp.email === 'string' ? sp.email : ''
 
   return (
     <section className="bg-white rounded-md shadow-md p-10">
@@ -32,7 +40,7 @@ export default async function StudentRegisterPage() {
           Discover BIPs, save favourites and get alerts.
         </p>
       </header>
-      <StudentRegisterForm initialUniversities={await searchUniversitiesAction('')} />
+      <StudentRegisterForm initialUniversities={await searchUniversitiesAction('')} initialEmail={initialEmail} />
       <p className="mt-6 text-center text-sm text-muted">
         Are you a coordinator?{' '}
         <Link href="/register/coordinator" className="text-eu-blue font-semibold hover:underline">
