@@ -36,6 +36,14 @@ every `supabase start`, re-pull from `npx supabase status` and update
 `.env.local`. This caught a previous contributor and is documented here
 verbatim so it does not catch you.
 
+**Supabase Auth email templates (cloud projects).** `/auth/callback` only
+receives the token when the project's email templates link to it directly —
+the exact per-template hrefs live in that route's header comment
+(`app/auth/callback/route.ts`, "REQUIRED SUPABASE DASHBOARD SETUP"). Every new
+cloud project (staging, fresh test project) needs this by hand; with the
+default templates, verification links consume the token at GoTrue and land on
+`/login?error=verification_failed` even though the email was verified.
+
 Available npm scripts (verify against `package.json`):
 
 | Script | What it does |

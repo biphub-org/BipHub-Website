@@ -37,6 +37,19 @@ import { backfillStudentProfileFromMetadata } from '@/lib/auth/student-profile'
  * server-controlled `NEXT_PUBLIC_SITE_URL` plus a hard-coded path; `type` selects
  * among a fixed set of destinations — user-supplied query strings cannot inject an
  * arbitrary host.
+ *
+ * REQUIRED SUPABASE DASHBOARD SETUP (per cloud project — NOT in git):
+ *   Auth → Configuration → Site URL = the app URL (e.g. https://www.biphub.org)
+ *   Auth → Email Templates → link href in each template (keep the copy):
+ *     Confirm signup → {{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=signup
+ *     Reset Password  → {{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=recovery
+ *     Invite user     → {{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=invite
+ *     Magic Link      → {{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=magiclink
+ * With the DEFAULT templates, GoTrue consumes the token at its own endpoint and
+ * drops the user on the bare redirectTo URL (no token) → this route redirects to
+ * /login?error=verification_failed even though the email WAS verified (the user
+ * can then sign in normally, which makes it look like an app bug). Every new
+ * cloud project (staging, fresh test project) MUST repeat this setup.
  */
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
