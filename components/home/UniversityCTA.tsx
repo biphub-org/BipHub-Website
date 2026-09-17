@@ -5,7 +5,7 @@
  *
  * Self-contained dark navy card with gold + blue radial accents. Designed to
  * sit beside HowItWorks in a 2-column grid on lg+ (see app/(public)/page.tsx).
- * Primary CTA: gold "Get started — it's free" → /register
+ * Primary CTA: gold "Get started" → /register
  * Secondary CTA: ghost on dark "See sample listing" → /bip/{sampleSlug}
  *
  * Motion: scroll-reveal with staggered children. Radial accents drift slowly.
@@ -127,7 +127,7 @@ export function UniversityCTA({ sampleSlug }: UniversityCTAProps) {
               className="mt-3 text-[16px] leading-[1.6] text-white/70"
               variants={fadeUpItem}
             >
-              The free platform for Erasmus+ coordinators. Publish in minutes
+              The platform for Erasmus+ coordinators. Publish in minutes
               and put your programme in front of students across Europe.
             </m.p>
 
@@ -155,7 +155,7 @@ export function UniversityCTA({ sampleSlug }: UniversityCTAProps) {
                 asChild
                 className="focus-visible:ring-offset-ink"
               >
-                <Link href="/register">Get started — it&apos;s free</Link>
+                <Link href="/register">Get started</Link>
               </Button>
               <Button
                 variant="ghost"

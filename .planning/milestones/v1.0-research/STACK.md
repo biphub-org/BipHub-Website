@@ -93,9 +93,9 @@ If the team prefers to start on Next.js 16, the primary changes to accommodate a
 | `topojson-client` | **^3.x** | TopoJSON → GeoJSON conversion | Needed to parse NUTS/Natural Earth TopoJSON files |
 | `d3-geo` | **^3.x** | Map projections | Used internally by react19-simple-maps; may need direct use for custom projection |
 
-**Why NOT raw D3:** D3 map requires imperative DOM manipulation that conflicts with React's declarative model. Requires `useRef` + `useEffect` with careful cleanup. Produces harder-to-maintain code for a team building an open-source repo where contributors need to understand the map code.
+**Why NOT raw D3:** D3 map requires imperative DOM manipulation that conflicts with React's declarative model. Requires `useRef` + `useEffect` with careful cleanup. Produces harder-to-maintain code for a team building a repo where contributors need to understand the map code.
 
-**Why NOT the original `react-simple-maps`:** Last published 4 years ago. Has a React 19 peer dependency conflict (`peerDependencies` only lists through React 18). Would require `--legacy-peer-deps` which is a red flag for an open-source project.
+**Why NOT the original `react-simple-maps`:** Last published 4 years ago. Has a React 19 peer dependency conflict (`peerDependencies` only lists through React 18). Would require `--legacy-peer-deps` which is a red flag for a project accepting external contributions.
 
 **Why NOT a tile-based map (Leaflet, MapLibre):** BipHub's map shows 29 Erasmus+ programme countries as colored regions — this is a choropleth, not a navigable tile map. SVG is correct; tile maps are overkill and introduce significant bundle size.
 
@@ -290,7 +290,7 @@ npx supabase gen types typescript --local > lib/supabase/database.types.ts
 
 All schema changes go through migration files. Two approaches:
 
-**Option A (Code-first, recommended for open source):**
+**Option A (Code-first, recommended):**
 ```bash
 npx supabase migration new create_bips_table
 # Edit supabase/migrations/<timestamp>_create_bips_table.sql
@@ -305,7 +305,7 @@ npx supabase db diff --schema public -f my_change_name
 npx supabase db reset
 ```
 
-**Recommended for BipHub:** Option A. Open-source contributors need to understand the schema by reading migration files, not by reverse-engineering a Supabase dashboard. Write readable, commented SQL migrations.
+**Recommended for BipHub:** Option A. Contributors need to understand the schema by reading migration files, not by reverse-engineering a Supabase dashboard. Write readable, commented SQL migrations.
 
 ### File Structure
 
@@ -425,7 +425,7 @@ npm install -D @types/node
 | Auth | Supabase Auth | NextAuth | NextAuth adds complexity without benefit when Supabase RLS is the access-control layer |
 | Animation | `motion` v12 | `framer-motion` v11 | `framer-motion` is deprecated alias; `motion` is the correct package |
 | Testing | Vitest + Playwright | Jest + Cypress | Vitest is 10x faster with native ESM; Playwright has better Next.js integration than Cypress; official Next.js recommendation |
-| State | Zustand | Jotai / Redux | Zustand is simpler for BipHub's needs (filter state, bookmark list); Redux is overkill; Jotai is fine but Zustand more widely known for open source |
+| State | Zustand | Jotai / Redux | Zustand is simpler for BipHub's needs (filter state, bookmark list); Redux is overkill; Jotai is fine but Zustand more widely known |
 
 ---
 

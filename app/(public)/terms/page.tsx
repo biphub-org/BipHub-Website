@@ -20,7 +20,7 @@ import { PageSidebar } from '@/components/what-is-a-bip/PageSidebar'
 export const metadata: Metadata = {
   title: 'Terms of service · BipHub',
   description:
-    'Terms governing your use of BipHub — the free, open-source directory of Erasmus+ Blended Intensive Programmes. Independent project, not affiliated with the European Commission.',
+    'Terms governing your use of BipHub — the free directory of Erasmus+ Blended Intensive Programmes. Independent project, not affiliated with the European Commission.',
   alternates: { canonical: 'https://biphub.eu/terms' },
 }
 
@@ -30,7 +30,7 @@ const SECTIONS = [
   { id: 'content-accuracy', label: 'Content accuracy' },
   { id: 'acceptable-use', label: 'Acceptable use' },
   { id: 'your-content', label: 'Your content' },
-  { id: 'open-source', label: 'Open source & IP' },
+  { id: 'intellectual-property', label: 'Intellectual property' },
   { id: 'no-warranty', label: 'No warranty' },
   { id: 'changes-contact', label: 'Changes and contact' },
 ] as const
@@ -64,7 +64,7 @@ export default function TermsPage() {
             Terms of <span className="text-eu-gold">service</span>
           </h1>
           <p className="mt-6 max-w-[62ch] text-[18px] leading-relaxed text-white/70">
-            The rules for using BipHub — an independent, open-source directory of Erasmus+ Blended Intensive Programmes. Not affiliated with the European Commission, and provided without warranty under the MIT licence.
+            The rules for using BipHub — an independent directory of Erasmus+ Blended Intensive Programmes. Not affiliated with the European Commission, and provided without warranty.
           </p>
           <p className="mt-6 text-[13px] font-medium text-white/50">Last updated: 15th May 2026</p>
         </div>
@@ -83,7 +83,7 @@ export default function TermsPage() {
               <h2 className="text-[clamp(28px,3.5vw,40px)] font-bold tracking-tight text-ink">About this service</h2>
               <div className="mt-4 space-y-4 leading-relaxed text-ink-2">
                 <p>
-                  BipHub is a free, open-source directory of Erasmus+ Blended Intensive Programmes (BIPs) operated by Hexona Systems. It is an independent project and is not affiliated with, endorsed by, or officially connected to the European Commission, the Erasmus+ National Agencies, or any participating university. References to Erasmus+ are descriptive only.
+                  BipHub is a free directory of Erasmus+ Blended Intensive Programmes (BIPs) operated by Hexona Systems. It is an independent project and is not affiliated with, endorsed by, or officially connected to the European Commission, the Erasmus+ National Agencies, or any participating university. References to Erasmus+ are descriptive only.
                 </p>
                 <p>By accessing or using BipHub, you agree to these terms. If you do not agree, please do not use the service.</p>
               </div>
@@ -142,12 +142,12 @@ export default function TermsPage() {
               </div>
             </section>
 
-            <section id="open-source" className="mb-20 scroll-mt-24">
-              <Eyebrow className="mb-3">Section 6 · Open source and intellectual property</Eyebrow>
-              <h2 className="text-[clamp(28px,3.5vw,40px)] font-bold tracking-tight text-ink">Open source and intellectual property</h2>
+            <section id="intellectual-property" className="mb-20 scroll-mt-24">
+              <Eyebrow className="mb-3">Section 6 · Intellectual property</Eyebrow>
+              <h2 className="text-[clamp(28px,3.5vw,40px)] font-bold tracking-tight text-ink">Intellectual property</h2>
               <div className="mt-4 space-y-4 leading-relaxed text-ink-2">
                 <p>
-                  The BipHub software is published as open source under the MIT licence. The MIT licence covers the code only — it does not transfer rights to the BipHub name, logo, or content submitted by coordinators. The visual identity uses the standard Erasmus+ colour palette; the logo deliberately uses a star count different from the 12-star European emblem to avoid implying EU endorsement.
+                  Nothing on this site transfers rights to the BipHub name, logo, or content submitted by coordinators. The visual identity uses the standard Erasmus+ colour palette; the logo deliberately uses a star count different from the 12-star European emblem to avoid implying EU endorsement.
                 </p>
               </div>
             </section>

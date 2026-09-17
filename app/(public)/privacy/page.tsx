@@ -83,7 +83,7 @@ export default function PrivacyPage() {
               <h2 className="text-[clamp(28px,3.5vw,40px)] font-bold tracking-tight text-ink">Data Controller</h2>
               <div className="mt-4 space-y-4 leading-relaxed text-ink-2">
                 <p>
-                  Hexona Systems operates BipHub as an independent open-source project. The data controller for personal data processed through this site is Hexona Systems. For privacy questions or to exercise your rights under GDPR Articles 15–18 and 21, contact us at{' '}
+                  Hexona Systems operates BipHub as an independent project. The data controller for personal data processed through this site is Hexona Systems. For privacy questions or to exercise your rights under GDPR Articles 15–18 and 21, contact us at{' '}
                   <a href="mailto:contact@biphub.org" className="text-eu-blue underline">
                     contact@biphub.org
                   </a>

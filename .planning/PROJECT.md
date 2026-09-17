@@ -2,7 +2,7 @@
 
 ## What This Is
 
-BipHub is the free, open-source database for Erasmus+ Blended Intensive Programs (BIPs) — the EU's short-term mobility format that combines a 5-30 day physical exchange abroad with a compulsory virtual learning component. It serves students discovering BIPs, university coordinators listing them, and admins reviewing submissions. The product replaces erasmusbip.org, the only existing competitor, which is a broken WordPress site with no real search or self-service.
+BipHub is the free database for Erasmus+ Blended Intensive Programs (BIPs) — the EU's short-term mobility format that combines a 5-30 day physical exchange abroad with a compulsory virtual learning component. It serves students discovering BIPs, university coordinators listing them, and admins reviewing submissions. The product replaces erasmusbip.org, the only existing competitor, which is a broken WordPress site with no real search or self-service.
 
 ## Core Value
 
@@ -50,7 +50,7 @@ v1.2 delivered: builder wire-up of 4 orphaned columns (`virtual_sessions_count`,
 - ✓ Admin panel — review queue, approve/reject + notes, listing edit, audit log, Resend emails, analytics — v1.0
 
 #### Foundation
-- ✓ RLS on every table; GDPR (privacy page + Art-17 account erasure); Lighthouse ≥90; WCAG AA (axe sweep passed); MIT + CONTRIBUTING; Playwright E2E — v1.0
+- ✓ RLS on every table; GDPR (privacy page + Art-17 account erasure); Lighthouse ≥90; WCAG AA (axe sweep passed); LICENSE + CONTRIBUTING; Playwright E2E — v1.0
 
 #### Student Accounts & Coordinator Edit Flow (shipped in v1.1 — 2026-07-18)
 - ✓ Student role + magic-link auth + dedicated `/student-dashboard`, role guards tightened (STUD-01/02/03, FOUN-07/08) — v1.1 Phase 5
@@ -80,8 +80,8 @@ Requirements being defined for v1.2: coordinator BIP builder + BIP detail page, 
 - **Domain:** Erasmus+ KA131 mobility programme. BIPs are funded at ~€79/day physical mobility, min 10 / max 20 participants, organized by groups of HEIs (one host + N partners), award ECTS credits, must include collaborative online component.
 - **Competitive landscape:** Single competitor (erasmusbip.org) — WordPress + embedded Google Sheet, frequently fails to load, zero filtering, no mobile, no self-service. Domain has organic SEO since ~2020.
 - **Target users:** Students (any EU/Erasmus partner HEI), university Erasmus coordinators (host or partner institutions), admins (project maintainers).
-- **Visual source of truth:** `biphub-homepage.html` in repo root — locks v1 homepage layout.
-- **Open project:** MIT-licensed, single-command local setup (`supabase start` + `npm run dev`), CONTRIBUTING.md required.
+- **Homepage visual direction:** v1 homepage built from the original mockup (removed post-build; the live page is canonical).
+- **Proprietary project:** All rights reserved (see LICENSE); single-command local setup (`supabase start` + `npm run dev`), CONTRIBUTING.md required.
 
 ## Constraints
 
@@ -99,7 +99,7 @@ Requirements being defined for v1.2: coordinator BIP builder + BIP detail page, 
 - **Accessibility:** WCAG AA. Keyboard-navigable forms and map (with country list as fallback). Proper ARIA labels.
 - **Security:** Supabase RLS on every table. Coordinators edit only their own BIPs. Admin role enforced server-side. No PII in public API surface.
 - **SEO:** BIP detail pages SSR'd with meta tags + OG images. Slug-based URLs (`/bip/sustainable-cities-budapest-2025`).
-- **Open source:** MIT license. Clean repo. CONTRIBUTING.md. One-command local dev setup.
+- **License:** Proprietary — all rights reserved (see LICENSE). Clean repo. CONTRIBUTING.md. One-command local dev setup.
 
 ## Key Decisions
 

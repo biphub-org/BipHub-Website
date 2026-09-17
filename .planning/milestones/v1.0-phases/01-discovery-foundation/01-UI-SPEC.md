@@ -200,12 +200,12 @@ Tone: helpful, neutral, sentence-case, never hype. No emojis in core UI copy (co
 
 | Element | Copy |
 |---------|------|
-| Hero pill tag + body | `New` (uppercase tag) + `Free, open-source database for Erasmus+ BIPs` |
+| Hero pill tag + body | `New` (uppercase tag) + `Free database of Erasmus+ BIPs` |
 | Hero h1 | `Find your next` *(line break)* `international experience` (gold underline accent on second line) |
 | Hero lede | `Discover Blended Intensive Programs across Europe — short, focused, fully Erasmus+ funded experiences combining online learning with study abroad.` |
 | Hero CTA primary | `Browse all BIPs` → routes to `/bips` |
 | Hero CTA secondary | `List your BIP` (ghost; routes to `/login` placeholder in Phase 1, no-op acceptable) |
-| Hero trust row | `Erasmus+ verified` · `Fully funded` · `Open source` |
+| Hero trust row | `33 programme countries` · `Fully funded by Erasmus+` · `Independent project` |
 | EuropeMap eyebrow + h2 | `Browse by country` / `Programs across Europe` |
 | EuropeMap sub | `Hover any country to preview availability. Click to filter the list by destination.` |
 | EuropeMap tooltip (≥1 BIP) | `{Country}` *(strong)* / `{n} BIPs available` (count in gold) |
@@ -234,10 +234,10 @@ Tone: helpful, neutral, sentence-case, never hype. No emojis in core UI copy (co
 | UniversityCTA primary CTA | `Get started — it's free` (gold button — links to `/register` placeholder in Phase 1) |
 | UniversityCTA secondary CTA | `See sample listing` (ghost button on dark — links to `/bip/{first-seed-slug}`) |
 | UniversityCTA mock rows | `10-minute setup` / `From signup to live listing` · `European reach` / `Students from 27+ countries` · `Quality reviewed` / `Every listing checked by our team` |
-| Footer brand tagline | `The free, open-source database for Erasmus+ Blended Intensive Programs across Europe.` |
+| Footer brand tagline | `The free database of Erasmus+ Blended Intensive Programmes.` |
 | Footer column headers | `For Students` · `For Universities` · `Project` |
 | Footer disclaimer (mandatory, INFO-03) | `Independent project — not affiliated with the European Commission` (em dash, no period, every page) |
-| Footer copyright line | `© 2026 BipHub · MIT License · Open source on GitHub` |
+| Footer copyright line | `© 2026 BipHub` |
 | StickyNav links | `Browse BIPs` · `By country` · `How it works` · `What is a BIP?` |
 | StickyNav CTAs | `Sign in` (ghost) · `List your BIP` (primary) |
 

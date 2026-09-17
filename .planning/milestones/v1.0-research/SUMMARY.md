@@ -261,7 +261,7 @@ Four route groups, single root layout. Route group layouts are nested, not root 
 
 ### Phase 4: Polish + Static Content + Performance Hardening
 
-**Goal:** Everything that exists works perfectly. Lighthouse > 90. Open-source ready.
+**Goal:** Everything that exists works perfectly. Lighthouse > 90. Launch ready.
 
 **Delivers:**
 - `/what-is-a-bip` static RSC page with FAQ (`force-static`)

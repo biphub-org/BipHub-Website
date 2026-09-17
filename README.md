@@ -1,6 +1,6 @@
 # BipHub
 
-The free, open-source directory of Erasmus+ Blended Intensive Programs (BIPs)
+The free directory of Erasmus+ Blended Intensive Programs (BIPs)
 across Europe.
 
 → Live site: **<https://biphub-website.vercel.app>**
@@ -39,9 +39,8 @@ configuration remain before a public announcement.
 - **Playwright** for end-to-end coverage; **Vitest** for unit tests
 
 Locked technical decisions (do not relitigate) live in
-[`CLAUDE.md`](./CLAUDE.md). The product context, the original brief, the
-design tokens, and the visual mockup live in [`CONTEXT.md`](./CONTEXT.md) and
-[`biphub-homepage.html`](./biphub-homepage.html).
+[`CLAUDE.md`](./CLAUDE.md). The product context, the original brief, and the
+design tokens live in [`CONTEXT.md`](./CONTEXT.md).
 
 ## Repository layout
 
@@ -88,8 +87,8 @@ filing a public issue.
 
 ## License
 
-[MIT](./LICENSE). The MIT licence covers the source code only — it does not
-transfer rights to the BipHub name, the BipHub logo, or content submitted by
-university coordinators. The visual identity uses the Erasmus+ palette but
-deliberately uses a star count different from the 12-star European emblem to
-avoid implying EU endorsement.
+Proprietary — all rights reserved, see [LICENSE](./LICENSE). Nothing in this
+repository transfers rights to the BipHub name, the BipHub logo, or content
+submitted by university coordinators. The visual identity uses the Erasmus+
+palette but deliberately uses a star count different from the 12-star European
+emblem to avoid implying EU endorsement.

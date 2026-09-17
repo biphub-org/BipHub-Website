@@ -153,7 +153,7 @@ Reasoning:
 | "What is a BIP?" explainer with FAQ | Public Info | Most students are unfamiliar with BIPs as a format | LOW | In scope | None | P1 |
 | How it works (3-step student guide on homepage) | Public Info | Students need to understand what happens after finding a BIP | LOW | In scope | None | P1 |
 | Footer disclaimer (not affiliated with EC) | Public Info | Legal requirement | LOW | In scope | None | P1 |
-| About page / GitHub link | Public Info | Open-source credibility signal | LOW | In scope (footer) | None | P2 |
+| About page / social link | Public Info | Project credibility signal | LOW | In scope (footer) | None | P2 |
 | Submission guide for coordinators | Public Info | Reduces coordinator confusion pre-signup | LOW | Referenced in footer mockup, not explicitly scoped | None | P2 |
 
 ---
@@ -167,7 +167,7 @@ Reasoning:
 **Why BipHub should NOT build this:**
 - BIPs are organized by HEIs with legal relationships (Erasmus Charter holders). A negative public review of a university's BIP can have institutional politics implications that BipHub is not positioned to manage.
 - Erasmus+ BIPs change significantly year to year (different host, different dates, different virtual component). A review of the 2023 edition is misleading for the 2025 edition.
-- Review spam and fake reviews are endemic on directory sites. Moderation cost would exceed the value for a small open-source project.
+- Review spam and fake reviews are endemic on directory sites. Moderation cost would exceed the value for a small project.
 - A student who had a bad BIP experience should tell their home university's Erasmus office, not BipHub — that's the legitimate channel.
 - **Alternative:** Surface completion stats (ECTS awarded, number of past editions) which convey program maturity without opinion.
 
@@ -390,7 +390,7 @@ The product is not useful to students until approved BIPs exist, and BIPs cannot
 | Structured data model | No (Google Sheet / Airtable embedded) | Postgres schema with typed fields |
 | Interactive map | No | Yes (click-to-filter) |
 | Field-of-study categories | No | Yes (8 categories with BIP counts) |
-| Open source | No | Yes (MIT) |
+| Open source | No | No (proprietary) |
 | Partner university listing | Yes (raw text) | Yes (free-text + deferred FK reconciliation) |
 | Level of study filter | No | Yes |
 | Language level shown | No | Yes (CEFR) |

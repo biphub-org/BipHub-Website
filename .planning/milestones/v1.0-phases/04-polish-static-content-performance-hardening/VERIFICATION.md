@@ -6,7 +6,7 @@
 
 ## Phase Goal
 
-From ROADMAP.md: *"Everything that exists works perfectly. Lighthouse > 90 on all page types. GDPR-compliant. Open-source-ready."*
+From ROADMAP.md: *"Everything that exists works perfectly. Lighthouse > 90 on all page types. GDPR-compliant. Launch-ready."*
 
 Phase status line: *"All 7 plans implementation-complete; awaiting verify-phase + 2 manual gates (axe sweep, Lighthouse capture) before v1 launch."*
 

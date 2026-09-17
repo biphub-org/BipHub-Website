@@ -98,7 +98,7 @@ export function HowItWorks() {
             className="mt-3 text-[16px] leading-[1.6] text-muted"
             variants={fadeUpItem}
           >
-            Three steps from finding a BIP to landing in your destination country — fully funded.
+            Three steps from finding a BIP to landing in your destination country — 100% free for students.
           </m.p>
 
           {/* Journey timeline — icon nodes on a rail (flex-1 pushes the CTA to the shared baseline) */}

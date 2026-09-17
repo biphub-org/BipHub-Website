@@ -6,11 +6,11 @@
 ## Project Overview
 
 **Name:** BipHub
-**Tagline:** The free, open-source database for Erasmus+ Blended Intensive Programs
+**Tagline:** The free database for Erasmus+ Blended Intensive Programs
 **Type:** Full-stack web application (public-facing + university dashboard)
-**License:** Open source (MIT or similar)
+**License:** Proprietary — all rights reserved (see LICENSE)
 **Status:** Greenfield — starting from zero
-**Reference homepage mockup:** `biphub-homepage.html` (in project root) — represents v1 visual direction
+**Reference homepage mockup:** `biphub-homepage.html` represented the v1 visual direction; removed after the v1 build — the live homepage is now canonical
 
 ---
 
@@ -147,7 +147,7 @@ We use the EU palette but **must clearly state we are not affiliated with the Eu
 
 ## Homepage Sections (v1 — Final)
 
-The homepage flow is **locked** as follows. Reference: `biphub-homepage.html` mockup.
+The homepage flow is **locked** as follows. Reference: the original v1 mockup (removed post-build; the live page is canonical).
 
 ### 1. Sticky Navigation
 - Logo (BipHub wordmark with EU-themed mark — blue square, gold star ring)
@@ -160,7 +160,7 @@ The homepage flow is **locked** as follows. Reference: `biphub-homepage.html` mo
 - Large headline (clamp 40-68px) with gold underline accent on key phrase
 - Subhead lede (max 600px width)
 - Two CTAs: "Browse all BIPs" (primary blue) + "List your BIP" (ghost)
-- Trust indicators row: Erasmus+ verified · Fully funded · Open source
+- Trust indicators row: 33 programme countries · Fully funded by Erasmus+ · Independent project
 - Scroll indicator at the bottom (animated mouse + horizontal lines + "Scroll to explore" label)
 - Background: subtle radial gradients in blue and gold (no harsh mesh)
 
@@ -170,7 +170,7 @@ The homepage flow is **locked** as follows. Reference: `biphub-homepage.html` mo
 - Hover: country fills gold, tooltip appears with country name and BIP count
 - Click: filters the BIP list page by that country (`/bips?country=de`)
 - Below the map: legend (less BIPs → more BIPs gradient), and hint text
-- **Implementation note:** Replace the hand-drawn SVG paths in the mockup with proper GeoJSON via `react-simple-maps` or D3
+- **Implementation note:** The hand-drawn SVG paths from the v1 mockup were replaced with proper GeoJSON via `react-simple-maps`
 
 ### 4. Field of Study Categories Bar
 - 8 category cards in a single row (collapses to 3 columns on mobile)
@@ -200,13 +200,13 @@ The homepage flow is **locked** as follows. Reference: `biphub-homepage.html` mo
 ### 8. University CTA Section
 - Dark navy card (`--ink` background) with EU-themed radial accents
 - Two-column layout: left = pitch + CTAs, right = 3 small mock feature rows
-- Primary CTA in gold ("Get started — it's free"), secondary ghost button
+- Primary CTA in gold ("Get started"), secondary ghost button
 - Mock rows with gold icon squares: 10-minute setup, European reach, Quality reviewed
 
 ### 9. Footer
 - Dark navy background
 - 4-column grid: Brand + tagline / For Students / For Universities / Project
-- Bottom bar: copyright, MIT license, GitHub link, **"Independent project — not affiliated with the European Commission" disclaimer**
+- Bottom bar: copyright ("© 2026 BipHub") plus the **"Independent project — not affiliated with the European Commission" disclaimer**
 
 ---
 
@@ -326,7 +326,6 @@ id, university_id, full_name, role (coordinator|admin), email_verified
 - Beautiful, modern UI with EU brand alignment
 - Interactive Europe map for discovery
 - University self-service with review workflow
-- Open source — community can contribute
 - Will be faster and more trustworthy
 
 ---
@@ -338,7 +337,7 @@ id, university_id, full_name, role (coordinator|admin), email_verified
 - **Accessibility:** WCAG AA. All forms keyboard-navigable. Proper ARIA labels. Map must be keyboard-navigable with country list as a fallback.
 - **Security:** Supabase RLS on all tables. Coordinators can only edit their own BIPs. Admin role enforced server-side. No PII exposed in public API.
 - **Reliability:** Vercel + Supabase — targeting 99.9% uptime.
-- **Open Source:** Clean repo, MIT license, CONTRIBUTING.md, easy local dev setup with a single `supabase start` + `npm run dev`.
+- **License:** Proprietary — all rights reserved (see LICENSE). Clean repo, CONTRIBUTING.md, easy local dev setup with a single `supabase start` + `npm run dev`.
 - **Legal:** Footer disclaimer required: "Independent project — not affiliated with the European Commission". Do not use the official 12-star EU emblem.
 
 ---
@@ -348,7 +347,7 @@ id, university_id, full_name, role (coordinator|admin), email_verified
 ```
 /app
   /(public)
-    /page.tsx                  ← Homepage (matches biphub-homepage.html)
+    /page.tsx                  ← Homepage
     /bips/page.tsx             ← BIP browse/listing
     /bip/[slug]/page.tsx       ← BIP detail
     /what-is-a-bip/page.tsx    ← Explainer page
@@ -395,7 +394,7 @@ id, university_id, full_name, role (coordinator|admin), email_verified
 11. **Interactive Europe map** is a core homepage feature, not a nice-to-have
 12. **Multi-step submission form** (wizard), not single scrolling form
 13. **Footer disclaimer** about non-affiliation with EC is mandatory
-14. **Homepage mockup** (`biphub-homepage.html`) is the visual source of truth for v1
+14. **Homepage visual direction** (EU palette, 96px sections, pill CTAs) was locked from the v1 mockup; the live page is now canonical
 
 ---
 
@@ -417,4 +416,4 @@ id, university_id, full_name, role (coordinator|admin), email_verified
 - University can go from registration to submitted BIP in under 10 minutes
 - Zero broken features — everything that exists works
 - Lighthouse score > 90 on Performance, Accessibility, SEO
-- Homepage visually matches the `biphub-homepage.html` mockup
+- Homepage follows the locked v1 visual direction (EU palette, 96px sections, pill CTAs)

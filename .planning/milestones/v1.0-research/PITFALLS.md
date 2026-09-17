@@ -1,6 +1,6 @@
 # Pitfalls Research
 
-**Domain:** EU academic program directory (Erasmus+ BIPs) — Next.js 15 App Router + Supabase + open-source
+**Domain:** EU academic program directory (Erasmus+ BIPs) — Next.js 15 App Router + Supabase (proprietary)
 **Researched:** 2026-05-08
 **Confidence:** HIGH (stack pitfalls from official Supabase/Next.js docs; legal from EC guidance; performance from bundlephobia/community reports)
 
@@ -527,7 +527,7 @@ Admin UI with two close-together "Approve" and "Reject" buttons is a classic mis
 ### Pitfall 19: Supabase Service-Role Key or Resend API Key in `.env.example`
 
 **What goes wrong:**
-The repo is public (MIT open source). A developer sets up `.env.example` with placeholder values but accidentally uses actual production keys as "examples" or a contributor tests with real keys and commits them. The service-role key bypasses all RLS. The Resend key allows sending email from the project's domain. Both are critical security breaches.
+The repo is accessible to contributors (proprietary licence). A developer sets up `.env.example` with placeholder values but accidentally uses actual production keys as "examples" or a contributor tests with real keys and commits them. The service-role key bypasses all RLS. The Resend key allows sending email from the project's domain. Both are critical security breaches.
 
 **Why it happens:**
 Developers copy their working `.env.local` to create `.env.example`, forgetting to scrub real values. Or they assume Supabase's automatic key detection (which revokes publicly committed service keys) will catch it — it won't catch it before other actors scrape it.
@@ -543,7 +543,7 @@ Developers copy their working `.env.local` to create `.env.example`, forgetting 
 - `.env.example` contains a string matching `sb_secret_` or `service_role` followed by a JWT
 - Any commit touching `.env` files from a new contributor
 
-**Phase to address:** Project initialization / open-source setup phase.
+**Phase to address:** Project initialization / repo setup phase.
 
 ---
 
@@ -752,5 +752,5 @@ Ensure indexes exist on: `bips.host_university_id`, `bips.status`, `bips.applica
 - [Web Scraping Legality — ScrapingBee](https://www.scrapingbee.com/blog/is-web-scraping-legal/) — ToS and copyright considerations for seed data
 
 ---
-*Pitfalls research for: BipHub — EU Erasmus+ BIP directory (Next.js 15 + Supabase + open-source)*
+*Pitfalls research for: BipHub — EU Erasmus+ BIP directory (Next.js 15 + Supabase, proprietary)*
 *Researched: 2026-05-08*

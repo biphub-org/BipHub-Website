@@ -42,7 +42,7 @@ The v1 Playwright suite (Plan 04-07) covers **golden paths only** per Phase 4 D-
 
 ## Visual regression
 
-- **Playwright snapshot testing** for layout (homepage, BIP card, wizard preview, admin queue card). Deferred — pixel diffs against the locked `biphub-homepage.html` mockup are manual in v1.
+- **Playwright snapshot testing** for layout (homepage, BIP card, wizard preview, admin queue card). Deferred — pixel diffs against the v1 visual direction are manual in v1.
 - **Dark mode parity** — no dark mode in v1.
 - **RTL language layout** — English-only v1; deferred with i18n.
 

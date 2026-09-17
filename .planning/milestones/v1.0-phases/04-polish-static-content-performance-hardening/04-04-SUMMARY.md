@@ -2,7 +2,7 @@
 phase: 04-polish-static-content-performance-hardening
 plan: 04
 subsystem: infra
-tags: [contributing, code-of-conduct, env, gitleaks, github-actions, open-source]
+tags: [contributing, code-of-conduct, env, gitleaks, github-actions, repo-health]
 
 requires:
   - phase: 04-polish-static-content-performance-hardening
@@ -19,7 +19,7 @@ tech-stack:
   added:
     - gitleaks (via gitleaks/gitleaks-action@v2 in CI)
   patterns:
-    - "Open-source repo health docs (CONTRIBUTING + CODE_OF_CONDUCT + audited .env.example) shipped together"
+    - "Repo health docs (CONTRIBUTING + CODE_OF_CONDUCT + audited .env.example) shipped together"
     - "CI-only secret scanning — no Husky / lefthook / pre-commit hooks per D-22"
     - "Path-scoped gitleaks allowlists only — pattern-scoped allowlists explicitly rejected"
 
@@ -40,7 +40,7 @@ key-decisions:
   - "secret-scan workflow uses fetch-depth: 0 to scan all commits in a PR (not just the merge commit); no continue-on-error so findings block the merge; tag-pinned to gitleaks-action@v2 — SHA pinning deferred to v1.1 hardening pass with Dependabot"
 
 patterns-established:
-  - "Repo-root open-source docs (CONTRIBUTING / CODE_OF_CONDUCT / LICENSE) sit alongside CLAUDE.md so first-time contributors see them immediately"
+  - "Repo-root contributor docs (CONTRIBUTING / CODE_OF_CONDUCT / LICENSE) sit alongside CLAUDE.md so first-time contributors see them immediately"
   - "Path-scoped allowlists in .gitleaks.toml — never pattern-scoped — so a real secret in app/, lib/, or components/ always triggers"
 
 requirements-completed: [FOUN-05]
@@ -49,7 +49,7 @@ duration: 25 min
 completed: 2026-05-14
 ---
 
-# Phase 04 Plan 04: Open-source repo health (CONTRIBUTING, CoC, env audit, gitleaks CI) Summary
+# Phase 04 Plan 04: Repo health (CONTRIBUTING, CoC, env audit, gitleaks CI) Summary
 
 **Shipped the contributor-facing repo health surface: CONTRIBUTING.md (8 sections), Contributor Covenant v2.1 verbatim, audited .env.example, and CI-only gitleaks secret scanning — no Husky.**
 
@@ -118,7 +118,7 @@ None — no external service configuration required. The gitleaks workflow uses 
 
 ## Next Phase Readiness
 
-- The repo is now open-source-ready on the documentation surface: CONTRIBUTING.md guides new contributors, CODE_OF_CONDUCT.md provides the reporting channel, .env.example is the canonical env reference, and gitleaks CI catches accidental secret commits before merge.
+- The repo is now contributor-ready on the documentation surface: CONTRIBUTING.md guides new contributors, CODE_OF_CONDUCT.md provides the reporting channel, .env.example is the canonical env reference, and gitleaks CI catches accidental secret commits before merge.
 - `supabase/seed.e2e.sql` is forward-declared in `.gitleaks.toml`; Plan 04-07 can create that file without further allowlist changes.
 - Plan 04-05 (account deletion) is now unblocked from the documentation side — coordinator-facing deletion UX can land knowing the gitleaks workflow will catch any test fixtures that leak credentials.
 

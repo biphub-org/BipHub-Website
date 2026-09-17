@@ -1,6 +1,6 @@
 # Contributing to BipHub
 
-Thanks for considering a contribution. BipHub is the free, open-source database
+Thanks for considering a contribution. BipHub is the free database
 for Erasmus+ Blended Intensive Programs (BIPs). This guide tells you how to set
 up a working local environment, what conventions the codebase enforces, and what
 your PR has to look like before review.

@@ -61,7 +61,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'BipHub — The Erasmus+ BIP directory',
     description:
-      'Free, open-source directory of Erasmus+ Blended Intensive Programmes across Europe.',
+      'Free database of Erasmus+ Blended Intensive Programmes across Europe.',
     url: '/',
     siteName: 'BipHub',
     images: [
@@ -167,7 +167,7 @@ export default async function HomePage() {
               Students find. Coordinators list.
             </h2>
             <p className="mt-4 text-[17px] leading-relaxed text-muted">
-              One free, open-source platform for Erasmus+ Blended Intensive
+              One free platform for Erasmus+ Blended Intensive
               Programmes — whichever side you&apos;re on.
             </p>
           </div>

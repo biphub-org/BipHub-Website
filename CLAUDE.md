@@ -1,13 +1,13 @@
 # BipHub — Claude Code Project Guide
 
-The free, open-source database for Erasmus+ Blended Intensive Programs. Three audiences (students discovering BIPs, university coordinators submitting them, admins reviewing). Built with Next.js 15 App Router + Supabase + Tailwind v4 + shadcn/ui, deployed on Vercel.
+The free database for Erasmus+ Blended Intensive Programs. Three audiences (students discovering BIPs, university coordinators submitting them, admins reviewing). Built with Next.js 15 App Router + Supabase + Tailwind v4 + shadcn/ui, deployed on Vercel.
 
 ## Source-of-truth files
 
 When working in this repo, read these first — they are authoritative over training data or assumptions:
 
 - `CONTEXT.md` — original project brief from the user (visual direction, scope, decisions)
-- `biphub-homepage.html` — locked v1 visual mockup; do not deviate without user approval
+- `CONTEXT.md` §§ Homepage Sections / Decisions — locked v1 visual direction (EU palette, 96px sections, pill CTAs); do not deviate without user approval
 - `.planning/PROJECT.md` — current synthesized project context
 - `.planning/REQUIREMENTS.md` — 76 v1 requirements with REQ-IDs and phase mappings
 - `.planning/ROADMAP.md` — 4-phase build order

@@ -24,7 +24,7 @@ import { Sparkles, FlaskConical, MessagesSquare } from 'lucide-react'
 export const metadata: Metadata = {
   title: 'Coming soon · BipHub',
   description:
-    'What’s next for BipHub — upcoming features and updates to the free, open-source Erasmus+ BIP directory.',
+    'What’s next for BipHub — upcoming features and updates to the free Erasmus+ BIP directory.',
   alternates: { canonical: 'https://biphub.eu/coming-soon' },
 }
 

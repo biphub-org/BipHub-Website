@@ -10,7 +10,7 @@
 
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { Search, MapPinned, Bookmark, Share2, Mail, ShieldCheck, Code2, Target, Compass, HeartHandshake } from 'lucide-react'
+import { Search, MapPinned, Bookmark, Share2, Mail, ShieldCheck, Target, Compass, HeartHandshake } from 'lucide-react'
 import { Eyebrow } from '@/components/home/Eyebrow'
 import { PageSidebar } from '@/components/what-is-a-bip/PageSidebar'
 import { Button } from '@/components/ui/button'
@@ -20,9 +20,9 @@ import { Button } from '@/components/ui/button'
 // nav into the production prerender (see tests/routing/public-static-guard).
 
 export const metadata: Metadata = {
-  title: 'About BipHub · The open Erasmus+ BIP directory',
+  title: 'About BipHub · The free Erasmus+ BIP directory',
   description:
-    'BipHub is a free, open-source directory of Erasmus+ Blended Intensive Programmes — built to make BIPs as easy to discover as any other study abroad option.',
+    'BipHub is a free directory of Erasmus+ Blended Intensive Programmes — built to make BIPs as easy to discover as any other study abroad option.',
   alternates: { canonical: 'https://biphub.eu/about' },
 }
 
@@ -63,7 +63,7 @@ export default function AboutPage() {
             A proper home for Erasmus+ <span className="text-eu-gold">Blended Intensive Programmes.</span>
           </h1>
           <p className="mt-6 max-w-[65ch] text-[18px] leading-relaxed text-white/70">
-            BipHub is a free, open-source directory of Erasmus+ Blended Intensive Programmes across Europe — built to make BIPs as easy to discover as any other study-abroad option. No accounts to browse, no paywalls, no tracking.
+            BipHub is a free directory of Erasmus+ Blended Intensive Programmes across Europe — built to make BIPs as easy to discover as any other study-abroad option. No accounts to browse, no paywalls, no tracking.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button asChild variant="primary" className="bg-white text-ink hover:bg-white/90">
@@ -163,7 +163,7 @@ export default function AboutPage() {
                     <HeartHandshake size={20} strokeWidth={1.8} />
                   </div>
                   <h3 className="text-[15px] font-semibold tracking-tight text-ink">Trust</h3>
-                  <p className="mt-2 text-[14px] leading-relaxed text-ink-2">Open-source, no analytics, no ads, no affiliate. Universities own their listings. We just keep the lights on and the search honest.</p>
+                  <p className="mt-2 text-[14px] leading-relaxed text-ink-2">Independent, no analytics, no ads, no affiliate. Universities own their listings. We just keep the lights on and the search honest.</p>
                 </div>
               </div>
             </section>
@@ -177,9 +177,8 @@ export default function AboutPage() {
 
               <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2">
                 <PrincipleCard
-                  icon={Code2}
-                  title="Free and open source"
-                  body="Published as open source under the MIT licence — free forever and open to community contributions. There is no paid tier and there will not be one."
+                  title="Free to use"
+                  body="Free forever — no paywalls and no accounts to browse. Browsing, searching, and saving BIPs costs nothing."
                 />
                 <PrincipleCard
                   icon={ShieldCheck}
