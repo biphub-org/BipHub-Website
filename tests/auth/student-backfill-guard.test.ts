@@ -11,8 +11,9 @@ import { fileURLToPath } from 'node:url'
  * default GoTrue template where GoTrue consumes the token itself).
  *
  * If either call site drops the backfill, newly-verified students silently
- * land on /complete-profile re-entering data we already hold. This pins the
- * wiring (repo convention: source-content guards like auth-redirect-guard).
+ * land on the dashboard with a bare profile, missing data we already hold.
+ * This pins the wiring (repo convention: source-content guards like
+ * auth-redirect-guard).
  */
 
 const here = dirname(fileURLToPath(import.meta.url))

@@ -1,13 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { StudentProfileForm } from '@/components/student/StudentProfileForm'
-import {
-  saveStudentProfileAction,
-  updateStudentProfileAction,
-} from '@/lib/actions/profile'
+import { updateStudentProfileAction } from '@/lib/actions/profile'
 
 vi.mock('@/lib/actions/profile', () => ({
-  saveStudentProfileAction: vi.fn(),
   updateStudentProfileAction: vi.fn(),
 }))
 
@@ -24,14 +20,13 @@ const baseProps = {
 }
 
 beforeEach(() => {
-  vi.mocked(saveStudentProfileAction).mockReset()
   vi.mocked(updateStudentProfileAction).mockReset()
 })
 
-describe('StudentProfileForm edit mode (student dashboard)', () => {
+describe('StudentProfileForm (student dashboard)', () => {
   it('saves via updateStudentProfileAction and confirms inline', async () => {
     vi.mocked(updateStudentProfileAction).mockResolvedValue({ success: true })
-    render(<StudentProfileForm {...baseProps} mode="edit" />)
+    render(<StudentProfileForm {...baseProps} />)
 
     expect((screen.getByLabelText(/full name/i) as HTMLInputElement).value).toBe(
       'Jane Smith',
@@ -46,14 +41,13 @@ describe('StudentProfileForm edit mode (student dashboard)', () => {
     expect(fd.get('full_name')).toBe('Jane Smith')
     expect(fd.get('country')).toBe('BE')
     expect(await screen.findByText(/profile updated/i)).toBeDefined()
-    expect(saveStudentProfileAction).not.toHaveBeenCalled()
   })
 
   it('surfaces the server error inline without confirming', async () => {
     vi.mocked(updateStudentProfileAction).mockResolvedValue({
       error: 'Failed to save your profile. Please try again.',
     })
-    render(<StudentProfileForm {...baseProps} mode="edit" />)
+    render(<StudentProfileForm {...baseProps} />)
 
     fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
 

@@ -6,8 +6,8 @@ import { parseStudentProfileMetadata } from '@/lib/auth/student-profile'
  *
  * Registration details ride in user_metadata until a session exists to write
  * them (callback materialization + first-sign-in backfill). This pins the
- * mapping so a key rename on either side cannot silently strand new students
- * on /complete-profile with data we already hold.
+ * mapping so a key rename on either side cannot silently leave new students
+ * with a bare profile despite holding their data.
  */
 describe('parseStudentProfileMetadata', () => {
   it('maps full_name, country and university_id', () => {
@@ -44,7 +44,7 @@ describe('parseStudentProfileMetadata', () => {
     ).toBeNull()
   })
 
-  it('returns null when name or country is missing (leave for /complete-profile)', () => {
+  it('returns null when name or country is missing (row stays bare)', () => {
     expect(parseStudentProfileMetadata({ country: 'DE' })).toBeNull()
     expect(parseStudentProfileMetadata({ full_name: 'Jane' })).toBeNull()
     expect(parseStudentProfileMetadata({})).toBeNull()

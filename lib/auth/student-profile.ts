@@ -10,12 +10,11 @@ import type { createClient } from '@/lib/supabase/server'
  * `emailRedirectTo` with no token, so the callback has no session and the row
  * stays bare. The sign-in backfill below closes that gap: whichever link
  * format confirmed the address, the first sign-in completes the row and the
- * student never sees /complete-profile for data we already hold.
+ * student lands on a complete dashboard.
  *
  * Never touches `role` (owned by handle_new_user). Best-effort: failures are
- * logged and the (student) layout's profile gate collects anything missing
- * via /complete-profile — which remains the fallback for legacy and
- * admin-created accounts whose user_metadata holds no details.
+ * logged; legacy and admin-created accounts whose user_metadata holds no
+ * details stay bare (there is no completion gate).
  */
 
 export type StudentMetadataDetails = {
@@ -48,8 +47,8 @@ type ServerSupabase = Awaited<ReturnType<typeof createClient>>
  * Machine-readable backfill outcome for server logs (Vercel). Lets an
  * incomplete-profile report be traced to its branch in one log search:
  * `filled` (row completed), `skipped-no-details` (user_metadata holds
- * nothing — legacy/admin/OTP-created account, /complete-profile is then
- * correct), `failed` (RLS/DB error, see the accompanying error log).
+ * nothing — legacy/admin-created account; the row stays bare), `failed`
+ * (RLS/DB error, see the accompanying error log).
  */
 export type BackfillStatus = 'filled' | 'skipped-no-details' | 'failed'
 

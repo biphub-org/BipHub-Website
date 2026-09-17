@@ -1,5 +1,4 @@
 import { redirect } from 'next/navigation'
-import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { Toaster } from '@/components/ui/sonner'
 import { StudentNav } from '@/components/student/StudentNav'
@@ -17,12 +16,10 @@ import { StudentNav } from '@/components/student/StudentNav'
  * Auth: getClaims() validates JWT signature (CLAUDE.md compliance — the
  * unvalidated session reader is forbidden server-side).
  *
- * Profile-complete gate: students registered before personal details existed
- * have empty profiles. If full_name or country is missing AND we are NOT
- * already on /student-dashboard/complete-profile, redirect there. The path
- * exemption uses the `x-pathname` header (same pattern as the coordinator
- * /onboarding exemption in (dashboard)/layout.tsx) to avoid a redirect loop.
- * Home university stays optional by design — it is NOT part of completeness.
+ * No profile-complete gate: every student reaches the dashboard with whatever
+ * profile data exists. Password registration plus the /auth/callback and
+ * first-sign-in backfills fill it for new accounts; legacy and admin-created
+ * rows may stay bare. Home university stays optional by design.
  *
  * Chrome (05-UI-SPEC.md Surface 2):
  *   - StudentNav: h-16 bar with logo, initials, sign-out.
@@ -48,29 +45,6 @@ export default async function StudentLayout({
     redirect(
       role === 'admin' ? '/admin' : role === 'coordinator' ? '/dashboard' : '/register/student',
     )
-  }
-
-  // Profile-complete gate — students with no full_name or country finish
-  // /student-dashboard/complete-profile first. Exempt that path via the
-  // x-pathname header (mirrors the coordinator /onboarding exemption).
-  const headersList = await headers()
-  const pathname = headersList.get('x-pathname') ?? ''
-  const isCompletionPage = pathname.startsWith('/student-dashboard/complete-profile')
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('full_name, country')
-    .eq('id', claims.sub)
-    .maybeSingle()
-
-  const studentProfile = (profile ?? {}) as {
-    full_name?: string | null
-    country?: string | null
-  }
-  const isComplete = Boolean(studentProfile.full_name && studentProfile.country)
-
-  if (!isComplete && !isCompletionPage) {
-    redirect('/student-dashboard/complete-profile')
   }
 
   // Extract email for the nav initials avatar.

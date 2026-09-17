@@ -88,8 +88,8 @@ export async function signInAction(formData: FormData): Promise<{ error?: string
     // with the default Supabase email template GoTrue consumes the token
     // itself, so the callback never runs. Completing the row here (when it
     // is still bare and the metadata holds the details) means a verified
-    // student lands on a complete dashboard instead of /complete-profile
-    // asking for data we already hold.
+    // student lands on a complete dashboard instead of one asking
+    // for data we already hold.
     if (userData.user && claims?.sub) {
       const { data: studentProfile } = await supabase
         .from('profiles')
@@ -334,9 +334,10 @@ export async function changePasswordAction(
   return { success: true }
 }
 
-// Legacy magic-link action — retained for backward compat with old student
-// links/bookmarks but no longer used for new sign-ins. Students now use
-// email+password via signUpStudentAction / signInAction (password).
+// Magic-link dispatch for EXISTING students only — shouldCreateUser is false
+// so unknown emails get a "no account" error instead of silently creating
+// bare profiles (no complete-profile flow exists to fill them anymore).
+// Used by StudentMagicLinkForm + the login-form resend.
 export async function signInWithOtpAction(
   formData: FormData,
 ): Promise<{ error?: string; success?: true }> {
@@ -350,7 +351,7 @@ export async function signInWithOtpAction(
   const { error } = await supabase.auth.signInWithOtp({
     email: result.data,
     options: {
-      shouldCreateUser: true,
+      shouldCreateUser: false,
       data: { role: 'student' },
       emailRedirectTo: `${SITE_URL}/auth/callback?type=magiclink`,
     },
@@ -360,6 +361,10 @@ export async function signInWithOtpAction(
     const msg = error.message.toLowerCase()
     if (msg.includes('rate limit') || error.status === 429) {
       return { error: 'Too many requests. Please wait a few minutes before trying again.' }
+    }
+    // shouldCreateUser:false — GoTrue reports unknown emails as not-found.
+    if (msg.includes('not found')) {
+      return { error: 'No account found for this email. Create a student account to get started.' }
     }
     return { error: 'Something went wrong. Please try again.' }
   }

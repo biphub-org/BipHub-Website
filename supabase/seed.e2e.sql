@@ -432,9 +432,8 @@ values (
   now(), now(), '', '', '', ''
 );
 
--- Student profile: complete (full_name + country) so the (student)/layout.tsx
--- profile-complete gate passes and specs land on /student-dashboard instead of
--- /student-dashboard/complete-profile. Home university left NULL (optional).
+-- Student profile: complete (full_name + country) so specs exercise the
+-- dashboard with realistic data. Home university left NULL (optional).
 -- profiles_sync_role trigger mirrors role into raw_app_meta_data; Custom Access
 -- Token Hook (00015) reads this profiles.role at JWT issuance.
 -- UPSERT: handle_new_user (00015) already created this row with role='student'

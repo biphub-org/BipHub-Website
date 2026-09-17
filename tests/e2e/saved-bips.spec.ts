@@ -487,8 +487,8 @@ test.describe('saved bips', () => {
         'Content-Type': 'application/json',
         Prefer: 'resolution=merge-duplicates,return=minimal',
       },
-      // Profile-complete gate: the throwaway needs full_name + country to
-      // reach /student-dashboard instead of /student-dashboard/complete-profile.
+      // The throwaway needs full_name + country so it lands on /student-dashboard
+      // with a realistic profile.
       data: { id: throwawayUserId, role: 'student', full_name: 'E2E Throwaway', contact_email: throwawayEmail, country: 'BE' },
     })
 

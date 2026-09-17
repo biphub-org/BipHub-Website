@@ -18,33 +18,26 @@ import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { CountrySelect } from '@/components/ui/country-select'
 import { UniversityCombobox } from '@/components/dashboard/UniversityCombobox'
-import { saveStudentProfileAction, updateStudentProfileAction } from '@/lib/actions/profile'
+import { updateStudentProfileAction } from '@/lib/actions/profile'
 import { studentProfileSchema, type StudentProfileValues } from '@/lib/schemas/profile'
 import type { UniversitySearchResult } from '@/lib/actions/universities'
 
 /**
- * StudentProfileForm — personal details for new registrations that predate
- * the fields, and for editing later. Full name + country required, home
- * university optional (clearable).
- *
- * Modes:
- *   - 'complete' (default): one-time completion flow — the Server Action
- *     saves the profile and redirects to /student-dashboard.
- *   - 'edit': dashboard editing — the update action saves without redirecting
- *     and the form confirms inline so the student stays on the page.
+ * StudentProfileForm — dashboard editing for personal details. Full name +
+ * country required, home university optional (clearable). The update action
+ * saves without redirecting and the form confirms inline so the student
+ * stays on the page.
  */
 export function StudentProfileForm({
   initialFullName,
   initialCountry,
   initialUniversityId,
   initialUniversities,
-  mode = 'complete',
 }: {
   initialFullName: string
   initialCountry: string
   initialUniversityId: string
   initialUniversities: UniversitySearchResult[]
-  mode?: 'complete' | 'edit'
 }) {
   const form = useForm<StudentProfileValues>({
     resolver: zodResolver(studentProfileSchema),
@@ -67,17 +60,12 @@ export function StudentProfileForm({
       fd.set('full_name', values.full_name)
       fd.set('country', values.country)
       fd.set('university_id', values.university_id ?? '')
-      if (mode === 'edit') {
-        const result = await updateStudentProfileAction(fd)
-        if (result?.error) {
-          setServerError(result.error)
-          return
-        }
-        if (result?.success) setSuccess(true)
+      const result = await updateStudentProfileAction(fd)
+      if (result?.error) {
+        setServerError(result.error)
         return
       }
-      const result = await saveStudentProfileAction(fd)
-      if (result?.error) setServerError(result.error)
+      if (result?.success) setSuccess(true)
     })
   }
 
@@ -91,7 +79,7 @@ export function StudentProfileForm({
             <AlertDescription>{serverError}</AlertDescription>
           </Alert>
         )}
-        {mode === 'edit' && success && (
+        {success && (
           <Alert>
             <AlertDescription>Profile updated.</AlertDescription>
           </Alert>
@@ -159,7 +147,7 @@ export function StudentProfileForm({
 
         <Button type="submit" variant="primary" className="w-full" disabled={isPending}>
           {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {mode === 'edit' ? 'Save changes' : 'Save and continue →'}
+          Save changes
         </Button>
       </form>
     </Form>

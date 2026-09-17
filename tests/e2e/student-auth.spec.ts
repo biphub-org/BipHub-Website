@@ -73,10 +73,9 @@ async function signInStudent(page: Page): Promise<void> {
   const session = await tokenResp.json()
   expect(session.access_token).toBeTruthy()
 
-  // Step 1b: ensure the fixture profile passes the (student) profile-complete
-  // gate (full_name + country) so specs land on /student-dashboard rather than
-  // /student-dashboard/complete-profile. Additive only — the fixture stays
-  // non-destructive for re-runs.
+  // Step 1b: ensure the fixture profile carries full_name + country so specs
+  // exercise the dashboard with realistic data. Additive only — the fixture
+  // stays non-destructive for re-runs.
   const studentId: string = JSON.parse(
     Buffer.from(session.access_token.split('.')[1], 'base64').toString(),
   ).sub

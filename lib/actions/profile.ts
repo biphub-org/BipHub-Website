@@ -120,51 +120,9 @@ export async function saveProfileAction(
 }
 
 /**
- * Student profile completion — /student-dashboard/complete-profile.
- *
- * Same shape as student registration details (studentProfileSchema: full_name +
- * country required, home university optional). Upserts only the student's own
- * row (id = claims.sub, RLS insert_own/update_own) and never touches `role`.
- * contact_email is synced from the login email so admins can reach the student.
- */
-export async function saveStudentProfileAction(
-  formData: FormData,
-): Promise<SaveProfileResult> {
-  const parsed = studentProfileSchema.safeParse({
-    full_name: formData.get('full_name'),
-    country: formData.get('country'),
-    university_id: formData.get('university_id'),
-  })
-  if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? 'Invalid input.' }
-  }
-
-  const supabase = await createClient()
-  const { data, error: authError } = await supabase.auth.getClaims()
-  if (authError || !data?.claims?.sub) {
-    return { error: 'Your session has expired. Please sign in again.' }
-  }
-
-  const loginEmail = typeof data.claims.email === 'string' ? data.claims.email : null
-
-  const writeError = await writeStudentProfile(
-    supabase,
-    data.claims.sub,
-    loginEmail,
-    parsed.data,
-  )
-  if (writeError) {
-    return { error: writeError }
-  }
-
-  revalidatePath('/', 'layout')
-  redirect('/student-dashboard')
-}
-
-/**
  * Student profile edit — /student-dashboard Profile card.
  *
- * Same validation + write path as saveStudentProfileAction, but returns
+ * Same validation + write path as student registration details, but returns
  * { success: true } instead of redirecting so the dashboard form confirms
  * inline and stays on the page.
  */

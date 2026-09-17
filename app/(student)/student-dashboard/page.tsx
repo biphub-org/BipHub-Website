@@ -128,7 +128,6 @@ export default async function StudentDashboardPage() {
           Update your name, country of residence, or home university anytime.
         </p>
         <StudentProfileForm
-          mode="edit"
           initialFullName={profileFullName}
           initialCountry={profileCountry}
           initialUniversityId={profileUniversityId}

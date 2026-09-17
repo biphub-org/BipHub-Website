@@ -166,8 +166,8 @@ test.describe('alert subscriptions', () => {
     const created = await createResp.json()
     const throwawayId = created.id
     expect(throwawayId).toBeTruthy()
-    // Profile-complete gate: the throwaway needs full_name + country to reach
-    // /student-dashboard instead of /student-dashboard/complete-profile.
+    // The throwaway needs full_name + country so it lands on /student-dashboard
+    // with a realistic profile.
     const throwawayProfileResp = await page.request.post(`${supabaseUrl}/rest/v1/profiles`, {
       headers: { ...serviceHeaders(), 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates,return=minimal' },
       data: { id: throwawayId, role: 'student', full_name: 'E2E Throwaway', contact_email: throwawayEmail, country: 'BE' },

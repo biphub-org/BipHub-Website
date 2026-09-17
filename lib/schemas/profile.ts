@@ -31,7 +31,7 @@ export type ProfileValues = z.infer<typeof profileSchema>
 /**
  * Student personal details — full_name + country required, home university
  * optional. Shared by student registration (merged into studentRegisterSchema
- * in lib/schemas/auth.ts) and the /student-dashboard/complete-profile form.
+ * in lib/schemas/auth.ts) and the student dashboard profile form.
  *
  * `country` is an ISO alpha-2 code stored on profiles.country (migration
  * 00050) — unlike the coordinator flow, it is WRITTEN to the profiles row
