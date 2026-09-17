@@ -46,7 +46,12 @@ test.describe('auth flow', () => {
     await page
       .getByPlaceholder(/search by name or erasmus code/i)
       .fill('Uni')
-    await page.getByRole('option').first().click({ timeout: 10_000 })
+    // Scoped to the results listbox: the Country <select>'s native <option> elements also expose role="option".
+    await page
+      .getByRole('listbox')
+      .getByRole('option')
+      .first()
+      .click({ timeout: 10_000 })
     // Country + erasmus code auto-fill from the chosen university; fill the
     // code explicitly in case the seed row has none.
     await page.getByLabel(/erasmus code/i).fill('E2E TST01')
