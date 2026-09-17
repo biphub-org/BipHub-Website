@@ -40,7 +40,9 @@ test.describe('auth flow', () => {
     await page.getByLabel(/contact email/i).fill(NEW_USER.email)
     // University combobox: search then pick the first registry result
     // (seed data has registered universities).
-    await page.getByRole('combobox').click()
+    await page
+      .getByRole('combobox', { name: /search by name or erasmus/i })
+      .click()
     await page
       .getByPlaceholder(/search by name or erasmus code/i)
       .fill('Uni')
