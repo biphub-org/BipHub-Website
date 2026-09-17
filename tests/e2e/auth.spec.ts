@@ -39,9 +39,9 @@ test.describe('auth flow', () => {
     await page.getByLabel(/full name/i).fill('E2E Throwaway Coordinator')
     await page.getByLabel(/contact email/i).fill(NEW_USER.email)
     // University combobox: search then pick the first registry result
-    // (seed data has registered universities).
+    // (seed data has registered universities). Matched by visible text: role="combobox" takes its accessible name from the author, not contents, so the trigger has an empty accessible name and a name filter never matches; the Country <select> on the same form rules out the bare role locator.
     await page
-      .getByRole('combobox', { name: /search by name or erasmus/i })
+      .getByText(/search by name or erasmus/i)
       .click()
     await page
       .getByPlaceholder(/search by name or erasmus code/i)
