@@ -47,6 +47,25 @@ export default async function StudentLayout({
     )
   }
 
+  // Deleted-user kick: getClaims() validates the JWT signature locally, so an
+  // admin-deleted Auth user keeps a valid JWT until expiry — and the profiles
+  // row cascades on delete, so a missing row is the anomaly signal. Confirm
+  // authoritatively (one extra call, only on this rare path): if GoTrue no
+  // longer knows the user, clear cookies via /auth/force-signout (an RSC
+  // cannot clear cookies itself) instead of rendering a ghost session.
+  const { data: selfProfile } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('id', claims.sub)
+    .maybeSingle()
+  if (!selfProfile) {
+    const { data: userData, error: userError } = await supabase.auth.getUser()
+    if (userError || !userData.user) {
+      console.log('[student layout] session user no longer exists; forcing sign-out')
+      redirect('/auth/force-signout')
+    }
+  }
+
   // Extract email for the nav initials avatar.
   const email = typeof claims.email === 'string' ? claims.email : ''
 

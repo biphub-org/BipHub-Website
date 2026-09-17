@@ -380,4 +380,66 @@ test.describe('student auth', () => {
     expect(page.url()).not.toContain('/login')
   })
 
+  // -------------------------------------------------------------------------
+  // Deleted-user kick: an admin-deleted Auth user must not keep a ghost
+  // session on the dashboard (the JWT signature stays valid until expiry).
+  // The (student) layout detects the missing profiles row + failed getUser
+  // and routes through /auth/force-signout to /login.
+  // -------------------------------------------------------------------------
+  test('deleted user is kicked to /login (no ghost session)', async ({ page, request }) => {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (!supabaseUrl || !anonKey || !serviceRoleKey) {
+      throw new Error('NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY or SUPABASE_SERVICE_ROLE_KEY missing')
+    }
+    const projectRef = new URL(supabaseUrl).hostname.split('.')[0]
+    const throwawayEmail = `e2e-deleted-${Date.now()}@biphub.test`
+    const throwawayPassword = 'Deleted!Test1'
+
+    // Step 1: create a confirmed student via the admin API (handle_new_user
+    // creates the bare profiles row, like a real registration).
+    const createResp = await request.post(`${supabaseUrl}/auth/v1/admin/users`, {
+      headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}`, 'Content-Type': 'application/json' },
+      data: { email: throwawayEmail, password: throwawayPassword, email_confirm: true, user_metadata: { role: 'student' } },
+    })
+    expect(createResp.ok()).toBeTruthy()
+    const created = await createResp.json()
+
+    // Step 2: sign in via password grant and inject the session cookies.
+    const tokenResp = await request.post(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
+      headers: { apikey: anonKey, 'Content-Type': 'application/json' },
+      data: { email: throwawayEmail, password: throwawayPassword },
+    })
+    expect(tokenResp.ok()).toBeTruthy()
+    const session = await tokenResp.json()
+    const encoded = 'base64-' + Buffer.from(JSON.stringify(session)).toString('base64url')
+    await page.context().addCookies([
+      {
+        name: `sb-${projectRef}-auth-token`,
+        value: encoded,
+        domain: 'localhost',
+        path: '/',
+        sameSite: 'Lax',
+        httpOnly: true,
+        secure: false,
+      },
+    ])
+
+    // Sanity: the live session reaches the dashboard.
+    await page.goto('/student-dashboard')
+    await page.waitForURL(/\/student-dashboard/, { timeout: 15_000 })
+
+    // Step 3: delete the user out from under the session (profiles row cascades).
+    const deleteResp = await request.delete(`${supabaseUrl}/auth/v1/admin/users/${created.id}`, {
+      headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` },
+    })
+    expect(deleteResp.ok()).toBeTruthy()
+
+    // Step 4: the next dashboard visit kicks to /login instead of ghosts.
+    await page.goto('/student-dashboard')
+    await page.waitForURL(/\/login/, { timeout: 15_000 })
+    await expect(page).toHaveURL(/\/login/)
+  })
+
 })
