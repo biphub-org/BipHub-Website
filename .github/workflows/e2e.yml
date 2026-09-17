@@ -37,7 +37,11 @@ jobs:
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v1
         with:
-          version: latest
+          # Pinned (not `latest`): `latest` resolves via the GitHub releases
+          # API, which fails with "rate limit exceeded" on shared runners and
+          # has broken on CLI asset renames before (supabase/cli#5259).
+          # 2.98.2 matches the locked `supabase` npm devDependency.
+          version: 2.98.2
 
       - name: Cache Supabase Docker images
         uses: actions/cache@v4
