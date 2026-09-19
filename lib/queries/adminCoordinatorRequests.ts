@@ -14,7 +14,6 @@ export type AdminCoordinatorRequest = {
   id: string
   email: string
   full_name: string
-  contact_email: string
   country: string | null
   erasmus_code: string | null
   university: { id: string; name: string; country: string } | null
@@ -32,7 +31,6 @@ type RawRow = {
   id: string
   email: string
   full_name: string
-  contact_email: string
   country: string | null
   erasmus_code: string | null
   status: string
@@ -65,7 +63,7 @@ export async function getAdminCoordinatorRequests(
   let query = supabase
     .from('coordinator_requests')
     .select(
-      `id, email, full_name, contact_email, country, erasmus_code, status, created_at, reviewed_at,
+      `id, email, full_name, country, erasmus_code, status, created_at, reviewed_at,
        university:university_id ( id, name, country )`,
     )
     .order('created_at', { ascending: false })
@@ -83,7 +81,6 @@ export async function getAdminCoordinatorRequests(
     id: r.id,
     email: r.email,
     full_name: r.full_name,
-    contact_email: r.contact_email,
     country: r.country,
     erasmus_code: r.erasmus_code,
     university: normalizeUniversity(r.university),

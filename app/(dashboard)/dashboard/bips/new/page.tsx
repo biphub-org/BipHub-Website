@@ -40,9 +40,9 @@ export default async function NewBipPage() {
   const hostRel = profile?.university ?? null
   const host = Array.isArray(hostRel) ? (hostRel[0] ?? null) : hostRel
 
-  // The (dashboard) layout's profile-complete gate already redirects to
-  // /onboarding when university_id is missing. notFound() is a defensive
-  // fallback if the gate is loosened in the future.
+  // Approval backfills the coordinator profile (including university), so
+  // `host` is normally present. notFound() is a defensive fallback for a
+  // failed backfill.
   if (!host) notFound()
 
   const initialUniversities = await searchUniversitiesAction('')

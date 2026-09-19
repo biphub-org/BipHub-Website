@@ -5,7 +5,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
  * write (shared by `saveDraftAction` and `submitBipAction`).
  *
  * Coordinators get their profile-locked university (never client input).
- * Admin accounts are bootstrapped via SQL and skip onboarding, so they
+ * Admin accounts are bootstrapped via SQL with no profile university, so they
  * commonly have NO profile university — yet the admin "Add new BIP" page
  * (`app/(admin)/admin/bips/new`) renders with a first-alphabetical
  * fallback host. Without the same fallback here, every admin draft save

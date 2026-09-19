@@ -130,7 +130,7 @@ export default defineConfig({
     // Run the suite against a PRODUCTION build, not `next dev`. `next dev`
     // compiles each route on first hit (multi-second cold-compile), which made
     // first-navigation assertions flaky across the suite (submission wizard,
-    // onboarding, the map). A prebuilt `next start` server has every route
+    // the map). A prebuilt `next start` server has every route
     // ready — fast and stable — and is closer to what actually ships.
     command: 'npm run build && npm run start',
     url: BASE_URL,

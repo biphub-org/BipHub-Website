@@ -256,11 +256,11 @@ export async function saveDraftAction(
 
   // First INSERT — generate a draft slug to satisfy bips.slug NOT NULL.
   // host_university_id is server-authoritative: it comes from the
-  // profile-locked university, never from client input. The (dashboard)
-  // layout + bips/new page already gate on a complete profile, so this is
-  // normally guaranteed for coordinators — the guard is defense-in-depth.
-  // Admins commonly have no profile university (bootstrapped via SQL, skip
-  // onboarding), so resolveHostUniversityId falls back to the first
+  // profile-locked university, never from client input. Approval backfills
+  // the coordinator profile, so this is normally guaranteed — the guard is
+  // defense-in-depth.
+  // Admins commonly have no profile university (bootstrapped via SQL), so
+  // resolveHostUniversityId falls back to the first
   // university for them, mirroring the admin "Add new BIP" page.
   const hostUniversityId = await resolveHostUniversityId(supabase, userId, role)
   if (!hostUniversityId) {
@@ -269,7 +269,7 @@ export async function saveDraftAction(
       message:
         role === 'admin'
           ? 'No universities exist yet — create one before adding a BIP.'
-          : 'No host university on your profile — complete onboarding first.',
+          : 'No host university on your profile — please contact us at contact@biphub.org.',
     }
   }
 

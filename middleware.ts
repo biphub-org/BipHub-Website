@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createMiddlewareClient } from '@/lib/supabase/middleware'
+import { isOrphanedSession } from '@/lib/auth/deleted-session'
 
 /**
  * Edge middleware for BipHub (Phase 2 + Phase 5).
@@ -7,12 +8,17 @@ import { createMiddlewareClient } from '@/lib/supabase/middleware'
  * Responsibilities:
  *   1. Refresh the Supabase session cookie on every matched request via getClaims()
  *      -- getClaims validates the JWT signature locally (PITFALLS Pitfall 1).
- *   2. Inject `x-pathname` response header so RSC layouts (notably the
- *      (dashboard) layout's profile-complete gate) can read the current path
- *      without parsing referer (Pitfall 2 prevention).
- *   3. D-11 redirect matrix (Phase 5 — student route group):
- *        (3a) !claims && pathname.startsWith('/dashboard' | '/onboarding') -> /login
- *             role==='student' && pathname.startsWith('/dashboard' | '/onboarding') -> /student-dashboard
+ *   2. Inject `x-pathname` response header so RSC layouts can read the
+ *      current path without parsing referer (Pitfall 2 prevention).
+ *   3. Deleted-account kick: JWTs are stateless, so a manually-deleted
+ *      auth user keeps passing getClaims() until token expiry. On account
+ *      routes (/dashboard, /student-dashboard, /admin) confirm the user
+ *      still exists via getUser(); on a positive gone-signal clear the
+ *      dead sb-* session cookies and bounce to /login. Fail-open on any
+ *      other getUser failure (see lib/auth/deleted-session.ts).
+ *   4. D-11 redirect matrix (Phase 5 — student route group):
+ *        (3a) !claims && pathname.startsWith('/dashboard') -> /login
+ *             role==='student' && pathname.startsWith('/dashboard') -> /student-dashboard
  *        (3b) /admin: !claims -> /login?next=/admin; role!=='admin' -> /
  *        (3d) /student-dashboard: !claims -> /register/student; coordinator -> /dashboard; admin -> /admin
  *        (3c) claims && /login|/register: route by role (student->/student-dashboard, admin->/admin, else->/dashboard)
@@ -32,8 +38,33 @@ export async function middleware(request: NextRequest) {
   // (2) Inject pathname header for downstream RSC layouts (Pitfall 2 fix).
   response.headers.set('x-pathname', pathname)
 
-  // (3a) Auth-required: dashboard + onboarding.
-  if (pathname.startsWith('/dashboard') || pathname.startsWith('/onboarding')) {
+  // (3) Deleted-account kick — runs before the role matrix so a dead
+  // session never traverses it. Scoped to account routes: public pages
+  // show no privileged data, so they skip the extra Auth roundtrip.
+  const isAccountRoute =
+    pathname.startsWith('/dashboard') ||
+    pathname.startsWith('/student-dashboard') ||
+    pathname.startsWith('/admin')
+  if (claims && (claims as { sub?: string }).sub && isAccountRoute) {
+    const { data: userData, error: userError } = await supabase.auth.getUser()
+    if (isOrphanedSession(userData.user, userError)) {
+      console.error('[middleware] kicking session of deleted user')
+      const loginUrl = new URL('/login', request.url)
+      const kicked = NextResponse.redirect(loginUrl)
+      // supabase.auth.signOut() would write to the factory's response,
+      // not this redirect — clear the session cookies here instead.
+      for (const cookie of request.cookies.getAll()) {
+        if (cookie.name.startsWith('sb-')) kicked.cookies.delete(cookie.name)
+      }
+      return kicked
+    }
+    if (userError) {
+      console.error('[middleware] getUser failed (non-blocking):', userError.message)
+    }
+  }
+
+  // (3a) Auth-required: coordinator dashboard.
+  if (pathname.startsWith('/dashboard')) {
     if (!claims) {
       return NextResponse.redirect(new URL('/login', request.url))
     }

@@ -14,7 +14,7 @@ const SITE_URL =
  *   - Every approved /bip/<slug>
  *
  * Excluded (handled by robots.ts disallow rules anyway):
- *   /login, /register, /reset-password, /verify-email, /onboarding,
+ *   /login, /register, /reset-password, /verify-email,
  *   /dashboard/*, /admin/*, /auth/*
  *
  * Re-generated at runtime alongside the same ISR window as the BIP detail

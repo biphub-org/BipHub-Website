@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { Toaster } from '@/components/ui/sonner'
 import { AdminSidebar } from '@/components/admin/AdminSidebar'
+import { getPendingCoordinatorRequestCount } from '@/lib/queries/adminCoordinatorRequests'
 import { AdminSelectionProvider } from '@/components/admin/AdminSelectionContext'
 import { AdminTopBar } from '@/components/admin/AdminTopBar'
 
@@ -70,6 +71,10 @@ export default async function AdminLayout({
   const fromEmail = emailLocal ? emailLocal.slice(0, 2).toUpperCase() : null
   const initials = fromName || fromEmail || '··'
 
+  // Pending coordinator access-request count for the sidebar pill. A read
+  // failure resolves to 0 (pill hidden) rather than blocking admin chrome.
+  const pendingRequestCount = await getPendingCoordinatorRequestCount()
+
   return (
     <div className="min-h-screen bg-bg-soft flex">
       <AdminSidebar
@@ -79,6 +84,7 @@ export default async function AdminLayout({
           profile?.contact_email ??
           (typeof claims.email === 'string' ? claims.email : '')
         }
+        pendingRequestCount={pendingRequestCount}
       />
       <div className="flex-1 flex flex-col min-w-0">
         <AdminSelectionProvider>

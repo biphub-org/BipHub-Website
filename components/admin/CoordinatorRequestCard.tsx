@@ -88,20 +88,12 @@ export function CoordinatorRequestCard({
           <div className="mt-2 flex flex-col gap-1.5 text-sm text-muted">
             <span className="flex items-center gap-2">
               <Mail size={14} className="opacity-60" aria-hidden />
-              <span>
-                Sign-in: <span className="font-medium text-ink">{request.email}</span>
-                {request.contact_email !== request.email && (
-                  <span>
-                    {' '}· Contact:{' '}
-                    <a
-                      href={`mailto:${request.contact_email}`}
-                      className="text-eu-blue hover:underline"
-                    >
-                      {request.contact_email}
-                    </a>
-                  </span>
-                )}
-              </span>
+              <a
+                href={`mailto:${request.email}`}
+                className="font-medium text-ink hover:underline"
+              >
+                {request.email}
+              </a>
             </span>
             {request.university ? (
               <span className="flex items-center gap-2">

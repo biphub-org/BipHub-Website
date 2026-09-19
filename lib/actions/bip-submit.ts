@@ -136,16 +136,16 @@ export async function submitBipAction(
   // profile-locked university, never trusted from client input.
   // Also self-heals any draft created before host_university_id was written
   // on insert (saveDraftAction). Admins commonly have no profile university
-  // (bootstrapped via SQL, skip onboarding), so resolveHostUniversityId
-  // falls back to the first university for them, mirroring the admin
-  // "Add new BIP" page — otherwise an admin-saved draft could never submit.
+  // (bootstrapped via SQL), so resolveHostUniversityId falls back to the
+  // first university for them, mirroring the admin "Add new BIP" page —
+  // otherwise an admin-saved draft could never submit.
   const hostUniversityId = await resolveHostUniversityId(supabase, userId, role)
   if (!hostUniversityId) {
     return {
       error:
         role === 'admin'
           ? 'No universities exist yet — create one before submitting a BIP.'
-          : 'Your profile has no host university. Complete onboarding first.',
+          : 'Your profile has no host university. Please contact us at contact@biphub.org.',
     }
   }
 

@@ -613,7 +613,6 @@ export type Database = {
       }
       coordinator_requests: {
         Row: {
-          contact_email: string
           country: string | null
           created_at: string
           email: string
@@ -627,7 +626,6 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          contact_email: string
           country?: string | null
           created_at?: string
           email: string
@@ -641,7 +639,6 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          contact_email?: string
           country?: string | null
           created_at?: string
           email?: string
@@ -784,6 +781,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      current_user_has_password: { Args: never; Returns: boolean }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
       delete_my_account: { Args: never; Returns: undefined }
       immutable_unaccent: { Args: { "": string }; Returns: string }

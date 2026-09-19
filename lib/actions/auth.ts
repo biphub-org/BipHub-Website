@@ -31,11 +31,13 @@ import {
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
 
 // AUTH-03: sign in with email + password. Validates server-side then signs in.
-// On success, redirects to /dashboard (or /onboarding when the profile is
-// incomplete, or /admin when the role is admin) — Next.js redirect throws,
-// never returns. Routing decision is made here so the browser doesn't bounce
-// through /dashboard's layout before being re-redirected, which previously
-// caused a visible white screen between server navigations (Plan 02-02 D-05).
+// On success, redirects role-aware (/student-dashboard, /admin, /dashboard) —
+// Next.js redirect throws, never returns. Routing decision is made here so the
+// browser doesn't bounce through /dashboard's layout before being
+// re-redirected, which previously caused a visible white screen between
+// server navigations (Plan 02-02 D-05). Coordinators always land on
+// /dashboard: the access-request flow already collects their details and
+// approval backfills the profile, so there is no onboarding step.
 export async function signInAction(formData: FormData): Promise<{ error?: string }> {
   const parsed = loginSchema.safeParse({
     email: formData.get('email'),
@@ -116,22 +118,8 @@ export async function signInAction(formData: FormData): Promise<{ error?: string
     redirect('/admin')
   }
 
-  if (claims?.sub) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('full_name, university_id, contact_email, erasmus_code')
-      .eq('id', claims.sub)
-      .maybeSingle()
-
-    const isComplete = Boolean(
-      profile?.full_name &&
-        profile?.university_id &&
-        profile?.contact_email &&
-        profile?.erasmus_code,
-    )
-    redirect(isComplete ? '/dashboard' : '/onboarding')
-  }
-
+  // Coordinators (and any other non-student, non-admin role) go straight
+  // to /dashboard — no profile-complete gate, no onboarding page.
   redirect('/dashboard')
 }
 

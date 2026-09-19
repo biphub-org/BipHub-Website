@@ -4,7 +4,7 @@ import { mapLoginMethod } from '@/lib/auth/login-method'
 
 /**
  * Coordinator access-request contract (migration 00054):
- *   - The request carries the onboarding details + login email, no password.
+ *   - The request carries the coordinator details + login email, no password.
  *   - The unified login maps RPC results to steps, including the
  *     "submission under review" states.
  */
@@ -12,14 +12,13 @@ import { mapLoginMethod } from '@/lib/auth/login-method'
 const validRequest = {
   email: 'coord@university.edu',
   full_name: 'Dr. Jane Smith',
-  contact_email: 'j.smith@university.edu',
   university_id: '123e4567-e89b-12d3-a456-426614174000',
   country: 'DE',
   erasmus_code: 'D MUNCHEN02',
 }
 
 describe('coordinatorRequestSchema', () => {
-  it('accepts the onboarding details plus the login email', () => {
+  it('accepts the coordinator details plus the login email', () => {
     const parsed = coordinatorRequestSchema.safeParse(validRequest)
     expect(parsed.success).toBe(true)
   })
@@ -47,7 +46,7 @@ describe('coordinatorRequestSchema', () => {
     ).toBe(false)
   })
 
-  it('inherits the onboarding validations (name, university, erasmus code)', () => {
+  it('inherits the profile validations (name, university, erasmus code)', () => {
     expect(
       coordinatorRequestSchema.safeParse({ ...validRequest, full_name: 'J' }).success,
     ).toBe(false)
@@ -56,9 +55,15 @@ describe('coordinatorRequestSchema', () => {
         .success,
     ).toBe(false)
     expect(
-      coordinatorRequestSchema.safeParse({ ...validRequest, contact_email: 'bad' })
+      coordinatorRequestSchema.safeParse({ ...validRequest, erasmus_code: 'x' })
         .success,
     ).toBe(false)
+  })
+
+  it('has no contact_email field — email is the single address', () => {
+    const parsed = coordinatorRequestSchema.safeParse(validRequest)
+    expect(parsed.success).toBe(true)
+    if (parsed.success) expect('contact_email' in parsed.data).toBe(false)
   })
 })
 

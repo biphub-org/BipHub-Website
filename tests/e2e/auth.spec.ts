@@ -181,10 +181,9 @@ test.describe('auth flow', () => {
     expect(Array.isArray(unis) && unis.length > 0).toBeTruthy()
     const universityId: string = unis[0].id
 
-    // Step 3: complete the profile via service-role (RLS bypass for setup) so the
-    // (dashboard) layout profile-complete gate passes — full_name && university_id
-    // && contact_email && erasmus_code — letting us reach /dashboard/settings
-    // directly, without driving the onboarding UI.
+    // Step 3: complete the profile via service-role (RLS bypass for setup) —
+    // full_name && university_id && contact_email && erasmus_code — mirroring
+    // what approval backfills, letting us reach /dashboard/settings directly.
     const profResp = await page.request.post(`${supabaseUrl}/rest/v1/profiles`, {
       headers: { ...adminHeaders, Prefer: 'resolution=merge-duplicates,return=minimal' },
       data: {

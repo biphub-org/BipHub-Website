@@ -50,9 +50,9 @@ async function signInAndPersist(page: Page, user: FixtureUser): Promise<void> {
   // Two-step login: email -> password step
   await page.getByLabel(/password/i).fill(user.password)
   await page.getByRole('button', { name: /sign in/i }).click()
-  // Coordinator → /dashboard; fresh coordinator → /onboarding;
-  // admin → /admin. Permissive URL wait absorbs all three.
-  await page.waitForURL(/\/(dashboard|onboarding|admin)/, { timeout: 15_000 })
+  // Coordinator → /dashboard; admin → /admin. Permissive URL wait
+  // absorbs both.
+  await page.waitForURL(/\/(dashboard|admin)/, { timeout: 15_000 })
   await page.context().storageState({ path: user.file })
 }
 

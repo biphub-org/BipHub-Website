@@ -6,6 +6,8 @@
  * Composition (desktop ≥ md):
  *   240px sticky left column. Logo + nav (Queue / All BIPs / My BIPs /
  *   Coordinators / Students / Analytics) + admin avatar/name/email + Sign out form.
+ *   The Coordinators entry carries a gold count pill with the number of
+ *   pending access requests (0 hides the pill).
  *
  * Composition (mobile < md):
  *   56px top bar with burger menu → Sheet drawer mirroring desktop body.
@@ -47,9 +49,11 @@ type NavItem = {
   label: string
   icon: typeof Inbox
   matchExact?: boolean
+  /** Pending-review count pill (Coordinators inbox). Rendered only when > 0. */
+  badge?: number
 }
 
-const NAV_ITEMS: ReadonlyArray<NavItem> = [
+export const NAV_ITEMS: ReadonlyArray<NavItem> = [
   { href: '/admin', label: 'Queue', icon: Inbox, matchExact: true },
   { href: '/admin/bips', label: 'All BIPs', icon: ListChecks },
   { href: '/admin/my-bips', label: 'My BIPs', icon: ListChecks },
@@ -58,12 +62,16 @@ const NAV_ITEMS: ReadonlyArray<NavItem> = [
   { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
 ]
 
+const COORDINATORS_HREF = '/admin/coordinators'
+
 // Lookup constants — NEVER template-literal Tailwind classes (CLAUDE.md).
 const NAV_ITEM_BASE =
   'flex items-center gap-3 px-3 py-2 rounded-md text-sm transition'
 const NAV_ITEM_ACTIVE = 'bg-eu-blue-50 text-eu-blue font-semibold'
 const NAV_ITEM_RESTING =
   'text-ink-2 font-normal hover:text-ink hover:bg-bg-soft'
+// EU gold count pill — full static strings (CLAUDE.md never-do).
+const NAV_BADGE = 'ml-auto rounded-full bg-eu-gold px-2 py-0.5 text-[11px] font-semibold text-ink'
 
 function AdminNavItem({
   item,
@@ -83,6 +91,11 @@ function AdminNavItem({
     >
       <Icon size={20} aria-hidden />
       <span>{item.label}</span>
+      {item.badge != null && item.badge > 0 && (
+        <span className={NAV_BADGE} aria-label={`${item.badge} pending review`}>
+          {item.badge}
+        </span>
+      )}
     </Link>
   )
 }
@@ -91,16 +104,25 @@ function SidebarBody({
   initials,
   fullName,
   email,
+  pendingRequestCount = 0,
   onNavClick,
 }: {
   initials: string
   fullName: string
   email: string
+  pendingRequestCount?: number
   onNavClick?: () => void
 }) {
   const pathname = usePathname()
   const isActive = (item: NavItem) =>
     item.matchExact ? pathname === item.href : pathname.startsWith(item.href)
+
+  // Pending coordinator access requests surface as a count pill on the
+  // Coordinators entry (the inbox itself lives one click deeper at
+  // /admin/coordinators/requests).
+  const items = NAV_ITEMS.map((item) =>
+    item.href === COORDINATORS_HREF ? { ...item, badge: pendingRequestCount } : item,
+  )
 
   return (
     <div className="flex flex-col h-full px-4 py-6">
@@ -110,7 +132,7 @@ function SidebarBody({
         <span className="text-xs text-muted ml-1">Admin</span>
       </Link>
       <nav className="flex flex-col gap-1" aria-label="Admin">
-        {NAV_ITEMS.map((item) => (
+        {items.map((item) => (
           <AdminNavItem
             key={item.href}
             item={item}
@@ -148,10 +170,12 @@ export function AdminSidebar({
   initials,
   fullName,
   email,
+  pendingRequestCount = 0,
 }: {
   initials: string
   fullName: string
   email: string
+  pendingRequestCount?: number
 }) {
   const [open, setOpen] = useState(false)
 
@@ -159,7 +183,12 @@ export function AdminSidebar({
     <>
       {/* Desktop sidebar (≥ md). Plan 01-04 overrides md to 60rem / 960px. */}
       <aside className="hidden md:flex md:flex-col w-[240px] min-h-screen border-r border-border bg-white sticky top-0 h-screen">
-        <SidebarBody initials={initials} fullName={fullName} email={email} />
+        <SidebarBody
+          initials={initials}
+          fullName={fullName}
+          email={email}
+          pendingRequestCount={pendingRequestCount}
+        />
       </aside>
 
       {/* Mobile top bar */}
@@ -177,6 +206,7 @@ export function AdminSidebar({
               initials={initials}
               fullName={fullName}
               email={email}
+              pendingRequestCount={pendingRequestCount}
               onNavClick={() => setOpen(false)}
             />
           </SheetContent>

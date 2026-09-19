@@ -28,10 +28,10 @@ import type { UniversitySearchResult } from '@/lib/actions/universities'
 /**
  * Coordinator access-request form.
  *
- * Collects the same details as the coordinator onboarding page (full name,
- * contact email, university, country, Erasmus code) PLUS the login `email`
- * the account will use once approved. No password is set here — approved
- * coordinators receive an invite link to set it.
+ * Collects the coordinator details (full name, university, country,
+ * Erasmus code) PLUS the single `email` used for review correspondence and,
+ * once approved, as the sign-in and contact email. No password is set here —
+ * approved coordinators receive an invite link.
  *
  * On success the form is replaced with an under-review confirmation (the
  * requester has no session, so there is nowhere to redirect them to).
@@ -48,7 +48,6 @@ export function CoordinatorRequestForm({
     defaultValues: {
       email: initialEmail,
       full_name: '',
-      contact_email: '',
       university_id: '',
       country: '' as CoordinatorRequestValues['country'],
       erasmus_code: '',
@@ -104,13 +103,10 @@ export function CoordinatorRequestForm({
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Account email</FormLabel>
+              <FormLabel>Email</FormLabel>
               <FormControl>
                 <Input type="email" autoComplete="email" autoFocus placeholder="you@university.edu" {...field} />
               </FormControl>
-              <FormDescription>
-                This becomes your sign-in email once your request is approved.
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -125,23 +121,6 @@ export function CoordinatorRequestForm({
               <FormControl>
                 <Input placeholder="Dr. Jane Smith" {...field} />
               </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="contact_email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Contact email</FormLabel>
-              <FormControl>
-                <Input type="email" {...field} />
-              </FormControl>
-              <FormDescription>
-                How coordinators and admins will reach you about your BIPs.
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}

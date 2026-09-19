@@ -1,11 +1,11 @@
 import { Skeleton } from '@/components/ui/skeleton'
 
 /**
- * Route-group loading state for /dashboard and /onboarding.
+ * Route-group loading state for /dashboard.
  *
  * Without this file, Next.js shows the previous route until the new RSC
  * resolves — on Vercel cold-start that can be 1–2s of blank screen between
- * /login → /dashboard → /onboarding redirects.
+ * /login → /dashboard redirects.
  *
  * Renders a stationary skeleton matching the dashboard chrome so there is
  * no layout shift when the real content arrives.

@@ -1,13 +1,12 @@
 import { redirect } from 'next/navigation'
-import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { Toaster } from '@/components/ui/sonner'
 import { DashboardNav } from '@/components/dashboard/DashboardNav'
 
 /**
- * Dashboard route-group layout (AUTH-07 / D-05 / D-12).
+ * Dashboard route-group layout (AUTH-07 / D-12).
  *
- * Two-stage server-side guard:
+ * Server-side guard:
  *
  *   1. Auth guard — defense-in-depth. Plan 02-03 middleware already redirects
  *      unauthenticated requests to /login, but we re-check here so an attacker
@@ -15,15 +14,20 @@ import { DashboardNav } from '@/components/dashboard/DashboardNav'
  *      Uses getClaims() (validates JWT signature) — the unvalidated session
  *      reader is forbidden per CLAUDE.md.
  *
- *   2. Profile-complete gate — D-05. If the coordinator's profiles row is
- *      missing required fields AND we are NOT already on /onboarding, redirect
- *      there. The /onboarding exemption uses the `x-pathname` header injected
- *      by Plan 02-03 middleware — this defeats the infinite-redirect loop
- *      pitfall (PITFALLS Pitfall 2).
+ * There is deliberately NO profile-complete gate: coordinators arrive via
+ * the access-request flow, which already collects full name, university,
+ * country and Erasmus code, and approval backfills the profile — so every
+ * coordinator lands on /dashboard with a complete profile. (The old
+ * /onboarding form was removed; a backfill failure surfaces as an
+ * actionable error at submit time instead of stranding the coordinator
+ * on a redundant form.)
  *
- * Profile-complete definition (D-05 + UI-SPEC):
- *   full_name && university_id && contact_email && erasmus_code
- *   (country is implied by `universities.country`; not stored on profiles).
+ * There IS a password gate (2): clicking the invite link runs verifyOtp,
+ * which establishes a full session BEFORE any password is set. Without this
+ * check an approved coordinator who never sets a password could use the
+ * whole dashboard. current_user_has_password() (migration 00056) reads
+ * auth.users.encrypted_password — empty until the first password is set —
+ * via SECURITY DEFINER; false bounces to /reset-password/update.
  *
  * Layout chrome (D-12 / INFO-03):
  *   - <DashboardNav>: logo + breadcrumb + initials + Sign out form. RSC.
@@ -44,27 +48,25 @@ export default async function DashboardLayout({
   const role = (claims as unknown as { app_metadata?: { role?: string } })?.app_metadata?.role
   if (role === 'admin') redirect('/admin')
 
-  // (2) Profile-complete gate.
-  const headersList = await headers()
-  const pathname = headersList.get('x-pathname') ?? ''
-  const isOnboarding = pathname.startsWith('/onboarding')
+  // (2) Password gate — invite-click sessions are fully authenticated, so
+  // coordinators who accepted the invite but never set a password bounce to
+  // /reset-password/update until they do. Fail OPEN on RPC error (log +
+  // allow): a missing/broken function must never lock every coordinator
+  // into a set-password loop they cannot exit.
+  const { data: hasPassword, error: pwError } = await supabase.rpc(
+    'current_user_has_password',
+  )
+  if (pwError) {
+    console.error('[dashboard layout] password check failed (non-blocking):', pwError.message)
+  } else if (hasPassword !== true) {
+    redirect('/reset-password/update')
+  }
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('full_name, university_id, contact_email, erasmus_code')
+    .select('full_name')
     .eq('id', claims.sub)
     .maybeSingle()
-
-  const isComplete = Boolean(
-    profile?.full_name &&
-      profile?.university_id &&
-      profile?.contact_email &&
-      profile?.erasmus_code,
-  )
-
-  if (!isComplete && !isOnboarding) {
-    redirect('/onboarding')
-  }
 
   // Initials derivation: full_name → email local-part → "··" sentinel.
   const fromName = profile?.full_name

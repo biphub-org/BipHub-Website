@@ -25,7 +25,8 @@ import { backfillStudentProfileFromMetadata } from '@/lib/auth/student-profile'
  *   - signup verification (type=signup / none) → role-aware: students (with
  *     profile materialised from user_metadata; signInAction backfills as a
  *     safety net for link formats that never reach this callback) →
- *     /student-dashboard, coordinators → /onboarding (D-07)
+ *     /student-dashboard, coordinators → /dashboard (no onboarding step:
+ *     the access-request flow already collects their details)
  *   - password recovery   (type=recovery)      → /reset-password/update
  *   - coordinator invite  (type=invite)        → /reset-password/update
  *     (set the initial password for the approved account)
@@ -112,8 +113,8 @@ export async function GET(request: Request) {
   }
 
   // Signup verification (type=signup / email / none): students land on their
-  // dashboard with the registration details materialised; coordinators
-  // continue to onboarding to complete their profile (D-07).
+  // dashboard with the registration details materialised; coordinators go
+  // straight to /dashboard (no onboarding step).
   const { data: claimsData } = await supabase.auth.getClaims()
   const claims = claimsData?.claims as
     | { sub?: string; app_metadata?: { role?: string } }
@@ -139,5 +140,5 @@ export async function GET(request: Request) {
     '[auth/callback] non-student signup, role:',
     claims?.app_metadata?.role ?? null,
   )
-  return NextResponse.redirect(`${SITE_URL}/onboarding`)
+  return NextResponse.redirect(`${SITE_URL}/dashboard`)
 }

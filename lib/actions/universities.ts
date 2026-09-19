@@ -27,7 +27,7 @@ export type UniversitySearchResult = {
 }
 
 /**
- * Read existing universities for the onboarding combobox.
+ * Read existing universities for the university combobox.
  *
  * - Empty query returns the alphabetical top 50 so the popover shows a useful
  *   prefill list before the user types anything.

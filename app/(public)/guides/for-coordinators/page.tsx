@@ -40,17 +40,17 @@ export default function ForCoordinatorsGuide() {
         <h2>Setting up your account</h2>
         <ul>
           <li>
-            <strong className="text-ink">1. Register</strong> with an
+            <strong className="text-ink">1. Request access</strong> with an
             institutional email at <Link href="/register">/register</Link>{' '}
-            (Gmail / Hotmail addresses will be flagged in review). You will
-            receive a verification email — click the link to activate the
-            account.
+            (Gmail / Hotmail addresses will be flagged in review), adding
+            your name, university, and Erasmus institutional code. You can
+            pick your university from the typeahead or add it if it is not
+            in the catalogue yet.
           </li>
           <li>
-            <strong className="text-ink">2. Complete the onboarding form</strong>{' '}
-            with your name, role, university, and your Erasmus institutional
-            code. You can pick your university from the typeahead or add it if
-            it is not in the catalogue yet.
+            <strong className="text-ink">2. Wait for approval.</strong> An
+            admin reviews your request — approval usually takes a few days —
+            then you set your password via the invite link.
           </li>
           <li>
             <strong className="text-ink">3. Land on the dashboard.</strong>{' '}

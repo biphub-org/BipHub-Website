@@ -131,11 +131,8 @@ export function WizardStep3Partners({
           <span className="shrink-0 text-muted">{hostUniversity.country}</span>
         </div>
         <p className="mt-1 text-xs text-muted">
-          Locked to your profile&apos;s university. Update it on{' '}
-          <a href="/onboarding" className="text-eu-blue underline">
-            onboarding
-          </a>{' '}
-          if it changed.
+          Locked to your profile&apos;s university. If it changed, please
+          contact us at contact@biphub.org.
         </p>
       </div>
 

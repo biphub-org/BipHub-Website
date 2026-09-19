@@ -18,7 +18,7 @@ import { createClient } from '@/lib/supabase/server'
  * Phase 2 addition (D-15): fetch session claims server-side via getClaims() and
  * pass `hasClaims` + `initials` to <StickyNav> so the nav adapts without a
  * client-side flash. Single profile fetch (.maybeSingle()) avoids throwing for
- * coordinators who just signed up but have not completed onboarding yet.
+ * coordinators who just signed up and have no profile row yet.
  *
  * Initials derivation:
  *   1. profiles.full_name → first letter of first two words.
