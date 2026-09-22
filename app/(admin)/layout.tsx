@@ -3,6 +3,8 @@ import { createClient } from '@/lib/supabase/server'
 import { Toaster } from '@/components/ui/sonner'
 import { AdminSidebar } from '@/components/admin/AdminSidebar'
 import { getPendingCoordinatorRequestCount } from '@/lib/queries/adminCoordinatorRequests'
+import { getPendingProfileChangeRequestCount } from '@/lib/queries/profileChangeRequests'
+import { getRecentStudentProfileChangeCount } from '@/lib/queries/studentProfileChanges'
 import { AdminSelectionProvider } from '@/components/admin/AdminSelectionContext'
 import { AdminTopBar } from '@/components/admin/AdminTopBar'
 
@@ -71,9 +73,16 @@ export default async function AdminLayout({
   const fromEmail = emailLocal ? emailLocal.slice(0, 2).toUpperCase() : null
   const initials = fromName || fromEmail || '··'
 
-  // Pending coordinator access-request count for the sidebar pill. A read
-  // failure resolves to 0 (pill hidden) rather than blocking admin chrome.
-  const pendingRequestCount = await getPendingCoordinatorRequestCount()
+  // Pending review count for the sidebar pill: coordinator access requests
+  // PLUS profile data-change requests. A read failure resolves to 0 (pill
+  // hidden) rather than blocking admin chrome. Unread student profile
+  // edits get their own pill on the Students entry.
+  const [pendingAccess, pendingDataChanges, recentStudentChanges] = await Promise.all([
+    getPendingCoordinatorRequestCount(),
+    getPendingProfileChangeRequestCount(),
+    getRecentStudentProfileChangeCount(),
+  ])
+  const pendingRequestCount = pendingAccess + pendingDataChanges
 
   return (
     <div className="min-h-screen bg-bg-soft flex">
@@ -85,6 +94,7 @@ export default async function AdminLayout({
           (typeof claims.email === 'string' ? claims.email : '')
         }
         pendingRequestCount={pendingRequestCount}
+        recentStudentChangeCount={recentStudentChanges}
       />
       <div className="flex-1 flex flex-col min-w-0">
         <AdminSelectionProvider>

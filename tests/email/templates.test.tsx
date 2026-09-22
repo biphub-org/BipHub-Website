@@ -19,6 +19,10 @@ import {
   AdminNotificationEmail,
   type AdminNotificationEmailProps,
 } from '@/lib/email/templates/AdminNotificationEmail'
+import { ProfileChangeApprovedEmail } from '@/lib/email/templates/ProfileChangeApprovedEmail'
+import { ProfileChangeDeclinedEmail } from '@/lib/email/templates/ProfileChangeDeclinedEmail'
+import { ProfileChangeRequestAdminEmail } from '@/lib/email/templates/ProfileChangeRequestAdminEmail'
+import { StudentProfileChangedAdminEmail } from '@/lib/email/templates/StudentProfileChangedAdminEmail'
 
 async function renderApproval(props: ApprovalEmailProps): Promise<string> {
   return render(<ApprovalEmail {...props} />)
@@ -180,6 +184,90 @@ describe('AdminNotificationEmail', () => {
       coordinatorUniversity: 'U',
       submittedAt: '2026-05-12T10:00:00Z',
     })
+    expect(html).toContain('Independent project')
+    expect(html).toContain('not affiliated with the European Commission')
+  })
+})
+// Profile data-change verdict + admin notification — migration 00059
+describe('ProfileChangeApprovedEmail', () => {
+  it('confirms the new details are live and links dashboard settings', async () => {
+    const html = await render(<ProfileChangeApprovedEmail coordinatorName="Jane" />)
+    expect(html).toContain('Profile change approved')
+    expect(html).toContain('https://biphub.eu/dashboard/settings')
+  })
+
+  it('renders the admin note only when set', async () => {
+    const withNote = await render(<ProfileChangeApprovedEmail coordinatorName="J" adminNote="Welcome aboard!" />)
+    expect(withNote).toContain('Note from the BipHub team')
+    expect(withNote).toContain('Welcome aboard!')
+    const withoutNote = await render(<ProfileChangeApprovedEmail coordinatorName="J" />)
+    expect(withoutNote).not.toContain('Note from the BipHub team')
+  })
+
+  it('renders EC disclaimer footer', async () => {
+    const html = await render(<ProfileChangeApprovedEmail coordinatorName="J" />)
+    expect(html).toContain('Independent project')
+    expect(html).toContain('not affiliated with the European Commission')
+  })
+})
+
+describe('ProfileChangeDeclinedEmail', () => {
+  it('states the profile stays unchanged and renders the reason verbatim', async () => {
+    const html = await render(<ProfileChangeDeclinedEmail coordinatorName="Jane" adminNote="The Erasmus code does not match your university." />)
+    expect(html).toContain('Profile change declined')
+    expect(html).toContain('stay exactly as they were')
+    expect(html).toContain('The Erasmus code does not match your university.')
+  })
+
+  it('renders EC disclaimer footer', async () => {
+    const html = await render(<ProfileChangeDeclinedEmail coordinatorName="J" />)
+    expect(html).toContain('Independent project')
+    expect(html).toContain('not affiliated with the European Commission')
+  })
+})
+
+describe('ProfileChangeRequestAdminEmail', () => {
+  it('renders coordinator identity and data-changes inbox CTA', async () => {
+    const html = await render(
+      <ProfileChangeRequestAdminEmail coordinatorName="Jane Smith" coordinatorEmail="jane@uni.edu" universityName="TU Delft" erasmusCode="NL DELFT01" submittedAt="2026-09-22T10:00:00Z" />,
+    )
+    expect(html).toContain('Jane Smith')
+    expect(html).toContain('TU Delft')
+    expect(html).toContain('https://biphub.eu/admin/coordinators/data-changes')
+  })
+
+  it('renders EC disclaimer footer', async () => {
+    const html = await render(
+      <ProfileChangeRequestAdminEmail coordinatorName="J" coordinatorEmail="j@u.edu" universityName="U" erasmusCode="X" submittedAt="2026-09-22T10:00:00Z" />,
+    )
+    expect(html).toContain('Independent project')
+    expect(html).toContain('not affiliated with the European Commission')
+  })
+})
+
+describe('StudentProfileChangedAdminEmail', () => {
+  const changes = [
+    { label: 'Full name', before: 'Old Name', after: 'New Name' },
+    { label: 'Country', before: 'Germany', after: 'France' },
+  ]
+
+  it('renders student identity and before → after per changed field', async () => {
+    const html = await render(
+      <StudentProfileChangedAdminEmail studentName="New Name" studentEmail="s@uni.edu" changes={changes} updatedAt="2026-09-22T10:00:00Z" />,
+    )
+    expect(html).toContain('New Name')
+    expect(html).toContain('s@uni.edu')
+    expect(html).toContain('Full name')
+    expect(html).toContain('Old Name')
+    expect(html).toContain('Germany')
+    expect(html).toContain('France')
+    expect(html).toContain('https://biphub.eu/admin/students')
+  })
+
+  it('renders EC disclaimer footer', async () => {
+    const html = await render(
+      <StudentProfileChangedAdminEmail studentName="N" studentEmail="s@u.edu" changes={changes} updatedAt="2026-09-22T10:00:00Z" />,
+    )
     expect(html).toContain('Independent project')
     expect(html).toContain('not affiliated with the European Commission')
   })

@@ -7,7 +7,9 @@
  *   240px sticky left column. Logo + nav (Queue / All BIPs / My BIPs /
  *   Coordinators / Students / Analytics) + admin avatar/name/email + Sign out form.
  *   The Coordinators entry carries a gold count pill with the number of
- *   pending access requests (0 hides the pill).
+ *   pending coordinator reviews (access + data-change requests; 0 hides
+ *   the pill). The Students entry carries the same pill with the number
+ *   of unread student profile edits (marking one read clears it).
  *
  * Composition (mobile < md):
  *   56px top bar with burger menu → Sheet drawer mirroring desktop body.
@@ -63,6 +65,7 @@ export const NAV_ITEMS: ReadonlyArray<NavItem> = [
 ]
 
 const COORDINATORS_HREF = '/admin/coordinators'
+const STUDENTS_HREF = '/admin/students'
 
 // Lookup constants — NEVER template-literal Tailwind classes (CLAUDE.md).
 const NAV_ITEM_BASE =
@@ -105,24 +108,32 @@ function SidebarBody({
   fullName,
   email,
   pendingRequestCount = 0,
+  recentStudentChangeCount = 0,
   onNavClick,
 }: {
   initials: string
   fullName: string
   email: string
   pendingRequestCount?: number
+  /** Unread student profile edits (0 hides the pill). */
+  recentStudentChangeCount?: number
   onNavClick?: () => void
 }) {
   const pathname = usePathname()
   const isActive = (item: NavItem) =>
     item.matchExact ? pathname === item.href : pathname.startsWith(item.href)
 
-  // Pending coordinator access requests surface as a count pill on the
-  // Coordinators entry (the inbox itself lives one click deeper at
-  // /admin/coordinators/requests).
-  const items = NAV_ITEMS.map((item) =>
-    item.href === COORDINATORS_HREF ? { ...item, badge: pendingRequestCount } : item,
-  )
+  // Pending coordinator reviews (access requests + data-change requests)
+  // surface as a count pill on the Coordinators entry (the inboxes live one
+  // click deeper at /admin/coordinators/requests and
+  // /admin/coordinators/data-changes). Recent student profile edits surface
+  // the same way on the Students entry (details in the "Recent profile
+  // changes" section on /admin/students).
+  const items = NAV_ITEMS.map((item) => {
+    if (item.href === COORDINATORS_HREF) return { ...item, badge: pendingRequestCount }
+    if (item.href === STUDENTS_HREF) return { ...item, badge: recentStudentChangeCount }
+    return item
+  })
 
   return (
     <div className="flex flex-col h-full px-4 py-6">
@@ -171,11 +182,14 @@ export function AdminSidebar({
   fullName,
   email,
   pendingRequestCount = 0,
+  recentStudentChangeCount = 0,
 }: {
   initials: string
   fullName: string
   email: string
   pendingRequestCount?: number
+  /** Unread student profile edits (0 hides the pill). */
+  recentStudentChangeCount?: number
 }) {
   const [open, setOpen] = useState(false)
 
@@ -188,6 +202,7 @@ export function AdminSidebar({
           fullName={fullName}
           email={email}
           pendingRequestCount={pendingRequestCount}
+          recentStudentChangeCount={recentStudentChangeCount}
         />
       </aside>
 
@@ -207,6 +222,7 @@ export function AdminSidebar({
               fullName={fullName}
               email={email}
               pendingRequestCount={pendingRequestCount}
+              recentStudentChangeCount={recentStudentChangeCount}
               onNavClick={() => setOpen(false)}
             />
           </SheetContent>

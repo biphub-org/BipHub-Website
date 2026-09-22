@@ -19,6 +19,9 @@ import { getCountryName } from '@/lib/countries'
 import { ISCED_FIELD_BY_ID } from '@/lib/isced'
 import { ISCED_CODES } from '@/lib/isced-codes'
 import { CountryFlag } from '@/components/ui/country-flag'
+import { RemoveUserSection } from '@/components/admin/RemoveUserSection'
+import { getAuthUserInfo } from '@/app/(admin)/admin/users/auth-users'
+import { resolveAdminUserDisplay } from '@/lib/auth/admin-user-display'
 import { STATUS_BADGE_CLASSES, STATUS_LABELS, type BipStatus } from '@/lib/utils/status'
 import { cn } from '@/lib/utils/cn'
 
@@ -50,6 +53,24 @@ export default async function StudentDetailPage(props: { params: Promise<{ id: s
   const student = await getAdminStudentById(id)
   if (!student) notFound()
 
+  const auth = await getAuthUserInfo(id)
+  const display = resolveAdminUserDisplay({
+    kind: 'student',
+    profileName: student.fullName,
+    authName: auth?.name,
+    emailConfirmedAt: auth?.emailConfirmedAt,
+  })
+  const showUnverified = auth ? display.unverified : false
+  // Profile-first, auth-record (signup details) fallback: bare rows of
+  // unverified users still show email, country and university.
+  const shownEmail = student.contactEmail ?? auth?.email ?? null
+  const shownCountry = student.country ?? auth?.country ?? null
+  const shownUniversity = student.university ?? auth?.university ?? null
+  const hasName = display.name !== 'Unnamed student'
+  const avatarInitials = hasName
+    ? display.name.trim().split(/\s+/).slice(0, 2).map((p) => p[0]?.toUpperCase()).join('')
+    : null
+
   const alerts = student.alerts
   const frequency = alerts
     ? alerts.frequency.charAt(0).toUpperCase() + alerts.frequency.slice(1)
@@ -66,31 +87,38 @@ export default async function StudentDetailPage(props: { params: Promise<{ id: s
       <div className="rounded-md border border-border bg-white p-6 mb-6">
         <div className="flex gap-4">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-eu-blue-50 text-sm font-bold text-eu-blue">
-            {(student.fullName?.trim().split(/\s+/).slice(0, 2).map((p) => p[0]?.toUpperCase()).join('') || student.contactEmail?.slice(0, 2).toUpperCase() || '··')}
+            {(avatarInitials || shownEmail?.slice(0, 2).toUpperCase() || '··')}
           </div>
           <div className="min-w-0 flex-1">
-            <h1 className="text-[20px] font-semibold text-ink truncate">{student.fullName || 'Unnamed student'}</h1>
+            <h1 className="flex items-center gap-2 text-[20px] font-semibold text-ink">
+              <span className="truncate">{display.name}</span>
+              {showUnverified && (
+                <span className="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-900">
+                  Unverified
+                </span>
+              )}
+            </h1>
             <div className="mt-2 flex flex-col gap-1.5 text-sm text-muted">
-              {student.contactEmail && (
+              {shownEmail && (
                 <span className="flex items-center gap-2">
                   <Mail size={14} className="opacity-60" aria-hidden />
-                  <a href={`mailto:${student.contactEmail}`} className="text-eu-blue hover:underline">
-                    {student.contactEmail}
+                  <a href={`mailto:${shownEmail}`} className="text-eu-blue hover:underline">
+                    {shownEmail}
                   </a>
                 </span>
               )}
-              {student.country && (
+              {shownCountry && (
                 <span className="flex items-center gap-2">
                   <MapPin size={14} className="opacity-60" aria-hidden />
-                  <CountryFlag code={student.country} width={18} />
-                  {getCountryName(student.country)}
-                  <span className="text-xs text-muted">{student.country}</span>
+                  <CountryFlag code={shownCountry} width={18} />
+                  {getCountryName(shownCountry)}
+                  <span className="text-xs text-muted">{shownCountry}</span>
                 </span>
               )}
-              {student.university ? (
+              {shownUniversity ? (
                 <span className="flex items-center gap-2">
                   <Building2 size={14} className="opacity-60" aria-hidden />
-                  {student.university.name} · {student.university.country}
+                  {shownUniversity.name} · {shownUniversity.country}
                 </span>
               ) : (
                 <span className="text-muted">No home university set</span>
@@ -212,6 +240,16 @@ export default async function StudentDetailPage(props: { params: Promise<{ id: s
             ))}
           </div>
         )}
+      </div>
+
+      <div className="mt-6">
+        <RemoveUserSection
+          userId={student.id}
+          displayName={hasName ? display.name : shownEmail || 'This student'}
+          email={shownEmail}
+          kind="student"
+          returnTo="/admin/students"
+        />
       </div>
     </div>
   )

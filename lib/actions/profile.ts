@@ -19,6 +19,9 @@ import {
   studentProfileSchema,
   type StudentProfileValues,
 } from '@/lib/schemas/profile'
+import { getCountryName } from '@/lib/countries'
+import { sendEmail } from '@/lib/email/send'
+import type { StudentProfileFieldChange } from '@/lib/email/templates/StudentProfileChangedAdminEmail'
 
 type UpdateStudentProfileResult = { error?: string; success?: true }
 
@@ -91,6 +94,22 @@ export async function updateStudentProfileAction(
 
   const loginEmail = typeof data.claims.email === 'string' ? data.claims.email : null
 
+  // Snapshot BEFORE the write so the admin notification can show
+  // before → after. No prior row means first-time setup (creation, not a
+  // change) — nothing to diff, so no email.
+  type BeforeProfileRow = {
+    full_name: string | null
+    country: string | null
+    university_id: string | null
+    university: { name: string } | Array<{ name: string }> | null
+  }
+  const { data: beforeRaw } = await supabase
+    .from('profiles')
+    .select('full_name, country, university_id, university:university_id ( name )')
+    .eq('id', data.claims.sub)
+    .maybeSingle()
+  const before = (beforeRaw ?? null) as unknown as BeforeProfileRow | null
+
   const writeError = await writeStudentProfile(
     supabase,
     data.claims.sub,
@@ -99,6 +118,104 @@ export async function updateStudentProfileAction(
   )
   if (writeError) {
     return { error: writeError }
+  }
+
+  // Admin notification with the before → after diff (fire-and-forget per
+  // D-11: the profile already committed, email failures never roll it back).
+  // Only actual changes trigger it — saving untouched values stays silent.
+  if (before) {
+    const beforeUniversity = Array.isArray(before.university)
+      ? (before.university[0]?.name ?? null)
+      : (before.university?.name ?? null)
+    const beforeUniversityId = before.university_id ?? null
+    const afterUniversityId = parsed.data.university_id ?? null
+
+    let afterUniversityName: string | null = beforeUniversity
+    if (afterUniversityId !== beforeUniversityId) {
+      afterUniversityName = null
+      if (afterUniversityId) {
+        const { data: afterUni } = await supabase
+          .from('universities')
+          .select('name')
+          .eq('id', afterUniversityId)
+          .maybeSingle()
+        afterUniversityName = (afterUni as { name?: string } | null)?.name ?? null
+      }
+    }
+
+    const changes: StudentProfileFieldChange[] = []
+    if ((before.full_name ?? '') !== parsed.data.full_name) {
+      changes.push({
+        label: 'Full name',
+        before: before.full_name || '—',
+        after: parsed.data.full_name,
+      })
+    }
+    if ((before.country ?? '') !== parsed.data.country) {
+      changes.push({
+        label: 'Country',
+        before: before.country ? getCountryName(before.country) : '—',
+        after: getCountryName(parsed.data.country),
+      })
+    }
+    if (afterUniversityId !== beforeUniversityId) {
+      changes.push({
+        label: 'University',
+        before: beforeUniversity || '—',
+        after: afterUniversityName || '—',
+      })
+    }
+
+    // Untouched saves record and send nothing.
+    if (changes.length > 0) {
+      // Durable audit row for the admin dashboard (migration 00060): the
+      // email is fire-and-forget, this row is the in-dashboard notification.
+      // Non-blocking like the email — an insert failure never rolls back the
+      // saved profile.
+      try {
+        const { error: auditError } = await supabase
+          .from('student_profile_changes')
+          .insert({
+            student_id: data.claims.sub,
+            changes,
+          })
+        if (auditError) {
+          console.error(
+            '[updateStudentProfile] audit insert failed (non-blocking):',
+            auditError.message,
+          )
+        }
+      } catch (err) {
+        console.error(
+          '[updateStudentProfile] audit insert failed (non-blocking):',
+          err,
+        )
+      }
+
+      const adminRecipient = process.env.ADMIN_NOTIFICATION_EMAIL
+      if (adminRecipient) {
+        try {
+          await sendEmail(adminRecipient, {
+            template: 'student-profile-changed-admin',
+            props: {
+              studentName: parsed.data.full_name,
+              studentEmail: loginEmail ?? '',
+              changes,
+              updatedAt: new Date().toISOString(),
+            },
+          })
+        } catch (err) {
+          console.error(
+            '[updateStudentProfile] admin notification email failed (non-blocking):',
+            err,
+          )
+        }
+      } else {
+        console.warn(
+          '[updateStudentProfile] ADMIN_NOTIFICATION_EMAIL unset — skipping admin notification email',
+        )
+      }
+    }
   }
 
   revalidatePath('/student-dashboard')

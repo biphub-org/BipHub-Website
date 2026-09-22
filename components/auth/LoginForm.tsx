@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { signInAction, signInWithOtpAction, resolveLoginMethodAction } from '@/lib/actions/auth'
 import { loginSchema, resolveLoginSchema, type LoginValues } from '@/lib/schemas/auth'
+import { ResendVerificationButton } from '@/components/auth/ResendVerificationButton'
 
 type Step = 'email' | 'password' | 'magiclink-sent' | 'unknown' | 'pending' | 'rejected' | 'approved'
 
@@ -25,6 +26,9 @@ export function LoginForm({ initialError }: { initialError?: string }) {
   const [step, setStep] = useState<Step>('email')
   const [email, setEmail] = useState('')
   const [serverError, setServerError] = useState<string | null>(initialError ?? null)
+  // Set when sign-in fails with code 'email_unverified' — the error promises
+  // a resend, so the button must be right there, not just on /verify-email.
+  const [unverified, setUnverified] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [cooldown, setCooldown] = useState(0)
   const [resendMessage, setResendMessage] = useState<string | null>(null)
@@ -54,6 +58,7 @@ export function LoginForm({ initialError }: { initialError?: string }) {
   function handleEmailSubmit(values: { email: string }) {
     const trimmed = values.email.trim().toLowerCase()
     setServerError(null)
+    setUnverified(false)
     setResendMessage(null)
     startTransition(async () => {
       const fd = new FormData()
@@ -90,12 +95,14 @@ export function LoginForm({ initialError }: { initialError?: string }) {
 
   function handlePasswordSubmit(values: LoginValues) {
     setServerError(null)
+    setUnverified(false)
     startTransition(async () => {
       const fd = new FormData()
       fd.set('email', values.email)
       fd.set('password', values.password)
       const result = await signInAction(fd)
       if (result?.error) setServerError(result.error)
+      if (result?.code === 'email_unverified') setUnverified(true)
     })
   }
 
@@ -127,6 +134,7 @@ export function LoginForm({ initialError }: { initialError?: string }) {
   function backToEmail() {
     setStep('email')
     setServerError(null)
+    setUnverified(false)
     setResendMessage(null)
     setCooldown(0)
     emailForm.setValue('email', email)
@@ -268,6 +276,12 @@ export function LoginForm({ initialError }: { initialError?: string }) {
             <Alert variant="destructive">
               <AlertDescription>{serverError}</AlertDescription>
             </Alert>
+          )}
+          {unverified && (
+            <div className="flex flex-col items-center gap-1 rounded-lg border border-border bg-bg-soft px-3 py-3 text-center">
+              <p className="text-sm text-muted">Lost the verification email?</p>
+              <ResendVerificationButton email={email} />
+            </div>
           )}
           <div className="flex items-center justify-between rounded-lg border border-border bg-bg-soft px-3 py-2">
             <span className="text-sm text-ink truncate">{email}</span>

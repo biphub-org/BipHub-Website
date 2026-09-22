@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { Mail, Building2, MapPin, Layers, Calendar } from 'lucide-react'
 import type { AdminCoordinator } from '@/lib/queries/adminCoordinators'
+import { resolveAdminUserDisplay, type AdminUserAuthDisplay } from '@/lib/auth/admin-user-display'
 
 function initials(name: string | null, email: string | null) {
   if (name) {
@@ -21,10 +22,28 @@ function formatDate(iso: string) {
   }
 }
 
-export function CoordinatorCard({ coordinator }: { coordinator: AdminCoordinator }) {
-  const uni = coordinator.university
-  const name = coordinator.full_name?.trim() || 'Unnamed coordinator'
-  const email = coordinator.contact_email
+export function CoordinatorCard({
+  coordinator,
+  auth = null,
+}: {
+  coordinator: AdminCoordinator
+  /**
+   * Auth-record display data. Fills name/email when the profiles row is
+   * bare (e.g. an invited coordinator who has not signed in yet). Null
+   * when the lookup failed — profile data renders alone.
+   */
+  auth?: AdminUserAuthDisplay | null
+}) {
+  const display = resolveAdminUserDisplay({
+    kind: 'coordinator',
+    profileName: coordinator.full_name,
+    authName: auth?.name,
+    emailConfirmedAt: auth?.emailConfirmedAt,
+  })
+  const uni = coordinator.university ?? auth?.university ?? null
+  const name = display.name
+  const unverified = auth ? display.unverified : false
+  const email = coordinator.contact_email ?? auth?.email ?? null
 
   return (
     <Link
@@ -32,11 +51,18 @@ export function CoordinatorCard({ coordinator }: { coordinator: AdminCoordinator
       className="flex gap-4 rounded-md border border-border bg-white p-4 hover:border-border-strong hover:shadow-sm transition"
     >
       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-eu-blue-50 text-xs font-bold text-eu-blue">
-        {initials(coordinator.full_name, coordinator.contact_email)}
+        {initials(name === 'Unnamed coordinator' ? null : name, coordinator.contact_email)}
       </div>
 
       <div className="min-w-0 flex-1">
-        <h3 className="truncate text-sm font-semibold text-ink">{name}</h3>
+        <h3 className="flex items-center gap-2 text-sm font-semibold text-ink">
+          <span className="truncate">{name}</span>
+          {unverified && (
+            <span className="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-900">
+              Unverified
+            </span>
+          )}
+        </h3>
 
         <div className="mt-1 flex flex-col gap-1 text-xs text-muted">
           {email && (

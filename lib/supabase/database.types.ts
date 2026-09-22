@@ -611,6 +611,59 @@ export type Database = {
           },
         ]
       }
+      coordinator_profile_change_requests: {
+        Row: {
+          admin_note: string | null
+          coordinator_id: string
+          created_at: string
+          id: string
+          requested_contact_email: string
+          requested_erasmus_code: string | null
+          requested_full_name: string
+          requested_university_id: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          admin_note?: string | null
+          coordinator_id: string
+          created_at?: string
+          id?: string
+          requested_contact_email: string
+          requested_erasmus_code?: string | null
+          requested_full_name: string
+          requested_university_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_note?: string | null
+          coordinator_id?: string
+          created_at?: string
+          id?: string
+          requested_contact_email?: string
+          requested_erasmus_code?: string | null
+          requested_full_name?: string
+          requested_university_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coordinator_profile_change_requests_requested_university_id_fkey"
+            columns: ["requested_university_id"]
+            isOneToOne: false
+            referencedRelation: "universities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coordinator_requests: {
         Row: {
           country: string | null
@@ -734,6 +787,30 @@ export type Database = {
           },
         ]
       }
+      student_profile_changes: {
+        Row: {
+          changes: Json
+          created_at: string
+          id: string
+          read_at: string | null
+          student_id: string
+        }
+        Insert: {
+          changes?: Json
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          student_id: string
+        }
+        Update: {
+          changes?: Json
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          student_id?: string
+        }
+        Relationships: []
+      }
       universities: {
         Row: {
           city: string | null
@@ -781,6 +858,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_delete_user: { Args: { target_user_id: string }; Returns: undefined }
       current_user_has_password: { Args: never; Returns: boolean }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
       delete_my_account: { Args: never; Returns: undefined }

@@ -41,6 +41,22 @@ import {
   CoordinatorRequestAdminEmail,
   type CoordinatorRequestAdminEmailProps,
 } from './templates/CoordinatorRequestAdminEmail'
+import {
+  ProfileChangeApprovedEmail,
+  type ProfileChangeApprovedEmailProps,
+} from './templates/ProfileChangeApprovedEmail'
+import {
+  ProfileChangeDeclinedEmail,
+  type ProfileChangeDeclinedEmailProps,
+} from './templates/ProfileChangeDeclinedEmail'
+import {
+  ProfileChangeRequestAdminEmail,
+  type ProfileChangeRequestAdminEmailProps,
+} from './templates/ProfileChangeRequestAdminEmail'
+import {
+  StudentProfileChangedAdminEmail,
+  type StudentProfileChangedAdminEmailProps,
+} from './templates/StudentProfileChangedAdminEmail'
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 
@@ -53,6 +69,10 @@ export type EmailPayload =
   | { template: 'edit-changes-requested'; props: EditChangesRequestedEmailProps }
   | { template: 'coordinator-request-received'; props: CoordinatorRequestReceivedEmailProps }
   | { template: 'coordinator-request-admin'; props: CoordinatorRequestAdminEmailProps }
+  | { template: 'profile-change-approved'; props: ProfileChangeApprovedEmailProps }
+  | { template: 'profile-change-declined'; props: ProfileChangeDeclinedEmailProps }
+  | { template: 'profile-change-request-admin'; props: ProfileChangeRequestAdminEmailProps }
+  | { template: 'student-profile-changed-admin'; props: StudentProfileChangedAdminEmailProps }
 
 /**
  * Compute the email subject. Approval + rejection use static strings;
@@ -76,6 +96,14 @@ function resolveSubject(payload: EmailPayload): string {
       return 'We received your BipHub coordinator request'
     case 'coordinator-request-admin':
       return `New coordinator request: ${payload.props.fullName || payload.props.accountEmail} (${payload.props.universityName || 'Unknown university'})`
+    case 'profile-change-approved':
+      return 'Your BipHub profile change was approved'
+    case 'profile-change-declined':
+      return 'Your BipHub profile change was declined'
+    case 'profile-change-request-admin':
+      return `New profile data-change request: ${payload.props.coordinatorName || payload.props.coordinatorEmail} (${payload.props.universityName || 'Unknown university'})`
+    case 'student-profile-changed-admin':
+      return `Student profile updated: ${payload.props.studentName || payload.props.studentEmail}`
     default: {
       const _exhaustive: never = payload
       throw new Error(
@@ -125,6 +153,18 @@ export async function sendEmail(to: string, payload: EmailPayload): Promise<void
       break
     case 'coordinator-request-admin':
       element = React.createElement(CoordinatorRequestAdminEmail, payload.props)
+      break
+    case 'profile-change-approved':
+      element = React.createElement(ProfileChangeApprovedEmail, payload.props)
+      break
+    case 'profile-change-declined':
+      element = React.createElement(ProfileChangeDeclinedEmail, payload.props)
+      break
+    case 'profile-change-request-admin':
+      element = React.createElement(ProfileChangeRequestAdminEmail, payload.props)
+      break
+    case 'student-profile-changed-admin':
+      element = React.createElement(StudentProfileChangedAdminEmail, payload.props)
       break
     default: {
       const _exhaustive: never = payload

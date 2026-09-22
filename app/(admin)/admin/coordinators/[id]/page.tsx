@@ -4,6 +4,9 @@ import { ArrowLeft, Mail, Building2, Calendar, Layers, Hash } from 'lucide-react
 import { getAdminCoordinatorById } from '@/lib/queries/adminCoordinators'
 import { createClient } from '@/lib/supabase/server'
 import { AdminBipRow } from '@/components/admin/AdminBipRow'
+import { RemoveUserSection } from '@/components/admin/RemoveUserSection'
+import { getAuthUserInfo } from '@/app/(admin)/admin/users/auth-users'
+import { resolveAdminUserDisplay } from '@/lib/auth/admin-user-display'
 import type { AdminBip } from '@/lib/queries/adminBips'
 
 export const dynamic = 'force-dynamic'
@@ -20,6 +23,19 @@ export default async function CoordinatorDetailPage(props: { params: Promise<{ i
   const { id } = await props.params
   const coordinator = await getAdminCoordinatorById(id)
   if (!coordinator) notFound()
+
+  const auth = await getAuthUserInfo(id)
+  const display = resolveAdminUserDisplay({
+    kind: 'coordinator',
+    profileName: coordinator.full_name,
+    authName: auth?.name,
+    emailConfirmedAt: auth?.emailConfirmedAt,
+  })
+  const showUnverified = auth ? display.unverified : false
+  const hasName = display.name !== 'Unnamed coordinator'
+  const avatarInitials = hasName
+    ? display.name.trim().split(/\s+/).slice(0, 2).map((p) => p[0]?.toUpperCase()).join('')
+    : null
 
   // Fetch BIPs owned by this coordinator (admin can see all statuses)
   const supabase = await createClient()
@@ -81,16 +97,23 @@ export default async function CoordinatorDetailPage(props: { params: Promise<{ i
       <div className="rounded-md border border-border bg-white p-6 mb-6">
         <div className="flex gap-4">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-eu-blue-50 text-sm font-bold text-eu-blue">
-            {(coordinator.full_name?.trim().split(/\s+/).slice(0, 2).map((p) => p[0]?.toUpperCase()).join('') || coordinator.contact_email?.slice(0, 2).toUpperCase() || '··')}
+            {(avatarInitials || coordinator.contact_email?.slice(0, 2).toUpperCase() || '··')}
           </div>
           <div className="min-w-0 flex-1">
-            <h1 className="text-[20px] font-semibold text-ink truncate">{coordinator.full_name || 'Unnamed coordinator'}</h1>
+            <h1 className="flex items-center gap-2 text-[20px] font-semibold text-ink">
+              <span className="truncate">{display.name}</span>
+              {showUnverified && (
+                <span className="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-900">
+                  Unverified
+                </span>
+              )}
+            </h1>
             <div className="mt-2 flex flex-col gap-1.5 text-sm text-muted">
-              {coordinator.contact_email && (
+              {(coordinator.contact_email ?? auth?.email) && (
                 <span className="flex items-center gap-2">
                   <Mail size={14} className="opacity-60" aria-hidden />
-                  <a href={`mailto:${coordinator.contact_email}`} className="text-eu-blue hover:underline">
-                    {coordinator.contact_email}
+                  <a href={`mailto:${coordinator.contact_email ?? auth?.email}`} className="text-eu-blue hover:underline">
+                    {coordinator.contact_email ?? auth?.email}
                   </a>
                 </span>
               )}
@@ -136,6 +159,16 @@ export default async function CoordinatorDetailPage(props: { params: Promise<{ i
           ))}
         </div>
       )}
+
+      <div className="mt-6">
+        <RemoveUserSection
+          userId={coordinator.id}
+          displayName={hasName ? display.name : coordinator.contact_email ?? auth?.email ?? 'This coordinator'}
+          email={coordinator.contact_email ?? auth?.email ?? null}
+          kind="coordinator"
+          returnTo="/admin/coordinators"
+        />
+      </div>
     </div>
   )
 }

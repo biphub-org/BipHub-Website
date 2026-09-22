@@ -2,8 +2,10 @@ import Link from 'next/link'
 import { SearchX } from 'lucide-react'
 import { getAdminCoordinators } from '@/lib/queries/adminCoordinators'
 import { getPendingCoordinatorRequestCount } from '@/lib/queries/adminCoordinatorRequests'
+import { getPendingProfileChangeRequestCount } from '@/lib/queries/profileChangeRequests'
 import { CoordinatorCard } from '@/components/admin/CoordinatorCard'
 import { CoordinatorFilters } from '@/components/admin/CoordinatorFilters'
+import { getAuthUserInfoMap } from '@/app/(admin)/admin/users/auth-users'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,10 +22,12 @@ export default async function AdminCoordinatorsPage(props: {
   const sp = await props.searchParams
   const q = typeof sp.q === 'string' ? sp.q : undefined
   const country = parseCountry(sp.country)
-  const [coordinators, pendingCount] = await Promise.all([
+  const [coordinators, pendingCount, pendingDataChanges] = await Promise.all([
     getAdminCoordinators({ q, country }),
     getPendingCoordinatorRequestCount(),
+    getPendingProfileChangeRequestCount(),
   ])
+  const authMap = await getAuthUserInfoMap(coordinators.map((c) => c.id))
   const count = coordinators.length
 
   const hasFilters = !!(q || country?.length)
@@ -40,17 +44,30 @@ export default async function AdminCoordinatorsPage(props: {
               {q ? ` matching "${q}"` : ''}
             </p>
           </div>
-          <Link
-            href="/admin/coordinators/requests"
-            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-white px-4 py-2 text-sm font-semibold text-eu-blue hover:border-eu-blue"
-          >
-            Access requests
-            {pendingCount > 0 && (
-              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-900">
-                {pendingCount} pending
-              </span>
-            )}
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/admin/coordinators/requests"
+              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-white px-4 py-2 text-sm font-semibold text-eu-blue hover:border-eu-blue"
+            >
+              Access requests
+              {pendingCount > 0 && (
+                <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-900">
+                  {pendingCount} pending
+                </span>
+              )}
+            </Link>
+            <Link
+              href="/admin/coordinators/data-changes"
+              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-white px-4 py-2 text-sm font-semibold text-eu-blue hover:border-eu-blue"
+            >
+              Data changes
+              {pendingDataChanges > 0 && (
+                <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-900">
+                  {pendingDataChanges} pending
+                </span>
+              )}
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -68,7 +85,7 @@ export default async function AdminCoordinatorsPage(props: {
         ) : (
           <div className="flex flex-col gap-3">
             {coordinators.map((c) => (
-              <CoordinatorCard key={c.id} coordinator={c} />
+              <CoordinatorCard key={c.id} coordinator={c} auth={authMap.get(c.id) ?? null} />
             ))}
           </div>
         )}

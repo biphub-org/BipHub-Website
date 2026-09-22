@@ -38,7 +38,13 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
 // server navigations (Plan 02-02 D-05). Coordinators always land on
 // /dashboard: the access-request flow already collects their details and
 // approval backfills the profile, so there is no onboarding step.
-export async function signInAction(formData: FormData): Promise<{ error?: string }> {
+//
+// The `code: 'email_unverified'` discriminant lets LoginForm render the
+// resend-verification button next to the error instead of string-matching
+// the message.
+export async function signInAction(
+  formData: FormData,
+): Promise<{ error?: string; code?: 'email_unverified' }> {
   const parsed = loginSchema.safeParse({
     email: formData.get('email'),
     password: formData.get('password'),
@@ -60,6 +66,7 @@ export async function signInAction(formData: FormData): Promise<{ error?: string
       return {
         error:
           'Please verify your email before signing in. Check your inbox or resend the verification email.',
+        code: 'email_unverified',
       }
     }
     return { error: 'Something went wrong. Please try again.' }
@@ -83,6 +90,7 @@ export async function signInAction(formData: FormData): Promise<{ error?: string
       return {
         error:
           'Please verify your email before signing in. Check your inbox or resend the verification email.',
+        code: 'email_unverified',
       }
     }
     // First-sign-in backfill: the registration details travel in
