@@ -1,5 +1,7 @@
-import { render } from "@react-email/components"
-import * as React from "react"
+import { render } from '@react-email/components'
+import { Section, Text } from '@react-email/components'
+import { EMAIL_TOKENS as T } from '../tokens'
+import { EmailShell } from './EmailShell'
 
 export type AlertDigestProps = {
   field?: string | null
@@ -10,37 +12,98 @@ export type AlertDigestProps = {
   siteUrl: string
 }
 
+/**
+ * AlertDigest — BIP alert digest (daily/weekly), sent by the
+ * send-bip-alerts edge function.
+ *
+ * Chrome comes from EmailShell (the shared no-reply template); the BIP
+ * rows and the unsubscribe line are digest-specific content.
+ */
 export function AlertDigest({ field, country, frequency, bips, unsubscribeUrl, siteUrl }: AlertDigestProps) {
-  const criteria = [field, country].filter(Boolean).join(" or ")
-  return React.createElement(
-    "div",
-    { style: { fontFamily: "Inter, Arial, sans-serif", maxWidth: "600px", margin: "0 auto", padding: "24px", background: "#ffffff", color: "#0a1735" } },
-    React.createElement("h1", { style: { fontSize: "20px", fontWeight: 700, color: "#003399", margin: "0 0 8px" } }, "New BIPs matching your alert"),
-    React.createElement("p", { style: { fontSize: "14px", color: "#555", margin: "0 0 16px" } }, `You subscribed to ${criteria} — ${frequency} digest.`),
-    React.createElement(
-      "ul",
-      { style: { paddingLeft: "20px", margin: "0 0 16px" } },
-      ...bips.map((b) =>
-        React.createElement(
-          "li",
-          { key: b.slug, style: { margin: "8px 0" } },
-          React.createElement("a", { href: `${siteUrl}/bip/${b.slug}`, style: { color: "#003399", fontWeight: 600, textDecoration: "none" } }, b.title),
-          ` — ${b.hostName}${b.hostCity ? ` — ${b.hostCity}` : ""} · ${b.ects ?? ""} ECTS`,
-        ),
-      ),
-    ),
-    React.createElement(
-      "p",
-      { style: { fontSize: "13px", color: "#666", marginTop: "24px", borderTop: "1px solid #eee", paddingTop: "12px" } },
-      React.createElement("a", { href: unsubscribeUrl, style: { color: "#003399" } }, "Unsubscribe from this alert"),
-      " — or manage all alerts in your ",
-      React.createElement("a", { href: `${siteUrl}/student-dashboard`, style: { color: "#003399" } }, "dashboard"),
-      ".",
-    ),
-    React.createElement("p", { style: { fontSize: "11px", color: "#888", marginTop: "8px" } }, "BipHub · Independent project — not affiliated with the European Commission"),
+  const criteria = [field, country].filter(Boolean).join(' · ') || 'all BIPs'
+  const browseUrl = `${siteUrl}/bips`
+  const dashboardUrl = `${siteUrl}/student-dashboard`
+
+  return (
+    <EmailShell
+      preview={
+        bips.length === 1 ? '1 new BIP matches your alert' : `${bips.length} new BIPs match your alert`
+      }
+      eyebrow="BIP ALERTS"
+      title="New BIPs matching your alert"
+      cta={{ href: browseUrl, label: 'Browse all BIPs →' }}
+      afterCta={
+        <Text style={{ fontSize: T.smallSize, color: T.muted, lineHeight: T.smallLineHeight }}>
+          <a href={unsubscribeUrl} style={{ color: T.euBlue, textDecoration: 'underline' }}>
+            Unsubscribe from this alert
+          </a>{' '}
+          — or manage all alerts in your{' '}
+          <a href={dashboardUrl} style={{ color: T.euBlue, textDecoration: 'underline' }}>
+            dashboard
+          </a>
+          .
+        </Text>
+      }
+    >
+      <Text
+        style={{
+          fontSize: T.smallSize,
+          color: T.muted,
+          lineHeight: T.smallLineHeight,
+          margin: 0,
+        }}
+      >
+        {criteria} — {frequency} digest.
+      </Text>
+
+      <div style={{ height: T.gap }} />
+
+      {/* BIP rows */}
+      {bips.map((b) => {
+        const meta = [b.hostName, b.hostCity, b.ects != null ? `${b.ects} ECTS` : null]
+          .filter(Boolean)
+          .join(' · ')
+        return (
+          <Section
+            key={b.slug}
+            style={{
+              border: `1px solid ${T.border}`,
+              borderRadius: T.borderRadius,
+              padding: '16px',
+              marginBottom: '12px',
+            }}
+          >
+            <a
+              href={`${siteUrl}/bip/${b.slug}`}
+              style={{
+                fontSize: T.bodySize,
+                fontWeight: T.semiboldWeight,
+                color: T.euBlue,
+                textDecoration: 'none',
+              }}
+            >
+              {b.title}
+            </a>
+            {meta ? (
+              <Text
+                style={{
+                  fontSize: T.smallSize,
+                  color: T.muted,
+                  lineHeight: T.smallLineHeight,
+                  marginTop: '4px',
+                  marginBottom: 0,
+                }}
+              >
+                {meta}
+              </Text>
+            ) : null}
+          </Section>
+        )
+      })}
+    </EmailShell>
   )
 }
 
 export async function renderAlertDigest(props: AlertDigestProps): Promise<string> {
-  return await render(React.createElement(AlertDigest, props))
+  return await render(<AlertDigest {...props} />)
 }

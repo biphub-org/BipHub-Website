@@ -215,6 +215,23 @@ export async function updateStudentProfileAction(
           '[updateStudentProfile] ADMIN_NOTIFICATION_EMAIL unset — skipping admin notification email',
         )
       }
+
+      // Confirmation receipt to the student (fire-and-forget per D-11).
+      // Only actual changes trigger it — untouched saves stay silent,
+      // mirroring the admin-notification contract above.
+      if (loginEmail) {
+        try {
+          await sendEmail(loginEmail, {
+            template: 'student-profile-updated',
+            props: { fullName: parsed.data.full_name },
+          })
+        } catch (err) {
+          console.error(
+            '[updateStudentProfile] student confirmation email failed (non-blocking):',
+            err,
+          )
+        }
+      }
     }
   }
 

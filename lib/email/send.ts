@@ -57,6 +57,38 @@ import {
   StudentProfileChangedAdminEmail,
   type StudentProfileChangedAdminEmailProps,
 } from './templates/StudentProfileChangedAdminEmail'
+import {
+  CoordinatorRequestRejectedEmail,
+  type CoordinatorRequestRejectedEmailProps,
+} from './templates/CoordinatorRequestRejectedEmail'
+import {
+  EditSubmittedAdminEmail,
+  type EditSubmittedAdminEmailProps,
+} from './templates/EditSubmittedAdminEmail'
+import {
+  BipUpdatedByAdminEmail,
+  type BipUpdatedByAdminEmailProps,
+} from './templates/BipUpdatedByAdminEmail'
+import {
+  BipWithdrawnAdminEmail,
+  type BipWithdrawnAdminEmailProps,
+} from './templates/BipWithdrawnAdminEmail'
+import {
+  AccountDeletedEmail,
+  type AccountDeletedEmailProps,
+} from './templates/AccountDeletedEmail'
+import {
+  StudentProfileUpdatedEmail,
+  type StudentProfileUpdatedEmailProps,
+} from './templates/StudentProfileUpdatedEmail'
+import {
+  AlertSubscribedEmail,
+  type AlertSubscribedEmailProps,
+} from './templates/AlertSubscribedEmail'
+import {
+  ContactReceivedEmail,
+  type ContactReceivedEmailProps,
+} from './templates/ContactReceivedEmail'
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 
@@ -73,6 +105,14 @@ export type EmailPayload =
   | { template: 'profile-change-declined'; props: ProfileChangeDeclinedEmailProps }
   | { template: 'profile-change-request-admin'; props: ProfileChangeRequestAdminEmailProps }
   | { template: 'student-profile-changed-admin'; props: StudentProfileChangedAdminEmailProps }
+  | { template: 'coordinator-request-rejected'; props: CoordinatorRequestRejectedEmailProps }
+  | { template: 'edit-submitted-admin'; props: EditSubmittedAdminEmailProps }
+  | { template: 'bip-updated-by-admin'; props: BipUpdatedByAdminEmailProps }
+  | { template: 'bip-withdrawn-admin'; props: BipWithdrawnAdminEmailProps }
+  | { template: 'account-deleted'; props: AccountDeletedEmailProps }
+  | { template: 'student-profile-updated'; props: StudentProfileUpdatedEmailProps }
+  | { template: 'alert-subscribed'; props: AlertSubscribedEmailProps }
+  | { template: 'contact-received'; props: ContactReceivedEmailProps }
 
 /**
  * Compute the email subject. Approval + rejection use static strings;
@@ -104,6 +144,24 @@ function resolveSubject(payload: EmailPayload): string {
       return `New profile data-change request: ${payload.props.coordinatorName || payload.props.coordinatorEmail} (${payload.props.universityName || 'Unknown university'})`
     case 'student-profile-changed-admin':
       return `Student profile updated: ${payload.props.studentName || payload.props.studentEmail}`
+    case 'coordinator-request-rejected':
+      return 'Your BipHub coordinator request was not approved'
+    case 'edit-submitted-admin':
+      return payload.props.kind === 'resubmission'
+        ? `BIP resubmitted for review: ${payload.props.bipTitle}`
+        : `New edit pending review: ${payload.props.bipTitle}`
+    case 'bip-updated-by-admin':
+      return `A BipHub admin updated your BIP: ${payload.props.bipTitle}`
+    case 'bip-withdrawn-admin':
+      return `BIP withdrawn from review: ${payload.props.bipTitle}`
+    case 'account-deleted':
+      return 'Your BipHub account has been deleted'
+    case 'student-profile-updated':
+      return 'Your BipHub profile was updated'
+    case 'alert-subscribed':
+      return 'You subscribed to BIP alerts'
+    case 'contact-received':
+      return 'We received your message'
     default: {
       const _exhaustive: never = payload
       throw new Error(
@@ -165,6 +223,30 @@ export async function sendEmail(to: string, payload: EmailPayload): Promise<void
       break
     case 'student-profile-changed-admin':
       element = React.createElement(StudentProfileChangedAdminEmail, payload.props)
+      break
+    case 'coordinator-request-rejected':
+      element = React.createElement(CoordinatorRequestRejectedEmail, payload.props)
+      break
+    case 'edit-submitted-admin':
+      element = React.createElement(EditSubmittedAdminEmail, payload.props)
+      break
+    case 'bip-updated-by-admin':
+      element = React.createElement(BipUpdatedByAdminEmail, payload.props)
+      break
+    case 'bip-withdrawn-admin':
+      element = React.createElement(BipWithdrawnAdminEmail, payload.props)
+      break
+    case 'account-deleted':
+      element = React.createElement(AccountDeletedEmail, payload.props)
+      break
+    case 'student-profile-updated':
+      element = React.createElement(StudentProfileUpdatedEmail, payload.props)
+      break
+    case 'alert-subscribed':
+      element = React.createElement(AlertSubscribedEmail, payload.props)
+      break
+    case 'contact-received':
+      element = React.createElement(ContactReceivedEmail, payload.props)
       break
     default: {
       const _exhaustive: never = payload

@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { subscriptionSchema, alertPreferencesSchema } from "@/lib/schemas/bip-subscriptions"
 import { ALERT_CONSENT_TEXT } from "@/lib/constants/bip-alerts"
+import { sendEmail } from "@/lib/email/send"
 import { revalidatePath } from "next/cache"
 
 async function getUserId(): Promise<string | null> {
@@ -77,6 +78,14 @@ export async function saveAlertPreferencesAction(input: { fields?: string[]; cou
     return { success: true }
   }
 
+  // Creation-event detection for the opt-in receipt below: a pre-existing
+  // row means this save is a tweak, not a first subscribe.
+  const { data: preExisting } = await supabase
+    .from("bip_alert_preferences")
+    .select("user_id")
+    .eq("user_id", userId)
+    .maybeSingle()
+
   const { error } = await supabase.from("bip_alert_preferences").upsert(
     {
       user_id: userId,
@@ -90,6 +99,45 @@ export async function saveAlertPreferencesAction(input: { fields?: string[]; cou
     { onConflict: "user_id" },
   )
   if (error) return { error: error.message }
+
+  // Opt-in receipt on FIRST subscribe only (fire-and-forget). Later
+  // preference tweaks and opt-outs are confirmed in-dashboard, so routine
+  // edits never generate mail.
+  if (!preExisting) {
+    try {
+      const { data: claimsData } = await supabase.auth.getClaims()
+      const claimsAny = claimsData?.claims as
+        | { email?: unknown; claims?: { email?: unknown } }
+        | undefined
+      const studentEmail =
+        typeof claimsAny?.email === "string"
+          ? claimsAny.email
+          : typeof claimsAny?.claims?.email === "string"
+            ? claimsAny.claims.email
+            : null
+      let fullName = ""
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", userId)
+        .maybeSingle()
+      if (prof) fullName = (prof as { full_name?: string | null }).full_name ?? ""
+      if (studentEmail) {
+        await sendEmail(studentEmail, {
+          template: "alert-subscribed",
+          props: {
+            fullName,
+            fields: parsed.data.fields,
+            countries: parsed.data.countries.map((c) => c.toUpperCase()),
+            frequency: parsed.data.frequency,
+          },
+        })
+      }
+    } catch (err) {
+      console.error("[saveAlertPreferencesAction] opt-in email failed (non-blocking):", err)
+    }
+  }
+
   revalidatePath("/student-dashboard")
   return { success: true }
 }

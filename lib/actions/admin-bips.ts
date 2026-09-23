@@ -338,10 +338,11 @@ export async function adminUpdateBipAction(
   }
 
   // 2. Read pre-image — needed for slug stability, audit row from_status,
-  //    and the revalidatePath conditional. (Defense-in-depth read.)
+  //    the revalidatePath conditional, and the coordinator email recipient.
+  //    (Defense-in-depth read.)
   const { data: existing, error: readError } = await supabase
     .from('bips')
-    .select('id, slug, title, status')
+    .select('id, slug, title, status, profiles!created_by ( contact_email, full_name )')
     .eq('id', bipId)
     .maybeSingle()
   if (readError || !existing) return { error: 'BIP not found.' }
@@ -486,7 +487,35 @@ export async function adminUpdateBipAction(
     revalidatePath(`/bip/${existing.slug}`)
   }
 
-  // 8. D-18: NO coordinator email. The audit row is the forensic trail.
+  // 8. Coordinator email (fire-and-forget per D-11). This REVERSES the
+  //    original D-18 "NO coordinator email" decision: the audit row remains
+  //    the forensic trail, but the coordinator is now told their listing
+  //    changed under them. Revert to warn-only if the mail proves noisy.
+  const profilesRaw = (existing as { profiles?: unknown }).profiles
+  const profiles = Array.isArray(profilesRaw)
+    ? (profilesRaw[0] as { contact_email?: string | null; full_name?: string | null } | undefined)
+    : (profilesRaw as { contact_email?: string | null; full_name?: string | null } | undefined)
+  const coordinatorEmail = profiles?.contact_email ?? null
+  if (coordinatorEmail) {
+    try {
+      await sendEmail(coordinatorEmail, {
+        template: 'bip-updated-by-admin',
+        props: {
+          bipTitle: existing.title,
+          bipSlug: existing.slug,
+          bipStatus: existing.status,
+          coordinatorName: profiles?.full_name ?? '',
+        },
+      })
+    } catch (err) {
+      // D-11: Resend outage must NOT roll back the DB writes.
+      console.error('[adminUpdateBipAction] email send failed (non-blocking):', err)
+    }
+  } else {
+    console.warn(
+      '[adminUpdateBipAction] coordinator has no contact_email on profile; skipping email.',
+    )
+  }
 
   return { success: true }
 }

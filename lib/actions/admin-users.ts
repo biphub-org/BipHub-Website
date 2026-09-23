@@ -22,6 +22,7 @@ import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { canAdminRemoveUser } from '@/lib/auth/admin-remove-user'
+import { sendEmail } from '@/lib/email/send'
 
 const RemoveUserSchema = z.object({
   userId: z.string().uuid('Invalid user.'),
@@ -47,10 +48,13 @@ export async function removeUserAction(userId: string): Promise<RemoveUserResult
   }
 
   // 3. Read the target row (defense-in-depth — the RPC re-checks, but the
-  //    guard error messages are friendlier than raw Postgres exceptions)
+  //    guard error messages are friendlier than raw Postgres exceptions).
+  //    contact_email + full_name are also read here so the removal notice
+  //    can be addressed — the RPC deletes the row, so this is the last
+  //    chance to resolve the recipient.
   const { data: target } = await supabase
     .from('profiles')
-    .select('id, role')
+    .select('id, role, contact_email, full_name')
     .eq('id', parsed.data.userId)
     .maybeSingle()
 
@@ -70,6 +74,26 @@ export async function removeUserAction(userId: string): Promise<RemoveUserResult
   if (rpcError) {
     console.error('[removeUserAction] rpc error:', rpcError.message)
     return { error: 'Failed to remove the user. Please try again.' }
+  }
+
+  // 5b. Removal notice to the deleted address (fire-and-forget per D-11:
+  // the account is already gone, email failure changes nothing). Skipped
+  // when the profile carried no contact email.
+  const removedEmail = (target as { contact_email?: string | null } | null)?.contact_email ?? null
+  if (removedEmail) {
+    try {
+      await sendEmail(removedEmail, {
+        template: 'account-deleted',
+        props: {
+          initiatedBy: 'admin',
+          fullName: (target as { full_name?: string | null } | null)?.full_name ?? '',
+        },
+      })
+    } catch (err) {
+      console.error('[removeUserAction] email send failed (non-blocking):', err)
+    }
+  } else {
+    console.warn('[removeUserAction] removed user has no contact_email; skipping email.')
   }
 
   // 6. Bust the admin directory caches

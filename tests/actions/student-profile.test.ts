@@ -1,12 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 /**
- * Admin notification on student profile edits (student dashboard).
+ * Admin notification + student receipt on student profile edits (dashboard).
  *
  * When a student changes their profile data, ADMIN_NOTIFICATION_EMAIL
- * receives a before → after diff. Saving untouched values sends nothing,
- * and a first-time save (no prior row = creation, not a change) sends
- * nothing either.
+ * receives a before → after diff AND the student receives a
+ * student-profile-updated receipt at their login email. Saving untouched
+ * values sends nothing, and a first-time save (no prior row = creation,
+ * not a change) sends nothing either.
  */
 
 const { mockCreateClient, mockSendEmail, mockRevalidatePath, mockAuditInsert } =
@@ -115,7 +116,7 @@ describe('updateStudentProfileAction admin email', () => {
     )
 
     expect(result).toEqual({ success: true })
-    expect(mockSendEmail).toHaveBeenCalledOnce()
+    expect(mockSendEmail).toHaveBeenCalledTimes(2)
     const [recipient, payload] = mockSendEmail.mock.calls[0] as [
       string,
       { template: string; props: Record<string, unknown> },
@@ -142,6 +143,15 @@ describe('updateStudentProfileAction admin email', () => {
       before: 'Old University',
       after: 'New University',
     })
+
+    // Second send: the student receipt at the login email.
+    const [studentRecipient, studentPayload] = mockSendEmail.mock.calls[1] as [
+      string,
+      { template: string; props: Record<string, unknown> },
+    ]
+    expect(studentRecipient).toBe('student@uni.edu')
+    expect(studentPayload.template).toBe('student-profile-updated')
+    expect(studentPayload.props.fullName).toBe('New Name')
   })
 
   it('sends nothing when values are unchanged', async () => {

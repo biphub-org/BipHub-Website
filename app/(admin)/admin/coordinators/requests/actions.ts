@@ -14,14 +14,14 @@
  * The request's details are materialised into profiles so the coordinator
  * lands on /dashboard ready to work on first sign-in.
  *
- * Reject: marks the request rejected. The requester learns the outcome the
- * next time they enter their email on /login (resolve_login_method returns
- * the latest request status).
+ * Reject: marks the request rejected and emails the decision notice to the
+ * requester (the /login status lookup remains as a fallback).
  */
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { sendEmail } from '@/lib/email/send'
 import {
   findUserByEmail,
   isInviteAlreadyExistsError,
@@ -69,7 +69,10 @@ export async function approveCoordinatorRequestAction(
   // Supabase mailer (Inbucket locally; configured SMTP in production).
   const { data: invited, error: inviteError } =
     await admin.auth.admin.inviteUserByEmail(req.email, {
-      data: { role: 'coordinator' },
+      // full_name personalises the invite email template (.Data.full_name);
+      // role drives handle_new_user. Neither is trusted downstream — the
+      // profile row is upserted from the request details in completeApproval.
+      data: { role: 'coordinator', full_name: req.full_name },
       redirectTo: `${SITE_URL}/auth/callback?type=invite`,
     })
   if (inviteError || !invited.user) {
@@ -98,7 +101,7 @@ export async function rejectCoordinatorRequestAction(
   const admin = createAdminClient()
   const { data: req, error: fetchError } = await admin
     .from('coordinator_requests')
-    .select('id, status')
+    .select('id, status, email, full_name')
     .eq('id', requestId)
     .maybeSingle()
   if (fetchError || !req) {
@@ -117,6 +120,68 @@ export async function rejectCoordinatorRequestAction(
   if (statusError) {
     console.error('[rejectCoordinatorRequest] status error:', statusError.message)
     return { error: 'Failed to update the request. Please try again.' }
+  }
+
+  // Decision notice to the requester (fire-and-forget per D-11: the status
+  // already committed, email failure never rolls it back). Previously a
+  // rejection was silent — the requester only discovered it on sign-in.
+  if (req.email) {
+    try {
+      await sendEmail(req.email, {
+        template: 'coordinator-request-rejected',
+        props: { fullName: req.full_name ?? '' },
+      })
+    } catch (err) {
+      console.error('[rejectCoordinatorRequest] email send failed (non-blocking):', err)
+    }
+  }
+
+  revalidatePath('/admin/coordinators/requests')
+  revalidatePath('/admin/coordinators')
+  return { success: true }
+}
+
+/**
+ * Delete a DECIDED access request (admin cleanup).
+ *
+ * Decided-only guard: pending rows are the live queue — Reject (which emails
+ * the requester) is the way to clear those, never silent deletion.
+ *
+ * Safe to delete: nothing references coordinator_requests (no inbound FKs);
+ * the audit trail survives in activity_log snapshots + the admin history
+ * tabs. Side effect to know: deleting a rejected request means the address
+ * resolves to 'unknown' on /login (instead of "not approved") and the
+ * requester may file a fresh request. Approved rows are safe — the account
+ * already exists, so sign-in keeps working.
+ */
+export async function deleteCoordinatorRequestAction(
+  requestId: string,
+): Promise<ReviewResult> {
+  const adminId = await requireAdminId()
+  if (!adminId) return { error: 'Forbidden.' }
+  if (!requestId) return { error: 'Missing request.' }
+
+  const admin = createAdminClient()
+  const { data: req, error: fetchError } = await admin
+    .from('coordinator_requests')
+    .select('id, status')
+    .eq('id', requestId)
+    .maybeSingle()
+  if (fetchError || !req) {
+    console.error('[deleteCoordinatorRequest] fetch error:', fetchError?.message)
+    return { error: 'Request not found.' }
+  }
+  if (req.status === 'pending') {
+    return { error: 'Only decided requests can be deleted. Reject it first to notify the requester.' }
+  }
+
+  const { error: deleteError } = await admin
+    .from('coordinator_requests')
+    .delete()
+    .eq('id', requestId)
+  if (deleteError) {
+    console.error('[deleteCoordinatorRequest] delete error:', deleteError.message)
+    return { error: 'Failed to delete the request. Please try again.' }
   }
 
   revalidatePath('/admin/coordinators/requests')

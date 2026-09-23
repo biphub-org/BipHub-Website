@@ -18,8 +18,69 @@
 import { createClient } from '@/lib/supabase/server'
 import { fullBipSchema } from '@/lib/schemas/bip-wizard'
 import type { BipDraftData, Step3PartnerDraft } from '@/lib/store/bip-draft'
+import { sendEmail } from '@/lib/email/send'
 
 export type EditActionResult = { success: true; editId?: string } | { error: string }
+
+type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>
+
+/**
+ * Notify the admin inbox that a BIP (re-)entered the review queue via an
+ * edit flow (submitEditAction / resubmitEditAction → kind 'edit',
+ * resubmitPendingBipAction → kind 'resubmission').
+ *
+ * Fire-and-forget per D-11: the queue write already committed, so email
+ * failures are logged but never roll it back. Skips silently (warn log)
+ * when ADMIN_NOTIFICATION_EMAIL is unset, mirroring submitBipAction.
+ */
+async function notifyAdminOfQueueEntry(
+  supabase: SupabaseServerClient,
+  userId: string,
+  bipId: string,
+  kind: 'edit' | 'resubmission',
+  logTag: string,
+): Promise<void> {
+  const adminRecipient = process.env.ADMIN_NOTIFICATION_EMAIL
+  if (!adminRecipient) {
+    console.warn(`[${logTag}] ADMIN_NOTIFICATION_EMAIL unset — skipping admin notification email`)
+    return
+  }
+  try {
+    const { data: bip } = await supabase
+      .from('bips')
+      .select('title, slug')
+      .eq('id', bipId)
+      .maybeSingle<{ title: string | null; slug: string | null }>()
+    let coordinatorName = ''
+    let coordinatorUniversity = ''
+    const { data: profileRow } = await supabase
+      .from('profiles')
+      .select('full_name, university:university_id ( name )')
+      .eq('id', userId)
+      .maybeSingle<{
+        full_name: string | null
+        university: { name: string | null } | { name: string | null }[] | null
+      }>()
+    if (profileRow) {
+      coordinatorName = profileRow.full_name ?? ''
+      const u = profileRow.university
+      coordinatorUniversity = Array.isArray(u) ? (u[0]?.name ?? '') : (u?.name ?? '')
+    }
+    await sendEmail(adminRecipient, {
+      template: 'edit-submitted-admin',
+      props: {
+        kind,
+        bipTitle: bip?.title ?? 'Untitled BIP',
+        bipSlug: bip?.slug ?? '',
+        coordinatorName,
+        coordinatorUniversity,
+        submittedAt: new Date().toISOString(),
+      },
+    })
+  } catch (err) {
+    console.error(`[${logTag}] admin notification email failed (non-blocking):`, err)
+  }
+}
 
 // ── Private helpers ───────────────────────────────────────────────────────────
 
@@ -195,6 +256,9 @@ export async function submitEditAction(
   // No revalidatePath — the public /bip/[slug] page stays unchanged (D-01/EDIT-02).
   // Trigger 00019 (log_bip_edit_status_change) writes 'submit_edit' audit row.
 
+  // Admin notification — a fresh edit entered the review queue (fire-and-forget).
+  await notifyAdminOfQueueEntry(supabase, userId, bipId, 'edit', 'submitEditAction')
+
   return { success: true, editId: newEdit.id }
 }
 
@@ -253,6 +317,18 @@ export async function resubmitEditAction(
 
   // No revalidatePath — the public page is untouched until admin approves (D-01/EDIT-02).
   // Trigger 00019 logs 'resubmit_edit' automatically.
+
+  // Admin notification — the edit is back in the review queue (fire-and-forget).
+  const { data: editedRow } = await supabase
+    .from('bip_edits')
+    .select('bip_id')
+    .eq('id', editId)
+    .maybeSingle()
+  if (editedRow?.bip_id) {
+    await notifyAdminOfQueueEntry(supabase, userId, editedRow.bip_id, 'edit', 'resubmitEditAction')
+  } else {
+    console.warn('[resubmitEditAction] parent BIP not found — skipping admin notification email')
+  }
 
   return { success: true, editId }
 }
@@ -335,6 +411,11 @@ export async function resubmitPendingBipAction(
     console.error('[resubmitPendingBipAction] update error:', updateError.message)
     return { error: 'Failed to resubmit. Please try again.' }
   }
+
+  // Admin notification — the BIP is back in the review queue (fire-and-forget).
+  // Sent here, right after the status UPDATE, so it also covers the
+  // partner-error return below (the row is pending either way).
+  await notifyAdminOfQueueEntry(supabase, userId, bipId, 'resubmission', 'resubmitPendingBipAction')
 
   // 5. Partner reconciliation — atomic RPC (migration 00051) replacing
   //    bip_partner_universities for the bips row (not bip_edits JSONB).

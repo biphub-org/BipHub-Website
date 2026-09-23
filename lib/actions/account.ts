@@ -9,14 +9,17 @@
  *   - `await createClient()` (factory awaits `cookies()` internally; PITFALLS Pitfall 3).
  *   - No `createAdminClient` — the SECURITY DEFINER `delete_my_account` RPC is the
  *     controlled privilege escalation; the action itself runs as the coordinator.
- *   - No deletion confirmation email (D-10): the account email is destroyed by the
- *     operation; the user already typed it verbatim to confirm.
+ *   - Deletion receipt email: this REVERSES the original D-10 "no deletion
+ *     confirmation email" decision — the address from the session claims is
+ *     still deliverable after the row is gone, and a receipt is standard
+ *     practice. Revert to silent if the mail proves unwanted.
  */
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
+import { sendEmail } from '@/lib/email/send'
 
 const DeleteAccountSchema = z.object({
   typedEmail: z.string().email('Type your account email to confirm.'),
@@ -66,18 +69,42 @@ export async function deleteAccountAction(formData: FormData): Promise<never> {
 
   // 3. Collect slugs to revalidate AFTER the RPC fires. Once auth.users is
   //    deleted, `created_by` is NULL on the surviving anonymized rows and we
-  //    cannot filter by it.
+  //    cannot filter by it. The display name is resolved here for the same
+  //    reason — the profile row is gone after step 4.
   const { data: approvedSlugs } = await supabase
     .from('bips')
     .select('slug')
     .eq('created_by', userId)
     .eq('status', 'approved')
+  const { data: ownProfile } = await supabase
+    .from('profiles')
+    .select('full_name')
+    .eq('id', userId)
+    .maybeSingle()
 
   // 4. Fire the SECURITY DEFINER RPC. Atomic: anonymize approved →
   //    delete draft/pending/rejected → delete auth.users row.
   const { error: rpcErr } = await supabase.rpc('delete_my_account')
   if (rpcErr) {
     throw new Error(`Account deletion failed: ${rpcErr.message}`)
+  }
+
+  // 4b. Deletion receipt to the (now deleted) account email. The address
+  // comes from the session claims, which survive the RPC — Resend delivery
+  // needs no live session. Fire-and-forget: a send failure must not break
+  // the redirect below (redirect throws, so this runs before signOut).
+  if (sessionEmail) {
+    try {
+      await sendEmail(sessionEmail, {
+        template: 'account-deleted',
+        props: {
+          initiatedBy: 'self',
+          fullName: (ownProfile as { full_name?: string | null } | null)?.full_name ?? '',
+        },
+      })
+    } catch (err) {
+      console.error('[deleteAccountAction] receipt email failed (non-blocking):', err)
+    }
   }
 
   // 5. Sign out — clears the (now stale) auth cookie. Order matters: if the

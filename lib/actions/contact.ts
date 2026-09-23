@@ -136,6 +136,18 @@ export async function submitContactAction(input: ContactInput): Promise<ContactR
       console.error("[contact] Resend failed:", error.message)
       return { ok: false, error: "We couldn't send your message right now. Please email us directly at contact@biphub.org." }
     }
+    // Receipt to the submitter — only after the inbox delivery succeeded,
+    // so a receipt never promises handling of a message we did not receive.
+    // Fire-and-forget: a receipt failure must not flip the ok result above.
+    try {
+      const { sendEmail } = await import("@/lib/email/send")
+      await sendEmail(email, {
+        template: "contact-received",
+        props: { name, topicLabel: CONTACT_TOPIC_LABELS[topic] },
+      })
+    } catch (e) {
+      console.error("[contact] receipt send failed (non-blocking):", e instanceof Error ? e.message : e)
+    }
     return { ok: true }
   } catch (e) {
     console.error("[contact] send failed:", e instanceof Error ? e.message : e)
