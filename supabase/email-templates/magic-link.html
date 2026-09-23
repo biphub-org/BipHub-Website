@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your BipHub sign-in link</title>
+</head>
+<!--
+  Supabase Auth email template: Magic Link (student passwordless sign-in).
+  Mirrors lib/email/templates/EmailShell.tsx (shared no-reply template).
+
+  DASHBOARD SETUP (Auth > Email Templates > Magic Link — per cloud
+  project, NOT in git):
+    Subject: Your BipHub sign-in link
+    Body:    paste this file verbatim.
+  The CTA href MUST stay in token_hash form or app/auth/callback cannot
+  verify it (see app/auth/callback/route.ts):
+    {{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=magiclink
+-->
+<body style="background-color: #f7f8fc; font-family: Inter, Helvetica, Arial, sans-serif; margin: 0; padding: 32px 16px;">
+  <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e4e7f0; border-radius: 12px; padding: 32px;">
+    <p style="font-size: 22px; font-weight: 700; color: #003399; margin: 0;">BipHub</p>
+    <p style="font-size: 11px; color: #003399; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px;">SIGN IN</p>
+
+    <div style="height: 24px;">&nbsp;</div>
+
+    <h1 style="font-size: 26px; font-weight: 700; color: #0a1735; line-height: 1.25; margin: 0;">Your sign-in link</h1>
+
+    <div style="height: 24px;">&nbsp;</div>
+
+    <p style="font-size: 16px; color: #0a1735; line-height: 1.6; margin: 0;">Hi there,</p>
+    <p style="font-size: 16px; color: #0a1735; line-height: 1.6; margin-top: 12px;">Here is your one-click sign-in link for BipHub. It expires soon and works only once — if it expired, just request a fresh one from the sign-in page.</p>
+
+    <div style="height: 24px;">&nbsp;</div>
+
+    <a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=magiclink" style="background-color: #003399; color: #ffffff; padding: 12px 24px; border-radius: 999px; font-size: 14px; font-weight: 600; text-decoration: none; display: inline-block;">Sign in to BipHub &rarr;</a>
+
+    <div style="height: 24px;">&nbsp;</div>
+
+    <p style="font-size: 14px; color: #5b6478; line-height: 1.6;">If the button doesn&apos;t work, paste this link into your browser:<br /><a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=magiclink" style="color: #003399;">{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&amp;type=magiclink</a></p>
+
+    <hr style="border-top: 1px solid #e4e7f0; margin: 32px 0 16px 0;" />
+
+    <p style="font-size: 12px; color: #5b6478; margin: 0;">Independent project — not affiliated with the European Commission</p>
+  </div>
+</body>
+</html>

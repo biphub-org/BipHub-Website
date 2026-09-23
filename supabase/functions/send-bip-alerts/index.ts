@@ -40,12 +40,20 @@ Deno.serve(async (req) => {
   // Cron secret gate — pg_cron sends x-cron-secret, manual curl can also use it
   const cronSecret = req.headers.get("x-cron-secret")
   const expectedCronSecret = Deno.env.get("CRON_SECRET")
-  if (expectedCronSecret && cronSecret !== expectedCronSecret) {
-    // Allow service_role JWT as well (Supabase scheduled function invocations send Authorization Bearer service_role)
+  // Fail CLOSED when CRON_SECRET is configured: a wrong or missing secret
+  // is a 401, never a warning-and-allow (the old permissive branch let
+  // anyone trigger sends). verify_jwt is intentionally false for this
+  // function in config.toml: pg_cron cannot sign a JWT, so the gateway
+  // check would 401 every scheduled run — this header gate is the real
+  // protection. Manual invocations may alternatively present the exact
+  // service_role bearer.
+  if (expectedCronSecret) {
     const auth = req.headers.get("authorization") ?? ""
-    if (!auth.includes(SUPABASE_SERVICE_ROLE_KEY.slice(0, 10))) {
-      // Still allow if caller is authenticated as service_role via Supabase internal header — be permissive for now, log
-      console.warn("Cron secret mismatch, but allowing (check CRON_SECRET)")
+    const okHeader = cronSecret === expectedCronSecret
+    const okAuth = auth === `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
+    if (!okHeader && !okAuth) {
+      console.warn("Digest invocation with bad cron secret — rejecting")
+      return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401, headers: { "Content-Type": "application/json" } })
     }
   }
 
@@ -82,7 +90,7 @@ Deno.serve(async (req) => {
     // Use approved_at as high-water: never use updated_at (bumped by edit-merge)
     let bipQuery = supabase
       .from("bips")
-      .select("id, slug, title, host_city, ects_credits, physical_start_date, physical_end_date, subject_areas, approved_at, host_university:universities!host_university_id(name, country)")
+      .select("id, slug, title, host_city, ects_credits, physical_start_date, physical_end_date, subject_areas, isced_codes, approved_at, host_university:universities!host_university_id(name, country)")
       .eq("status", "approved")
       .not("approved_at", "is", null)
       .order("approved_at", { ascending: false })
@@ -166,20 +174,30 @@ Deno.serve(async (req) => {
     const prefSummary = [...prefFields, ...prefCountries, ...prefIsced].join(", ") || "your alert preferences"
     const bipListHtml = toSend.map((b: any) => {
       const uni = b.host_university?.name ?? "Host university"
-      const city = b.host_city ? ` — ${escapeHtml(b.host_city)}` : ""
-      const dates = b.physical_start_date ? ` · ${escapeHtml(b.physical_start_date)}` : ""
-      return `<li style="margin:8px 0"><a href="${SITE_URL}/bip/${escapeHtml(b.slug)}" style="color:#003399;font-weight:600;text-decoration:none">${escapeHtml(b.title)}</a> — ${escapeHtml(uni)}${city}${dates} · ${b.ects_credits ?? ""} ECTS</li>`
+      const meta = [uni, b.host_city, b.ects_credits != null ? `${b.ects_credits} ECTS` : null]
+        .filter(Boolean)
+        .join(" · ")
+      return `<div style="border:1px solid #e4e7f0;border-radius:12px;padding:16px;margin-bottom:12px;"><a href="${SITE_URL}/bip/${escapeHtml(b.slug)}" style="font-size:16px;font-weight:600;color:#003399;text-decoration:none">${escapeHtml(b.title)}</a><p style="font-size:14px;color:#5b6478;line-height:1.6;margin:4px 0 0;">${escapeHtml(meta)}</p></div>`
     }).join("")
 
     const html = `
-      <div style="font-family: Inter, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background: #ffffff; color: #0a1735;">
-        <h1 style="font-size: 20px; font-weight: 700; color: #003399; margin: 0 0 8px;">New BIPs matching your alert</h1>
-        <p style="font-size: 14px; color: #555; margin: 0 0 16px;">You subscribed to ${escapeHtml(prefSummary)} — ${escapeHtml(sub.frequency)} digest.</p>
-        <ul style="padding-left: 20px; margin: 0 0 16px;">${bipListHtml}</ul>
-        <p style="font-size: 13px; color: #666; margin-top: 24px; border-top: 1px solid #eee; padding-top: 12px;">
-          <a href="${unsubscribeUrl}" style="color:#003399;">Unsubscribe from alerts</a> — or manage preferences in your <a href="${SITE_URL}/student-dashboard" style="color:#003399;">dashboard</a>.
-        </p>
-        <p style="font-size: 11px; color: #888; margin-top: 8px;">BipHub · Independent project — not affiliated with the European Commission</p>
+      <div style="background-color:#f7f8fc;font-family:Inter,Arial,sans-serif;margin:0;padding:32px 16px;">
+        <div style="max-width:600px;margin:0 auto;background-color:#ffffff;border:1px solid #e4e7f0;border-radius:12px;padding:32px;">
+          <p style="font-size:22px;font-weight:700;color:#003399;margin:0;">BipHub</p>
+          <p style="font-size:11px;color:#003399;text-transform:uppercase;letter-spacing:1px;margin-top:4px;">BIP ALERTS</p>
+          <div style="height:24px;">&nbsp;</div>
+          <h1 style="font-size:26px;font-weight:700;color:#0a1735;line-height:1.25;margin:0;">New BIPs matching your alert</h1>
+          <div style="height:24px;">&nbsp;</div>
+          <p style="font-size:14px;color:#5b6478;line-height:1.6;margin:0;">${escapeHtml(prefSummary)} — ${escapeHtml(sub.frequency)} digest.</p>
+          <div style="height:24px;">&nbsp;</div>
+          ${bipListHtml}
+          <div style="height:24px;">&nbsp;</div>
+          <a href="${SITE_URL}/bips" style="background-color:#003399;color:#ffffff;padding:12px 24px;border-radius:999px;font-size:14px;font-weight:600;text-decoration:none;display:inline-block;">Browse all BIPs &rarr;</a>
+          <div style="height:24px;">&nbsp;</div>
+          <p style="font-size:14px;color:#5b6478;line-height:1.6;"><a href="${unsubscribeUrl}" style="color:#003399;">Unsubscribe from this alert</a> — or manage all alerts in your <a href="${SITE_URL}/student-dashboard" style="color:#003399;">dashboard</a>.</p>
+          <hr style="border-top:1px solid #e4e7f0;margin:32px 0 16px 0;" />
+          <p style="font-size:12px;color:#5b6478;margin:0;">Independent project — not affiliated with the European Commission</p>
+        </div>
       </div>
     `
 

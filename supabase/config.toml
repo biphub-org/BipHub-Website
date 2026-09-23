@@ -417,7 +417,10 @@ s3_secret_key = "env(S3_SECRET_KEY)"
 
 [functions.send-bip-alerts]
 enabled = true
-verify_jwt = true
+# verify_jwt MUST stay false: pg_cron cannot sign a JWT, so the gateway
+# check would 401 every scheduled run. Authentication is the x-cron-secret
+# header gate inside the function (fail-closed when CRON_SECRET is set).
+verify_jwt = false
 import_map = "./functions/send-bip-alerts/deno.json"
 # Uncomment to specify a custom file path to the entrypoint.
 # Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
