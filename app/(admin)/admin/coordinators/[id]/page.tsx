@@ -4,6 +4,8 @@ import { ArrowLeft, Mail, Building2, Calendar, Layers, Hash } from 'lucide-react
 import { getAdminCoordinatorById } from '@/lib/queries/adminCoordinators'
 import { createClient } from '@/lib/supabase/server'
 import { AdminBipRow } from '@/components/admin/AdminBipRow'
+import { ActivityCard } from '@/components/history/ActivityCard'
+import { getUserActivityFeed } from '@/lib/queries/activityLog'
 import { RemoveUserSection } from '@/components/admin/RemoveUserSection'
 import { getAuthUserInfo } from '@/app/(admin)/admin/users/auth-users'
 import { resolveAdminUserDisplay } from '@/lib/auth/admin-user-display'
@@ -21,7 +23,10 @@ function formatDate(iso: string) {
 
 export default async function CoordinatorDetailPage(props: { params: Promise<{ id: string }> }) {
   const { id } = await props.params
-  const coordinator = await getAdminCoordinatorById(id)
+  const [coordinator, activity] = await Promise.all([
+    getAdminCoordinatorById(id),
+    getUserActivityFeed(id, 10),
+  ])
   if (!coordinator) notFound()
 
   const auth = await getAuthUserInfo(id)
@@ -159,6 +164,25 @@ export default async function CoordinatorDetailPage(props: { params: Promise<{ i
           ))}
         </div>
       )}
+
+      {/* Recent activity — immutable trail (history rows survive user deletion) */}
+      <div className="rounded-md border border-border bg-white p-6 mt-6">
+        <div className="mb-4 flex items-baseline justify-between">
+          <h2 className="text-base font-semibold text-ink">Recent activity</h2>
+          <Link href="/admin/history?tab=coordinators" className="text-sm text-eu-blue hover:underline">
+            Full coordinator log →
+          </Link>
+        </div>
+        {activity.length === 0 ? (
+          <p className="text-sm text-muted">No recorded activity yet.</p>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {activity.map((entry) => (
+              <ActivityCard key={entry.id} entry={entry} />
+            ))}
+          </div>
+        )}
+      </div>
 
       <div className="mt-6">
         <RemoveUserSection

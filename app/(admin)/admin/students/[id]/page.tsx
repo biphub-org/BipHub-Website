@@ -20,6 +20,8 @@ import { ISCED_FIELD_BY_ID } from '@/lib/isced'
 import { ISCED_CODES } from '@/lib/isced-codes'
 import { CountryFlag } from '@/components/ui/country-flag'
 import { RemoveUserSection } from '@/components/admin/RemoveUserSection'
+import { ActivityCard } from '@/components/history/ActivityCard'
+import { getUserActivityFeed } from '@/lib/queries/activityLog'
 import { getAuthUserInfo } from '@/app/(admin)/admin/users/auth-users'
 import { resolveAdminUserDisplay } from '@/lib/auth/admin-user-display'
 import { STATUS_BADGE_CLASSES, STATUS_LABELS, type BipStatus } from '@/lib/utils/status'
@@ -50,7 +52,10 @@ function isBipStatus(s: string): s is BipStatus {
 
 export default async function StudentDetailPage(props: { params: Promise<{ id: string }> }) {
   const { id } = await props.params
-  const student = await getAdminStudentById(id)
+  const [student, activity] = await Promise.all([
+    getAdminStudentById(id),
+    getUserActivityFeed(id, 10),
+  ])
   if (!student) notFound()
 
   const auth = await getAuthUserInfo(id)
@@ -237,6 +242,25 @@ export default async function StudentDetailPage(props: { params: Promise<{ id: s
                   <span className="shrink-0 text-xs text-muted">{bip.status}</span>
                 )}
               </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Recent activity — immutable trail (history rows survive user deletion) */}
+      <div className="rounded-md border border-border bg-white p-6 mt-6">
+        <div className="mb-4 flex items-baseline justify-between">
+          <h2 className="text-base font-semibold text-ink">Recent activity</h2>
+          <Link href="/admin/history?tab=students" className="text-sm text-eu-blue hover:underline">
+            Full student log →
+          </Link>
+        </div>
+        {activity.length === 0 ? (
+          <p className="text-sm text-muted">No recorded activity yet.</p>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {activity.map((entry) => (
+              <ActivityCard key={entry.id} entry={entry} />
             ))}
           </div>
         )}

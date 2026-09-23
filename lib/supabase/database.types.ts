@@ -34,6 +34,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          category: string
+          created_at: string
+          id: string
+          metadata: Json
+          target_email: string | null
+          target_name: string | null
+          target_user_id: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          category: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          target_email?: string | null
+          target_name?: string | null
+          target_user_id?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          category?: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          target_email?: string | null
+          target_name?: string | null
+          target_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_log_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_log_target_user_id_fkey"
+            columns: ["target_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admin_export_log: {
         Row: {
           admin_id: string | null
@@ -614,7 +665,7 @@ export type Database = {
       coordinator_profile_change_requests: {
         Row: {
           admin_note: string | null
-          coordinator_id: string
+          coordinator_id: string | null
           created_at: string
           id: string
           requested_contact_email: string
@@ -793,21 +844,21 @@ export type Database = {
           created_at: string
           id: string
           read_at: string | null
-          student_id: string
+          student_id: string | null
         }
         Insert: {
           changes?: Json
           created_at?: string
           id?: string
           read_at?: string | null
-          student_id: string
+          student_id: string | null
         }
         Update: {
           changes?: Json
           created_at?: string
           id?: string
           read_at?: string | null
-          student_id?: string
+          student_id?: string | null
         }
         Relationships: []
       }

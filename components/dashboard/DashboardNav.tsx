@@ -37,6 +37,12 @@ export function DashboardNav({ initials, fullName }: DashboardNavProps) {
           <Link href="/dashboard" className="text-sm text-muted hover:text-ink transition-colors">
             Dashboard
           </Link>
+          <span aria-hidden className="text-muted">
+            /
+          </span>
+          <Link href="/dashboard/history" className="text-sm text-muted hover:text-ink transition-colors">
+            History
+          </Link>
         </div>
         <div className="flex items-center gap-3">
           {fullName && (

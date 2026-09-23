@@ -6,6 +6,8 @@ import { BipHeader } from '@/components/bip/BipHeader'
 import { BipBody } from '@/components/bip/BipBody'
 import { BipSidebar } from '@/components/bip/BipSidebar'
 import { AdminActionsPanel } from '@/components/admin/AdminActionsPanel'
+import { BipTimeline } from '@/components/history/BipTimeline'
+import { getBipTimeline } from '@/lib/queries/statusHistory'
 import type { BipStatus } from '@/lib/utils/status'
 
 /**
@@ -48,10 +50,11 @@ export default async function ReviewBipPage(props: {
   params: Promise<{ id: string }>
 }) {
   const { id } = await props.params
-  const [bip, next, coordinator] = await Promise.all([
+  const [bip, next, coordinator, timeline] = await Promise.all([
     getAdminBipById(id),
     getNextPendingBip(id),
     getCoordinatorForBip(id),
+    getBipTimeline(id),
   ])
   if (!bip) notFound()
 
@@ -73,6 +76,18 @@ export default async function ReviewBipPage(props: {
         <div>
           <BipHeader bip={bip} />
           <BipBody bip={bip} />
+          <section aria-label="BIP history" className="mt-8">
+            <div className="mb-3 flex items-baseline justify-between">
+              <h2 className="text-base font-semibold text-ink">History</h2>
+              <Link
+                href={`/admin/bips/${bip.id}/history`}
+                className="text-sm text-eu-blue hover:underline"
+              >
+                Full timeline →
+              </Link>
+            </div>
+            <BipTimeline entries={timeline.slice(-5)} emptyText="No history yet." />
+          </section>
         </div>
         <div className="flex flex-col gap-4 sticky top-[88px] self-start">
           <BipSidebar bip={bip} mode="admin-review" />

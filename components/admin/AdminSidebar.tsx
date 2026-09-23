@@ -5,7 +5,7 @@
  *
  * Composition (desktop ≥ md):
  *   240px sticky left column. Logo + nav (Queue / All BIPs / My BIPs /
- *   Coordinators / Students / Analytics) + admin avatar/name/email + Sign out form.
+ *   Coordinators / Students / Analytics / History) + admin avatar/name/email + Sign out form.
  *   The Coordinators entry carries a gold count pill with the number of
  *   pending coordinator reviews (access + data-change requests; 0 hides
  *   the pill). The Students entry carries the same pill with the number
@@ -32,6 +32,7 @@ import {
   BarChart3,
   Users,
   GraduationCap,
+  History,
   LogOut,
   Menu,
 } from 'lucide-react'
@@ -62,6 +63,7 @@ export const NAV_ITEMS: ReadonlyArray<NavItem> = [
   { href: '/admin/coordinators', label: 'Coordinators', icon: Users },
   { href: '/admin/students', label: 'Students', icon: GraduationCap },
   { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
+  { href: '/admin/history', label: 'History', icon: History },
 ]
 
 const COORDINATORS_HREF = '/admin/coordinators'
