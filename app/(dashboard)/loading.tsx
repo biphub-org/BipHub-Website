@@ -3,39 +3,48 @@ import { Skeleton } from '@/components/ui/skeleton'
 /**
  * Route-group loading state for /dashboard.
  *
- * Without this file, Next.js shows the previous route until the new RSC
- * resolves — on Vercel cold-start that can be 1–2s of blank screen between
- * /login → /dashboard redirects.
+ * Neutral dashboard skeleton: page-header band (title + action pill,
+ * matching the dashboard pages' `border-b bg-white px-6 py-5` header) plus
+ * BIP-card rows (title + meta + badge/actions, matching DashboardBipCard).
  *
- * Renders a stationary skeleton matching the dashboard chrome so there is
- * no layout shift when the real content arrives.
+ * Deliberately NOT the builder form: the wizard skeleton lives in
+ * BuilderSkeleton and is scoped to the builder routes' own loading.tsx
+ * files, so refreshing history/settings/list pages never flashes a form.
+ * No nav placeholder either — (dashboard)/layout.tsx already renders
+ * DashboardNav above {children}; duplicating it here double-rendered the
+ * nav on every slow load.
  */
 export default function DashboardLoading() {
   return (
-    <div className="min-h-screen bg-bg-soft">
-      {/* DashboardNav placeholder */}
-      <div className="border-b border-border bg-white">
-        <div className="mx-auto flex h-[64px] max-w-[1200px] items-center justify-between px-4 md:px-6">
-          <Skeleton className="h-7 w-32" />
-          <Skeleton className="h-8 w-8 rounded-full" />
+    <div aria-label="Loading dashboard">
+      {/* Page-header band */}
+      <div className="flex items-center justify-between border-b border-border bg-white px-6 py-5 -mx-4 md:-mx-6">
+        <div>
+          <Skeleton className="h-6 w-40" />
+          <Skeleton className="h-4 w-28 mt-2" />
         </div>
+        <Skeleton className="h-10 w-32 rounded-full" />
       </div>
 
-      <main className="mx-auto max-w-[1200px] px-4 md:px-6">
-        <section className="bg-white rounded-md shadow-md p-10 max-w-[560px] mx-auto my-12">
-          <Skeleton className="h-7 w-56 mb-3" />
-          <Skeleton className="h-4 w-3/4 mb-8" />
-          <div className="space-y-5">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="space-y-2">
-                <Skeleton className="h-4 w-32" />
-                <Skeleton className="h-10 w-full" />
-              </div>
-            ))}
-            <Skeleton className="h-10 w-32" />
+      {/* BIP-card rows */}
+      <div className="mt-4 space-y-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div
+            key={i}
+            className="rounded-md border border-border bg-white p-5 flex flex-wrap items-start justify-between gap-3"
+          >
+            <div className="min-w-0 flex-1 space-y-2">
+              <Skeleton className="h-5 w-2/3" />
+              <Skeleton className="h-4 w-1/2" />
+              <Skeleton className="h-4 w-1/3" />
+            </div>
+            <div className="flex flex-col items-end gap-2">
+              <Skeleton className="h-6 w-20 rounded-full" />
+              <Skeleton className="h-8 w-24" />
+            </div>
           </div>
-        </section>
-      </main>
+        ))}
+      </div>
     </div>
   )
 }
