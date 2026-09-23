@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import {
   approveCoordinatorRequestAction,
   rejectCoordinatorRequestAction,
+  deleteCoordinatorRequestAction,
 } from '@/app/(admin)/admin/coordinators/requests/actions'
 import type { AdminCoordinatorRequest } from '@/lib/queries/adminCoordinatorRequests'
 
@@ -70,6 +71,25 @@ export function CoordinatorRequestCard({
     setError(null)
     startTransition(async () => {
       const result = await rejectCoordinatorRequestAction(request.id)
+      if (result?.error) {
+        setError(result.error)
+        return
+      }
+      router.refresh()
+    })
+  }
+
+  function handleDelete() {
+    if (
+      !window.confirm(
+        `Delete this decided request from ${request.email}? The audit history keeps the record.`,
+      )
+    ) {
+      return
+    }
+    setError(null)
+    startTransition(async () => {
+      const result = await deleteCoordinatorRequestAction(request.id)
       if (result?.error) {
         setError(result.error)
         return
@@ -149,6 +169,19 @@ export function CoordinatorRequestCard({
             onClick={handleReject}
           >
             Reject
+          </Button>
+        </div>
+      )}
+
+      {!isLive && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Button
+            type="button"
+            variant="destructive"
+            disabled={isPending}
+            onClick={handleDelete}
+          >
+            {isPending ? 'Working…' : 'Delete'}
           </Button>
         </div>
       )}

@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea'
 import {
   approveProfileChangeRequestAction,
   declineProfileChangeRequestAction,
+  deleteProfileChangeRequestAction,
 } from '@/app/(admin)/admin/coordinators/data-changes/actions'
 import type { AdminProfileChangeRequest } from '@/lib/queries/profileChangeRequests'
 
@@ -105,6 +106,25 @@ export function ProfileChangeRequestCard({
       return
     }
     run(declineProfileChangeRequestAction)
+  }
+
+  function handleDelete() {
+    if (
+      !window.confirm(
+        `Delete this decided data-change request? The audit history keeps the record.`,
+      )
+    ) {
+      return
+    }
+    setError(null)
+    startTransition(async () => {
+      const result = await deleteProfileChangeRequestAction(request.id)
+      if (result?.error) {
+        setError(result.error)
+        return
+      }
+      router.refresh()
+    })
   }
 
   return (
@@ -218,6 +238,19 @@ export function ProfileChangeRequestCard({
               Decline
             </Button>
           </div>
+        </div>
+      )}
+
+      {!isLive && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Button
+            type="button"
+            variant="destructive"
+            disabled={isPending}
+            onClick={handleDelete}
+          >
+            {isPending ? 'Working…' : 'Delete'}
+          </Button>
         </div>
       )}
     </article>

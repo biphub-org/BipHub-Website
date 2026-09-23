@@ -13,14 +13,17 @@
  * Auth: getClaims() + role=admin re-check (the (admin) layout already
  * guards; defence-in-depth per Phase 2 pattern).
  * Client: anon-key createClient — the admin JWT satisfies
- * cp_change_update_admin + profiles_update_own_or_admin, so no service-role
- * import is needed (CLAUDE.md never-do / eslint-enforced).
+ * cp_change_update_admin + profiles_update_own_or_admin. Only the delete
+ * action uses the service-role client (this file lives under app/(admin)/,
+ * so the eslint boundary allows it): no admin DELETE RLS policy exists on
+ * purpose, keeping the anon client to pending rows only.
  * Email: fire-and-forget try/catch per D-11 — a Resend outage must NOT roll
  * back the committed verdict.
  */
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { profileChangeReviewSchema } from '@/lib/schemas/coordinator-profile-change'
 import { sendEmail } from '@/lib/email/send'
 
@@ -190,5 +193,53 @@ export async function declineProfileChangeRequestAction(
     console.error('[declineProfileChange] email send failed (non-blocking):', err)
   }
 
+  return { success: true }
+}
+
+/**
+ * Delete a DECIDED data-change request (admin cleanup).
+ *
+ * Decided-only guard: pending rows are the live queue — Decline (which
+ * emails the coordinator the admin note) is the way to clear those, never
+ * silent deletion.
+ *
+ * Safe to delete: the verdict was already applied (approved) or recorded as
+ * no-op (declined), and the audit trail survives in activity_log snapshots
+ * + the admin history tabs.
+ */
+export async function deleteProfileChangeRequestAction(
+  requestId: string,
+): Promise<ReviewResult> {
+  const adminId = await requireAdminId()
+  if (!adminId) return { error: 'Forbidden.' }
+  if (!requestId) return { error: 'Missing request.' }
+
+  // Service-role delete (see module contract above): the row is re-read and
+  // must be decided — a forged pending id lands on the guard, never the
+  // delete.
+  const admin = createAdminClient()
+  const { data: req, error: fetchError } = await admin
+    .from('coordinator_profile_change_requests')
+    .select('id, status')
+    .eq('id', requestId)
+    .maybeSingle()
+  if (fetchError || !req) {
+    console.error('[deleteProfileChange] fetch error:', fetchError?.message)
+    return { error: 'Request not found.' }
+  }
+  if ((req as { status?: string }).status === 'pending') {
+    return { error: 'Only decided requests can be deleted. Decline it first to notify the coordinator.' }
+  }
+
+  const { error: deleteError } = await admin
+    .from('coordinator_profile_change_requests')
+    .delete()
+    .eq('id', requestId)
+  if (deleteError) {
+    console.error('[deleteProfileChange] delete error:', deleteError.message)
+    return { error: 'Failed to delete the request. Please try again.' }
+  }
+
+  revalidateInbox()
   return { success: true }
 }
