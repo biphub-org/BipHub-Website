@@ -278,6 +278,44 @@ export async function requestPasswordResetAction(
   return { success: true }
 }
 
+// AUTH-05a2: self-service reset link for a signed-in coordinator (settings
+// page). The recipient is fixed to the caller's own login email from claims
+// — no email input, so there is no enumeration oracle and no approval
+// request: a plain Supabase recovery link, same landing flow as AUTH-05a.
+//
+// Pause behaviour differs from the public form on purpose: the public form
+// must return fake success (T-02-02-05), but here the recipient is fixed to
+// self, so a paused sender returns an honest error instead of a link that
+// never arrives.
+export async function sendOwnPasswordResetAction(): Promise<{ error?: string; success?: true }> {
+  const supabase = await createClient()
+  const { data, error: authError } = await supabase.auth.getClaims()
+  const loginEmail =
+    !authError && data?.claims && typeof data.claims.email === 'string'
+      ? data.claims.email
+      : null
+  if (!loginEmail) {
+    return { error: 'Your session has expired. Please sign in again.' }
+  }
+
+  if (process.env.EMAIL_SENDING_ENABLED !== 'true') {
+    console.log('[EMAIL PAUSED] skipping self-service password reset for', loginEmail)
+    return {
+      error:
+        'Password-reset emails are temporarily paused while we set up our email. Please try again later or contact us.',
+    }
+  }
+
+  const { error } = await supabase.auth.resetPasswordForEmail(loginEmail, {
+    redirectTo: `${SITE_URL}/auth/callback?type=recovery`,
+  })
+  if (error) {
+    console.error('[sendOwnPasswordResetAction] supabase error:', error.message)
+    return { error: "We couldn't send the reset email right now. Please try again." }
+  }
+  return { success: true }
+}
+
 // AUTH-05b: update the password after the recovery callback set the session cookie.
 // getClaims() validates we still have a valid recovery session before updating.
 export async function updatePasswordAction(

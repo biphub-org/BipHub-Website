@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { DeleteAccountDialog } from '@/components/dashboard/DeleteAccountDialog'
+import { CoordinatorPasswordSection } from '@/components/dashboard/CoordinatorPasswordSection'
 import { CoordinatorDataChangeForm } from '@/components/dashboard/CoordinatorDataChangeForm'
 import { PendingProfileChangeCard } from '@/components/dashboard/PendingProfileChangeCard'
 import { getMyProfileChangeRequests } from '@/lib/queries/profileChangeRequests'
@@ -14,6 +15,9 @@ import { searchUniversitiesAction } from '@/lib/actions/universities'
  *     profile directly — the form files a row in
  *     `coordinator_profile_change_requests` (migration 00059) and an admin
  *     approves or declines it from /admin/coordinators/data-changes.
+ *   - Password section: self-service reset link emailed to the
+ *     coordinator's own login address (AUTH-05a2). No approval request —
+ *     a plain Supabase recovery link.
  *   - Danger zone: account deletion (FOUN-07 / D-07).
  *
  * The (dashboard) layout already gates this route with getClaims() +
@@ -141,6 +145,18 @@ export default async function SettingsPage() {
               </div>
             </>
           )}
+        </div>
+      </section>
+
+      <section
+        aria-labelledby="password-heading"
+        className="mt-6 rounded-lg border border-border bg-white p-6"
+      >
+        <h2 id="password-heading" className="text-lg font-semibold text-ink">
+          Password
+        </h2>
+        <div className="mt-4">
+          <CoordinatorPasswordSection accountEmail={accountEmail} />
         </div>
       </section>
 
